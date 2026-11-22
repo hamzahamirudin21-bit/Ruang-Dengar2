@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "characters": {
+    "dosen": {
+      "portrait": "dosen-portrait.png",
+      "sprite": "dosen-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-01": {
+      "portrait": "mhs-01-portrait.png",
+      "sprite": "mhs-01-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-02": {
+      "portrait": "mhs-02-portrait.png",
+      "sprite": "mhs-02-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-03": {
+      "portrait": "mhs-03-portrait.png",
+      "sprite": "mhs-03-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-04": {
+      "portrait": "mhs-04-portrait.png",
+      "sprite": "mhs-04-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-05": {
+      "portrait": "mhs-05-portrait.png",
+      "sprite": "mhs-05-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-06": {
+      "portrait": "mhs-06-portrait.png",
+      "sprite": "mhs-06-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-07": {
+      "portrait": "mhs-07-portrait.png",
+      "sprite": "mhs-07-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-08": {
+      "portrait": "mhs-08-portrait.png",
+      "sprite": "mhs-08-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-09": {
+      "portrait": "mhs-09-portrait.png",
+      "sprite": "mhs-09-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-10": {
+      "portrait": "mhs-10-portrait.png",
+      "sprite": "mhs-10-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-11": {
+      "portrait": "mhs-11-portrait.png",
+      "sprite": "mhs-11-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-12": {
+      "portrait": "mhs-12-portrait.png",
+      "sprite": "mhs-12-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-13": {
+      "portrait": "mhs-13-portrait.png",
+      "sprite": "mhs-13-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-14": {
+      "portrait": "mhs-14-portrait.png",
+      "sprite": "mhs-14-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-15": {
+      "portrait": "mhs-15-portrait.png",
+      "sprite": "mhs-15-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    }
+  }
+}

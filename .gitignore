@@ -1,0 +1,14 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+.aistudio/
+.kiro/
+.vercel/
+ruang-dengar.zip
+dbg09.ts
+dbg2.ts

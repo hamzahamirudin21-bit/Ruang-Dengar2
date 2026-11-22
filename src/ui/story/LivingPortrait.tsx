@@ -1,0 +1,276 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
+import { STRINGS } from '../../data/strings';
+import type { StoryExpression } from '../../engine/story/storyTypes';
+import type { AgentDemographicLabel } from '../../types';
+import { portraitAltText } from '../characters/altText';
+import {
+  assetUrl,
+  loadManifest,
+  preloadImage,
+  resolvePortraitSource,
+  transformForExpression,
+  type AssetManifest,
+} from '../characters/assetSlots';
+import { DOSEN_ID } from '../characters/dosenLook';
+import {
+  drawIllustratedPortrait,
+  ILLUSTRATED_H,
+  ILLUSTRATED_W,
+  type PortraitFacing,
+} from '../characters/illustratedPortrait';
+import { PixelPortrait } from '../characters/PixelPortrait';
+import { FrameCache, frameKey } from '../characters/portraitFrameCache';
+import { PORTRAIT_H, PORTRAIT_W } from '../characters/portraitExpressions';
+import { useAnimationClock, useReducedMotion } from '../motion/useMotion';
+import { portraitPose, speakerBrightness, speakerScale } from './portraitAnimation';
+
+export interface LivingPortraitProps {
+  /** `dosen` atau id mahasiswa. */
+  studentId: string;
+  name?: string;
+  expression: StoryExpression;
+  demographicLabel?: Pick<AgentDemographicLabel, 'avatarHue' | 'hairStyle'>;
+  reducedMotion: boolean;
+  isSpeaker: boolean;
+  isTyping: boolean;
+  msSinceSpeakerChange: number;
+  /** Skala tampil relatif terhadap 80×96; boleh diisi bebas atau mengikuti CSS kontainer. */
+  scale: number;
+  /** Arah hadap 3/4 karakter di panggung VN. */
+  facing?: PortraitFacing;
+  /** True bila ukuran diatur oleh kontainer responsif (.vn-char). */
+  fluid?: boolean;
+  className?: string;
+}
+
+type Surface = HTMLCanvasElement;
+
+const frames = new FrameCache<Surface | null>();
+
+let sharedManifestPromise: Promise<AssetManifest | null> | null = null;
+const loadedAssetUrls = new Set<string>();
+
+function getSharedManifest(): Promise<AssetManifest | null> {
+  if (!sharedManifestPromise) sharedManifestPromise = loadManifest();
+  return sharedManifestPromise;
+}
+
+function usePortraitAsset(studentId: string, expression: StoryExpression) {
+  const [state, setState] = useState<{ manifest: AssetManifest | null; version: number }>({
+    manifest: null,
+    version: 0,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    void getSharedManifest().then(async (manifest) => {
+      const entry = manifest?.characters[studentId];
+      if (!manifest || !entry) return;
+      const names = [entry.portrait, ...Object.values(entry.expressions ?? {})].filter(
+        (n): n is string => typeof n === 'string',
+      );
+      const urls = names.map(assetUrl);
+      const pending = urls.filter((u) => !loadedAssetUrls.has(u));
+      if (pending.length > 0) {
+        const results = await Promise.all(pending.map((u) => preloadImage(u)));
+        pending.forEach((u, i) => {
+          if (results[i]) loadedAssetUrls.add(u);
+        });
+      }
+      if (cancelled) return;
+      setState((prev) => ({ manifest, version: prev.version + 1 }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [studentId]);
+
+  return useMemo(
+    () => resolvePortraitSource(studentId, expression, state.manifest, loadedAssetUrls),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [studentId, expression, state.manifest, state.version],
+  );
+}
+
+function createSurface(w: number, h: number): Surface | null {
+  try {
+    if (typeof document === 'undefined') return null;
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    return c.getContext('2d') ? c : null;
+  } catch {
+    return null;
+  }
+}
+
+function renderFrame(
+  look: { id: string; fallback?: Pick<AgentDemographicLabel, 'avatarHue' | 'hairStyle'> },
+  expression: StoryExpression,
+  eyesClosed: boolean,
+  mouth: 'tutup' | 'setengah' | 'buka',
+  facing: PortraitFacing,
+): Surface | null {
+  const surface = createSurface(ILLUSTRATED_W, ILLUSTRATED_H);
+  const ctx = surface?.getContext('2d');
+  if (!surface || !ctx) return null;
+  drawIllustratedPortrait(ctx, {
+    id: look.id,
+    expression,
+    eyesClosed,
+    mouth,
+    facing,
+    fallback: look.fallback,
+  });
+  return surface;
+}
+
+export function LivingPortrait({
+  studentId,
+  name,
+  expression,
+  demographicLabel,
+  reducedMotion,
+  isSpeaker,
+  isTyping,
+  msSinceSpeakerChange,
+  scale,
+  facing = 'depan',
+  fluid = false,
+  className,
+}: LivingPortraitProps) {
+  const hookReduced = useReducedMotion();
+  const reduced = reducedMotion || hookReduced;
+  const timeMs = useAnimationClock(!reduced);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const s = Math.max(1, Math.floor(Number.isFinite(scale) ? scale : 1));
+  const pose = portraitPose({
+    timeMs,
+    seedId: studentId,
+    isSpeaker,
+    isTyping,
+    msSinceSpeakerChange,
+    reduced,
+  });
+
+  const look = useMemo(
+    () => ({ id: studentId, fallback: demographicLabel }),
+    [studentId, demographicLabel],
+  );
+  const assetSource = usePortraitAsset(studentId, expression);
+  const key = `${frameKey(studentId, expression, pose.eyesClosed, pose.mouth)}|${facing}`;
+  const frame = useMemo(
+    () => (assetSource.kind === 'aset' ? null : frames.get(key, () => renderFrame(look, expression, pose.eyesClosed, pose.mouth, facing))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [key, look, assetSource.kind],
+  );
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx || !frame) return;
+    ctx.imageSmoothingEnabled = true;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(frame, 0, 0);
+  }, [frame]);
+
+  const label =
+    studentId === DOSEN_ID
+      ? STRINGS.story.portraitCounselorAlt
+      : portraitAltText(name?.trim() || 'mahasiswa');
+
+  const width = PORTRAIT_W * s;
+  const height = PORTRAIT_H * s;
+  const sizeScale = speakerScale(isSpeaker);
+  const bright = reduced ? speakerBrightness(isSpeaker) : pose.brightness;
+
+  if (assetSource.kind === 'aset') {
+    const expr = assetSource.specificExpression ? null : transformForExpression(expression);
+    const speakPulse = !reduced && isSpeaker && isTyping ? Math.sin(timeMs * 0.022) * 1.6 : 0;
+    const totalBright = bright * (expr ? expr.brightness : 1);
+    const exprDy = expr && !reduced ? expr.dyPercent * 1.4 : 0;
+    const exprRot = expr && !reduced ? expr.rotateDeg * 0.55 : 0;
+    const spriteStyle: CSSProperties = {
+      display: fluid ? 'flex' : 'inline-block',
+      alignItems: fluid ? 'flex-end' : undefined,
+      justifyContent: fluid ? 'center' : undefined,
+      lineHeight: 0,
+      width: fluid ? '100%' : width,
+      height: fluid ? '100%' : height,
+      transformOrigin: 'bottom center',
+      transform: `translateY(${pose.breathDy * (fluid ? 2.4 : s) + exprDy + speakPulse}px) rotate(${exprRot}deg) scale(${pose.scaleX * sizeScale}, ${pose.scaleY * sizeScale})`,
+      filter: `brightness(${totalBright})`,
+      transition: reduced ? 'none' : 'filter 240ms ease, transform 220ms ease',
+      willChange: reduced ? undefined : 'transform',
+    };
+
+    return (
+      <div
+        className={className}
+        style={spriteStyle}
+        data-speaker={isSpeaker ? 'true' : undefined}
+        data-expression={expression}
+      >
+        <img
+          src={assetSource.url}
+          alt={label}
+          role="img"
+          aria-label={label}
+          className="vn-sprite-img"
+          draggable={false}
+        />
+      </div>
+    );
+  }
+
+  if (!frame) {
+    return (
+      <PixelPortrait
+        studentId={studentId}
+        name={name?.trim() || 'mahasiswa'}
+        expression={expression}
+        scale={s}
+        reducedMotion={reduced}
+        demographicLabel={demographicLabel}
+        className={className}
+      />
+    );
+  }
+
+  const style: CSSProperties = {
+    display: fluid ? 'flex' : 'inline-block',
+    alignItems: fluid ? 'flex-end' : undefined,
+    justifyContent: fluid ? 'center' : undefined,
+    lineHeight: 0,
+    width: fluid ? '100%' : width,
+    height: fluid ? '100%' : height,
+    transformOrigin: 'bottom center',
+    transform: `translateY(${pose.breathDy * (fluid ? 2.5 : s)}px) scale(${pose.scaleX * sizeScale}, ${pose.scaleY * sizeScale})`,
+    filter: `brightness(${bright})`,
+    transition: reduced ? 'none' : 'filter 240ms ease, transform 220ms ease',
+    willChange: reduced ? undefined : 'transform',
+  };
+
+  return (
+    <div style={style} data-speaker={isSpeaker ? 'true' : undefined}>
+      <canvas
+        ref={canvasRef}
+        role="img"
+        aria-label={label}
+        width={ILLUSTRATED_W}
+        height={ILLUSTRATED_H}
+        className={className}
+        style={
+          fluid
+            ? { width: '100%', height: '100%', objectFit: 'contain' }
+            : { width, height }
+        }
+        data-expression={expression}
+      />
+    </div>
+  );
+}
+
+export default LivingPortrait;

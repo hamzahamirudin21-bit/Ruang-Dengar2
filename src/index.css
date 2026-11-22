@@ -1,0 +1,2325 @@
+@import "tailwindcss";
+
+:root {
+  /* Palet UI utama (60-30-10 netral kalem & aksen terfokus) */
+  --ui-bg: #f4f6f8;
+  --ui-surface: #ffffff;
+  --ui-surface-muted: #edf1f5;
+  --ui-border: #d5dde6;
+  --ui-text: #1e293b;
+  --ui-text-muted: #526072;
+  --ui-accent: #1d5d7a;
+  --ui-accent-hover: #164860;
+  --ui-accent-soft: #e4f0f6;
+  --ui-warning-bg: #fef7e6;
+  --ui-warning-border: #e7c87a;
+  --ui-warning-text: #6e4e08;
+  --ui-danger: #b42318;
+  --ui-success: #166534;
+
+  /* Palet kanvas dunia 2D laboratorium (kalem, kontras terbaca) */
+  --lab-void: #e6ebf0;
+  --lab-floor: #f8fafb;
+  --lab-corridor: #eef2f6;
+  --lab-grid: #dce3ec;
+  --lab-wall: #334155;
+  --lab-wall-top: #475569;
+  --lab-door-visible: #b45309;
+  --lab-door-side: #0f766e;
+  --lab-furniture: #cbd5e1;
+  --lab-furniture-stroke: #64748b;
+  --lab-slot: #94a3b8;
+  --lab-k3-yellow: #eab308;
+  --lab-k3-dark: #334155;
+  --lab-label-bg: rgba(255, 255, 255, 0.92);
+  --lab-label-text: #1e293b;
+  --lab-path: #0284c7;
+  --lab-agent-test: #0f766e;
+
+  /* Warna zona lembut */
+  --zone-cetak-3d: #e8f1f8;
+  --zone-pemrograman: #eaf4f2;
+  --zone-las: #f7efe6;
+  --zone-elektronik: #eef2f9;
+  --zone-diskusi: #f1f5ec;
+  --zone-gudang: #eceff3;
+  --zone-istirahat: #f6eff2;
+  --zone-konsultasi: #e9f3f1;
+  --zone-dosen: #efeff6;
+
+  /* Skala font aksesibilitas */
+  --font-scale: 1;
+}
+
+html[data-text-size="normal"] {
+  font-size: 16px;
+}
+
+html[data-text-size="large"] {
+  font-size: 18px;
+}
+
+html[data-text-size="xlarge"] {
+  font-size: 20px;
+}
+
+body {
+  margin: 0;
+  background-color: var(--ui-bg);
+  color: var(--ui-text);
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.font-mono-data {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fokus keyboard jelas untuk aksesibilitas */
+:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+}
+
+/* Opsi kurangi gerak (pengguna atau preferensi sistem) */
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * Stylesheet cetak Debrief (spec supervisor-debrief-dashboard, tugas 7.4, R14.2).
+ *
+ * Atribut yang dipakai oleh Debrief.tsx:
+ *   [data-debrief-root]  : kontainer terluar konten Debrief. Hanya elemen ini
+ *                          dan turunannya yang tampil saat dicetak.
+ *   [data-print-hide]    : tombol dan kontrol navigasi; disembunyikan saat cetak.
+ *   [data-debrief-section] (opsional) : blok bagian yang tidak boleh terpotong
+ *                          antar halaman. <section>, <figure>, <table>, <li>
+ *                          di dalam root juga dilindungi.
+ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
+  /* Sembunyikan semuanya, lalu tampilkan hanya konten Debrief. */
+  body * {
+    visibility: hidden !important;
+  }
+
+  [data-debrief-root],
+  [data-debrief-root] * {
+    visibility: visible !important;
+  }
+
+  [data-debrief-root] {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: 180mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+    box-shadow: none !important;
+  }
+
+  /* Kontrol tidak ikut tercetak dan tidak memakan ruang. */
+  [data-print-hide],
+  [data-print-hide] * {
+    display: none !important;
+  }
+
+  /* Latar putih dan teks gelap agar terbaca di kertas. */
+  html,
+  body,
+  [data-debrief-root],
+  [data-debrief-root] * {
+    background: #ffffff !important;
+    color: #111111 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  [data-debrief-root] {
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+
+  /* Pertahankan warna garis dan isi grafik SVG. */
+  [data-debrief-root] svg,
+  [data-debrief-root] svg * {
+    background: transparent !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  [data-debrief-root] svg text {
+    fill: #111111 !important;
+  }
+
+  [data-debrief-root] [data-debrief-section],
+  [data-debrief-root] section,
+  [data-debrief-root] figure,
+  [data-debrief-root] table,
+  [data-debrief-root] li,
+  [data-debrief-root] svg {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  [data-debrief-root] h1,
+  [data-debrief-root] h2,
+  [data-debrief-root] h3 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  [data-debrief-root] a {
+    text-decoration: underline;
+  }
+}
+
+/* ===== Tema UI bergaya game (navy-krem). Token --ui-* di atas tidak diubah. ===== */
+:root {
+  --vn-navy: #1b2a49;
+  --vn-navy-deep: #12203a;
+  --vn-cream: #f6efe0;
+  --vn-cream-deep: #e9dfc6;
+  --vn-gold: #d9a441;
+  --vn-ink: #1e293b;
+  --vn-ink-muted: #475569;
+  --vn-panel-bg: rgba(246,239,224,0.92);
+  --vn-frame: #1b2a49;
+  --vn-accent: #1d5d7a;
+  --vn-danger: #b42318;
+}
+
+.game-frame {
+  background: var(--vn-panel-bg);
+  color: var(--vn-ink);
+  border: 2px solid var(--vn-frame);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 2px var(--vn-cream-deep), 0 2px 0 var(--vn-navy-deep);
+}
+
+.game-btn {
+  background: var(--vn-navy);
+  color: var(--vn-cream);
+  border: 2px solid var(--vn-navy-deep);
+  border-radius: 6px;
+  padding: 0.25rem 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 0 var(--vn-navy-deep);
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+
+.game-btn:hover:not(:disabled) {
+  background: var(--vn-accent);
+}
+
+.game-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.game-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.game-tab {
+  background: var(--vn-cream-deep);
+  color: var(--vn-ink);
+  border: 2px solid var(--vn-frame);
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  padding: 0.25rem 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.game-tab[aria-selected="true"],
+.game-tab[aria-pressed="true"] {
+  background: var(--vn-navy);
+  color: var(--vn-cream);
+}
+
+.game-plate {
+  display: inline-block;
+  background: var(--vn-navy);
+  color: var(--vn-cream);
+  border: 2px solid var(--vn-gold);
+  border-radius: 4px;
+  padding: 0.125rem 0.625rem;
+  font-weight: 700;
+}
+
+/* Penanda gerak-dikurangi: meniadakan transisi pada elemen bertema game. */
+html[data-reduced-motion="true"] .game-btn,
+html[data-reduced-motion="true"] .game-tab,
+.reduced-motion .game-btn,
+.reduced-motion .game-tab,
+.reduced-motion .game-frame,
+.reduced-motion .game-plate {
+  transition: none !important;
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-btn,
+  .game-tab,
+  .game-frame,
+  .game-plate {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ===== Sistem desain Batik-Blueprint Atelier (Anime Kampus Vokasi Nusantara — handcrafted & orisinal).
+   Token --game-* lama dipertahankan untuk kompatibilitas pengujian palet; komponen .game-* memakai gaya orisinal berkarakter. */
+:root {
+  --game-wood-dark: #4a2c17;
+  --game-wood: #8a5a2b;
+  --game-wood-light: #b8803f;
+  --game-cream-paper: #fbf1d9;
+  --game-cream-edge: #e8d5a5;
+  --game-red-banner: #b3261e;
+  --game-red-deep: #7f1913;
+  --game-navy: #1b2a49;
+  --game-gold: #f2b632;
+  --game-white: #ffffff;
+  --game-ink: #2a1a0e;
+  --game-ink-muted: #5a4636;
+  --game-outline-width: 3px;
+  --game-radius: 18px;
+  --game-shadow-press: 6px;
+  --atelier-ink: #0f1b33;
+  --atelier-navy: #162544;
+  --atelier-navy-deep: #0e192f;
+  --atelier-teal: #15667f;
+  --atelier-teal-bright: #1f87a3;
+  --atelier-gold: #e5ac3f;
+  --atelier-gold-light: #fbe09c;
+  --atelier-cream: #faf4e6;
+  --atelier-cream-deep: #efe4cc;
+  --atelier-batik: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg fill='none' stroke='%23e5ac3f' stroke-opacity='0.08' stroke-width='1'%3E%3Cpath d='M16 0L32 16L16 32L0 16Z'/%3E%3Ccircle cx='16' cy='16' r='4'/%3E%3Ccircle cx='0' cy='0' r='4'/%3E%3Ccircle cx='32' cy='0' r='4'/%3E%3Ccircle cx='0' cy='32' r='4'/%3E%3Ccircle cx='32' cy='32' r='4'/%3E%3C/g%3E%3C/svg%3E");
+  --atelier-blueprint: radial-gradient(rgba(22, 37, 68, 0.08) 1px, transparent 1px);
+}
+
+/* Panel taktis berkarakter: bingkai tinta tegas, motif Batik Kawung samar / kertas teknis vokasi, bayangan cetak game. */
+.game-panel-wood,
+.game-panel-cream,
+.game-panel-navy {
+  position: relative;
+  border: 2px solid var(--atelier-ink);
+  border-radius: 8px 16px 8px 16px;
+  box-shadow: 0 4px 0 rgba(15, 27, 51, 0.22);
+}
+
+.game-panel-wood {
+  color: #f9f4e8;
+  background-color: var(--atelier-navy);
+  background-image:
+    var(--atelier-batik),
+    linear-gradient(180deg, #1a2d52 0%, #111d36 100%);
+  border-color: var(--atelier-ink);
+  border-bottom: 2.5px solid var(--atelier-gold);
+  box-shadow:
+    inset 0 1px 0 rgba(251, 224, 156, 0.16),
+    0 5px 18px rgba(8, 14, 28, 0.28);
+}
+
+.game-panel-cream {
+  color: var(--atelier-ink);
+  background-color: var(--atelier-cream);
+  background-image:
+    var(--atelier-blueprint),
+    linear-gradient(180deg, #fdfaf2 0%, #f3ead6 100%);
+  background-size: 18px 18px, 100% 100%;
+  border-color: rgba(15, 27, 51, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 4px 0 rgba(15, 27, 51, 0.12);
+}
+
+.game-panel-navy {
+  color: #fbf6eb;
+  background-color: var(--atelier-navy);
+  background-image:
+    var(--atelier-batik),
+    linear-gradient(145deg, #1d3460 0%, #101c36 100%);
+  border-color: var(--atelier-gold);
+  box-shadow:
+    inset 0 1px 0 rgba(251, 224, 156, 0.2),
+    0 4px 0 #0a1224;
+}
+
+/* Siku kuningan arsitektural di keempat sudut (menggantikan paku kartun & kotak polos). */
+.game-nails::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--atelier-gold), var(--atelier-gold)) top left / 12px 2px no-repeat,
+    linear-gradient(var(--atelier-gold), var(--atelier-gold)) top left / 2px 12px no-repeat,
+    linear-gradient(var(--atelier-gold), var(--atelier-gold)) top right / 12px 2px no-repeat,
+    linear-gradient(var(--atelier-gold), var(--atelier-gold)) top right / 2px 12px no-repeat,
+    linear-gradient(var(--atelier-gold), var(--atelier-gold)) bottom left / 12px 2px no-repeat,
+    linear-gradient(var(--atelier-gold), var(--atelier-gold)) bottom left / 2px 12px no-repeat,
+    linear-gradient(var(--atelier-gold), var(--atelier-gold)) bottom right / 12px 2px no-repeat,
+    linear-gradient(var(--atelier-gold), var(--atelier-gold)) bottom right / 2px 12px no-repeat;
+  opacity: 0.62;
+}
+
+/* Tombol game taktil berpotongan sudut & bibir 3D cetak (bukan pil web datar biasa). */
+.game-btn-primary,
+.game-btn-secondary,
+.game-btn-round {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.48rem;
+  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+  cursor: pointer;
+  border: 2px solid var(--atelier-ink);
+  transition: transform 110ms ease, box-shadow 110ms ease, background-color 140ms ease, filter 140ms ease;
+}
+
+.game-btn-primary {
+  min-height: 2.35rem;
+  padding: 0.42rem 1.25rem;
+  border-radius: 5px 14px 5px 14px;
+  color: #fffaf0;
+  background: linear-gradient(180deg, #1f7b96 0%, #15556e 100%);
+  border-color: var(--atelier-ink);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 3px 0 var(--atelier-ink);
+}
+
+.game-btn-secondary {
+  min-height: 2.2rem;
+  padding: 0.36rem 1.05rem;
+  border-radius: 5px 12px 5px 12px;
+  color: var(--atelier-ink);
+  background: linear-gradient(180deg, #fffdf8 0%, #efe5cf 100%);
+  border-color: var(--atelier-ink);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 3px 0 rgba(15, 27, 51, 0.78);
+}
+
+.game-btn-secondary[aria-pressed="true"] {
+  color: #fffaf0;
+  background: linear-gradient(180deg, #1e3b68 0%, #13274a 100%);
+  border-color: var(--atelier-gold);
+  box-shadow:
+    inset 0 1px 0 rgba(251, 224, 156, 0.32),
+    0 3px 0 #091122;
+}
+
+/* Tombol instrumen berpotongan sudut oktagonal/chamfer khas konsol & game taktis. */
+.game-btn-round {
+  width: 2.35rem;
+  height: 2.35rem;
+  padding: 0;
+  border-radius: 9px 4px 9px 4px;
+  color: #f6efe0;
+  background: linear-gradient(180deg, #253b66 0%, #162544 100%);
+  border-color: rgba(251, 224, 156, 0.38);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 3px 0 #0a1224;
+}
+
+.game-btn-primary:hover:not(:disabled),
+.game-btn-secondary:hover:not(:disabled),
+.game-btn-round:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+.game-btn-primary:hover:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 4px 0 var(--atelier-ink),
+    0 0 0 2px rgba(229, 172, 63, 0.55);
+}
+.game-btn-round:hover:not(:disabled) {
+  border-color: var(--atelier-gold);
+  background: linear-gradient(180deg, #2d497e 0%, #1a2d54 100%);
+}
+
+.game-btn-primary:active:not(:disabled),
+.game-btn-secondary:active:not(:disabled),
+.game-btn-round:active:not(:disabled) {
+  filter: none;
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--atelier-ink);
+}
+
+.game-btn-round[aria-pressed="true"] {
+  color: var(--atelier-ink);
+  background: linear-gradient(180deg, #fde29b 0%, #e0a534 100%);
+  border-color: var(--atelier-ink);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 3px 0 #0a1224;
+}
+
+.game-btn-primary:disabled,
+.game-btn-secondary:disabled,
+.game-btn-round:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+/* Cincin fokus berkontras tinggi. */
+.game-btn-primary:focus-visible,
+.game-btn-secondary:focus-visible,
+.game-btn-round:focus-visible,
+.game-tab-ribbon:focus-visible {
+  outline: 2.5px solid var(--game-gold);
+  outline-offset: 2px;
+}
+
+/* Lencana HUD kartu-identitas kampus (berpotongan sudut, bukan pil biasa). */
+.game-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2rem;
+  padding: 0.14rem 0.78rem 0.14rem 0.42rem;
+  border-radius: 4px 12px 4px 12px;
+  color: #f8f5ee;
+  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: linear-gradient(180deg, #22355c 0%, #162440 100%);
+  border: 2px solid var(--atelier-ink);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 2px 0 #080f1e;
+}
+
+/* Meter instrumen tersegmentasi dengan garis skala & kilau aktif. */
+.game-meter {
+  position: relative;
+  display: block;
+  height: 0.72rem;
+  overflow: hidden;
+  border-radius: 4px 8px 4px 8px;
+  border: 1.5px solid var(--atelier-ink);
+  background: #101b30;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.42);
+}
+
+.game-meter::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 18%,
+    rgba(15, 27, 51, 0.32) 18%,
+    rgba(15, 27, 51, 0.32) 20%
+  );
+}
+
+.game-meter > [data-meter-fill] {
+  display: block;
+  height: 100%;
+  border-radius: 2px 6px 2px 6px;
+  background: linear-gradient(180deg, #f8d984 0%, #de9e2f 55%, #c5841d 100%);
+  transition: width 240ms ease;
+}
+
+.game-meter[data-tone="rendah"] > [data-meter-fill] {
+  background: linear-gradient(180deg, #f47a86 0%, #cf3749 55%, #a82233 100%);
+}
+
+.game-meter[data-tone="tinggi"] > [data-meter-fill] {
+  background: linear-gradient(180deg, #5fd8b1 0%, #1f9b79 55%, #15775d 100%);
+}
+
+/* Spanduk jajar-genjang berkarakter anime game (bukan pil oval datar). */
+.game-ribbon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.34rem 1.35rem;
+  color: #fff9ec;
+  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  text-align: center;
+  background-color: #182b4d;
+  background-image:
+    var(--atelier-batik),
+    linear-gradient(135deg, #1b3661 0%, #155873 100%);
+  border: 2px solid var(--atelier-ink);
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  box-shadow: inset 0 2px 0 rgba(251, 224, 156, 0.35);
+}
+
+.game-ribbon::before,
+.game-ribbon::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  transform: rotate(45deg);
+  background: var(--atelier-gold-light);
+  box-shadow: 0 0 0 1px var(--atelier-ink);
+}
+
+/* Tab indeks map berkas konselor (folder tab fisik bertulang warna). */
+.game-tab-ribbon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.48rem 0.55rem;
+  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #3f4f6b;
+  background: linear-gradient(180deg, #ece1ca 0%, #e1d4b8 100%);
+  border: 1.5px solid rgba(15, 27, 51, 0.28);
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  transition: transform 130ms ease, background-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+.game-tab-ribbon:hover {
+  color: var(--atelier-ink);
+  background: linear-gradient(180deg, #f8f0df 0%, #ede1c8 100%);
+  transform: translateY(-1px);
+}
+
+.game-tab-ribbon[aria-selected="true"],
+.game-tab-ribbon[aria-pressed="true"] {
+  color: #fffaf0;
+  background: linear-gradient(180deg, #1d3560 0%, #142341 100%);
+  border-color: var(--atelier-ink);
+  box-shadow:
+    inset 0 3px 0 var(--atelier-gold),
+    0 -2px 8px rgba(15, 27, 51, 0.14);
+  transform: translateY(-2px);
+}
+
+/* Gerak-dikurangi untuk kelas game baru. */
+html[data-reduced-motion="true"] .game-btn-primary,
+html[data-reduced-motion="true"] .game-btn-secondary,
+html[data-reduced-motion="true"] .game-btn-round,
+html[data-reduced-motion="true"] .game-tab-ribbon,
+html[data-reduced-motion="true"] .game-meter > [data-meter-fill],
+.reduced-motion .game-btn-primary,
+.reduced-motion .game-btn-secondary,
+.reduced-motion .game-btn-round,
+.reduced-motion .game-tab-ribbon,
+.reduced-motion .game-meter > [data-meter-fill] {
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-btn-primary,
+  .game-btn-secondary,
+  .game-btn-round,
+  .game-tab-ribbon,
+  .game-meter > [data-meter-fill] {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* ===== Nada semantik Batik-Blueprint Atelier untuk .game-badge dan .game-ribbon ===== */
+.game-badge[data-tone="krem"] {
+  color: var(--atelier-ink);
+  background: linear-gradient(180deg, #fffdf8 0%, #f1e6ce 100%);
+  border-color: var(--atelier-ink);
+}
+.game-badge[data-tone="emas"] {
+  color: var(--atelier-ink);
+  background: linear-gradient(180deg, #fde39f 0%, #e0a534 100%);
+  border-color: var(--atelier-ink);
+}
+.game-badge[data-tone="merah"] {
+  color: #fff8f8;
+  background: linear-gradient(180deg, #c13954 0%, #8f2239 100%);
+  border-color: var(--atelier-ink);
+}
+.game-badge[data-tone="navy"] {
+  color: #f8f5ee;
+  background: linear-gradient(180deg, #213863 0%, #14223d 100%);
+  border-color: rgba(229, 172, 63, 0.58);
+}
+.game-ribbon[data-tone="merah"] {
+  background-image:
+    var(--atelier-batik),
+    linear-gradient(135deg, #a82e49 0%, #7d1d34 100%);
+}
+.game-ribbon[data-tone="navy"] {
+  background-image:
+    var(--atelier-batik),
+    linear-gradient(135deg, #1b3158 0%, #11203d 100%);
+}
+.game-ribbon[data-tone="kayu"] {
+  background-image:
+    var(--atelier-batik),
+    linear-gradient(135deg, #165e75 0%, #123c54 100%);
+}
+
+/* ===== Layar Judul Sinematik Anime Game (Key-Art Asimetris — Nol Kotak SaaS!) ===== */
+.title-screen {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  background: linear-gradient(145deg, #10203e 0%, #1c3a63 52%, #245c77 100%);
+}
+.title-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.92) saturate(1.12);
+  transform: scale(1.03);
+}
+/* Gradien panggung editorial: kiri cukup teduh agar logo & tombol menonjol, kanan tetap cerah bermandikan matahari untuk pemeran anime! */
+.title-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(100deg, rgba(11, 21, 41, 0.88) 0%, rgba(15, 29, 55, 0.72) 44%, rgba(16, 33, 62, 0.24) 74%, rgba(16, 33, 62, 0.42) 100%),
+    linear-gradient(180deg, rgba(12, 22, 42, 0.34) 0%, transparent 32%, rgba(10, 18, 34, 0.62) 100%);
+}
+/* Berkas sinar matahari pagi bergerak halus di layar judul */
+.title-sunbeams {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(118deg, transparent 20%, rgba(255, 240, 194, 0.14) 34%, transparent 46%),
+    linear-gradient(118deg, transparent 54%, rgba(255, 244, 212, 0.11) 66%, transparent 78%);
+  animation: title-beam-drift 9s ease-in-out infinite alternate;
+}
+/* Bingkai arsitektural dengan siku kuningan & garis tipis */
+.title-border {
+  position: absolute;
+  inset: 0.9rem;
+  pointer-events: none;
+  border: 1.5px solid rgba(229, 172, 63, 0.44);
+  border-radius: 6px;
+  background:
+    linear-gradient(var(--atelier-gold-light), var(--atelier-gold-light)) top left / 28px 3px no-repeat,
+    linear-gradient(var(--atelier-gold-light), var(--atelier-gold-light)) top left / 3px 28px no-repeat,
+    linear-gradient(var(--atelier-gold-light), var(--atelier-gold-light)) top right / 28px 3px no-repeat,
+    linear-gradient(var(--atelier-gold-light), var(--atelier-gold-light)) top right / 3px 28px no-repeat,
+    linear-gradient(var(--atelier-gold-light), var(--atelier-gold-light)) bottom left / 28px 3px no-repeat,
+    linear-gradient(var(--atelier-gold-light), var(--atelier-gold-light)) bottom left / 3px 28px no-repeat,
+    linear-gradient(var(--atelier-gold-light), var(--atelier-gold-light)) bottom right / 28px 3px no-repeat,
+    linear-gradient(var(--atelier-gold-light), var(--atelier-gold-light)) bottom right / 3px 28px no-repeat;
+}
+/* Panggung dua kolom sinematik: Kiri (Logo + Menu Taktil + Penafian), Kanan (Pemeran Anime Berdiri Hidup) */
+.title-stage {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 100%;
+  max-width: 78rem;
+  min-height: min(44rem, calc(100vh - 3rem));
+  grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
+  align-items: center;
+  gap: clamp(1.25rem, 3vw, 2.75rem);
+  padding: clamp(0.75rem, 2vw, 1.75rem);
+}
+.title-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+.title-logo-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+.title-crest-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+.title-emblem {
+  display: flex;
+  gap: 0.45rem;
+}
+.title-emblem-disc {
+  display: inline-flex;
+  width: 2.65rem;
+  height: 2.65rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px 14px 6px 14px;
+  color: var(--atelier-ink);
+  border: 2px solid var(--atelier-ink);
+  box-shadow: 0 3px 0 var(--atelier-ink);
+  background: linear-gradient(180deg, #fde299 0%, #e0a332 100%);
+}
+.title-emblem-bubble {
+  color: #fffaf0;
+  background: linear-gradient(180deg, #258aa8 0%, #155873 100%);
+  animation: title-bob 3.2s ease-in-out infinite 0.4s;
+}
+.title-emblem-ear {
+  animation: title-bob 3.2s ease-in-out infinite;
+}
+.title-edition-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.85rem;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fde3a0;
+  background: rgba(14, 25, 47, 0.78);
+  border: 1.5px solid rgba(229, 172, 63, 0.6);
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+/* Gelombang suara akustik hidup khas Ruang Dengar */
+.title-wave-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2.5px;
+  height: 0.9rem;
+}
+.title-wave-bars span {
+  display: block;
+  width: 2.5px;
+  border-radius: 2px;
+  background: #fde3a0;
+  animation: eq-bounce 1.1s ease-in-out infinite;
+}
+.title-wave-bars span:nth-child(1) { height: 40%; animation-delay: 0s; }
+.title-wave-bars span:nth-child(2) { height: 95%; animation-delay: 0.18s; }
+.title-wave-bars span:nth-child(3) { height: 65%; animation-delay: 0.36s; }
+.title-wave-bars span:nth-child(4) { height: 85%; animation-delay: 0.54s; }
+
+/* Tipografi Logo Game Anime Ekstrusi 3D — 100% TAJAM & TERLIHAT! */
+.title-logo {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 0.94;
+  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.title-logo-line {
+  display: flex;
+  gap: 0.03em;
+  font-size: clamp(2.85rem, 6.4vw, 4.85rem);
+}
+.title-logo-line .title-letter {
+  color: #fff8e6;
+  -webkit-text-stroke: 2px #0d172b;
+  paint-order: stroke fill;
+  text-shadow:
+    0 4px 0 #162b52,
+    0 9px 22px rgba(5, 10, 22, 0.58);
+}
+.title-logo-line-2 {
+  font-size: clamp(2.65rem, 5.9vw, 4.45rem);
+  margin-top: 0.06em;
+}
+.title-logo-line-2 .title-letter {
+  color: #f8c64f;
+  -webkit-text-stroke: 2px #0d172b;
+  paint-order: stroke fill;
+  text-shadow:
+    0 4px 0 #7a4b0b,
+    0 9px 22px rgba(5, 10, 22, 0.62);
+}
+.title-subtitle {
+  margin: 0.35rem 0 0;
+  max-width: 100%;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+}
+.title-sparkles {
+  position: absolute;
+  inset: -0.75rem -1rem;
+  pointer-events: none;
+}
+.title-spark {
+  position: absolute;
+  color: #fbe09c;
+  opacity: 0.9;
+  animation: title-twinkle 2.8s ease-in-out infinite;
+}
+.title-spark-a { top: 0; right: 6%; width: 1.15rem; height: 1.15rem; }
+.title-spark-b { top: 44%; right: -4%; width: 0.9rem; height: 0.9rem; animation-delay: 0.6s; }
+.title-spark-c { bottom: 6%; left: -3%; width: 0.85rem; height: 0.85rem; animation-delay: 1.2s; }
+
+/* Tombol menu miring kinetik khas Visual Novel & JRPG modern */
+.title-menu {
+  display: flex;
+  width: 100%;
+  max-width: 24rem;
+  flex-direction: column;
+  gap: 0.72rem;
+}
+.title-menu-btn {
+  width: 100%;
+  min-height: 3.15rem;
+  justify-content: flex-start;
+  padding-left: 1.45rem;
+  padding-right: 1.45rem;
+  gap: 0.75rem;
+  font-size: 1rem;
+  border-radius: 4px 18px 4px 18px;
+  overflow: hidden;
+}
+.title-menu-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(108deg, transparent 35%, rgba(255, 255, 255, 0.34) 50%, transparent 65%);
+  transform: translateX(-120%);
+  transition: transform 420ms ease;
+  pointer-events: none;
+}
+.title-menu-btn:hover:not(:disabled)::after {
+  transform: translateX(120%);
+}
+.title-menu-btn-main {
+  min-height: 3.65rem;
+  font-size: 1.14rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--atelier-ink);
+  background: linear-gradient(180deg, #ffe294 0%, #e8ab36 62%, #d29020 100%);
+  border: 2.5px solid var(--atelier-ink);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.68),
+    0 5px 0 #101b33,
+    0 14px 28px rgba(229, 172, 63, 0.36);
+  animation: title-pulse 3s ease-in-out infinite;
+}
+.title-menu-btn-main:hover:not(:disabled) {
+  filter: brightness(1.05);
+  transform: translateX(5px) translateY(-1px);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.75),
+    0 6px 0 #101b33,
+    0 18px 34px rgba(229, 172, 63, 0.48);
+}
+.title-menu-btn:not(.title-menu-btn-main):hover:not(:disabled) {
+  transform: translateX(5px) translateY(-1px);
+}
+.title-menu-btn:disabled,
+.title-menu-btn[aria-disabled="true"] {
+  opacity: 0.78;
+  color: #cbd5e1;
+  background: linear-gradient(180deg, rgba(24, 38, 66, 0.84) 0%, rgba(16, 27, 48, 0.9) 100%);
+  border-color: rgba(251, 224, 156, 0.25);
+  box-shadow: 0 3px 0 rgba(7, 12, 24, 0.7);
+}
+.title-soon-pill {
+  margin-left: auto;
+  padding: 0.16rem 0.55rem;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fde3a0;
+  background: rgba(229, 172, 63, 0.16);
+  border: 1px solid rgba(229, 172, 63, 0.45);
+  border-radius: 4px;
+}
+
+/* Papan catatan etika ala clipboard kertas kampus */
+.title-disclaimer {
+  width: 100%;
+  max-width: 28rem;
+  padding: 0.9rem 1.15rem;
+  border-left: 5px solid var(--atelier-teal);
+  border-radius: 4px 14px 14px 4px;
+}
+.title-disclaimer-title {
+  margin: 0 0 0.22rem;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--atelier-navy);
+}
+.title-disclaimer-body {
+  margin: 0;
+  font-size: 0.79rem;
+  line-height: 1.5;
+  color: #36455d;
+}
+.title-hint {
+  margin: 0;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.36rem 0.85rem;
+  border-radius: 4px 12px 4px 12px;
+  border: 1px solid rgba(251, 224, 156, 0.28);
+  background: rgba(11, 20, 38, 0.72);
+  color: #dbe4f3;
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+.title-kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.08rem 0.42rem;
+  font-family: 'Outfit', ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--atelier-ink);
+  background: linear-gradient(180deg, #fffdf8 0%, #e7d9bc 100%);
+  border: 1.5px solid var(--atelier-ink);
+  border-radius: 4px;
+  box-shadow: 0 2px 0 #0a1222;
+}
+
+/* Kolom kanan Layar Awal: Panggung Pemeran Anime Hidup */
+.title-cast-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  min-height: clamp(24rem, 68vh, 39rem);
+  padding-bottom: 1.25rem;
+}
+.title-cast-halo {
+  position: absolute;
+  bottom: 4rem;
+  width: min(27rem, 88%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(253, 226, 155, 0.44) 0%, rgba(31, 135, 163, 0.2) 52%, transparent 72%);
+  border: 2px dashed rgba(251, 224, 156, 0.34);
+  animation: title-halo-spin 36s linear infinite;
+  pointer-events: none;
+}
+.title-cast-figures {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: clamp(20rem, 56vh, 33rem);
+  pointer-events: none;
+}
+.title-cast-figure {
+  position: relative;
+  height: 100%;
+  width: auto;
+  max-width: 58%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 16px 28px rgba(8, 14, 28, 0.56));
+  transition: opacity 420ms ease, transform 420ms ease;
+}
+.title-cast-figure--dosen {
+  margin-right: -3.25rem;
+  height: 94%;
+  z-index: 2;
+  animation: title-float-a 4.8s ease-in-out infinite;
+}
+.title-cast-figure--student {
+  z-index: 3;
+  animation: title-float-b 4.4s ease-in-out infinite;
+}
+.title-spotlight-bar {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: min(27rem, 96%);
+  padding: 0.55rem 0.9rem;
+  background-color: rgba(15, 27, 51, 0.92);
+  background-image: var(--atelier-batik);
+  border: 2px solid var(--atelier-gold);
+  border-radius: 4px 16px 4px 16px;
+  box-shadow: 0 5px 0 #091122, 0 14px 28px rgba(5, 10, 22, 0.45);
+  color: #fff8ea;
+}
+.title-spotlight-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.title-spotlight-dot {
+  width: 0.52rem;
+  height: 0.52rem;
+  border-radius: 2px;
+  transform: rotate(45deg);
+  border: 1px solid rgba(251, 224, 156, 0.55);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 180ms ease, transform 180ms ease;
+}
+.title-spotlight-dot[aria-pressed="true"] {
+  background: var(--atelier-gold-light);
+  transform: rotate(45deg) scale(1.22);
+}
+
+@keyframes title-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes title-twinkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.75); }
+}
+@keyframes title-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.018); }
+}
+@keyframes title-beam-drift {
+  0% { opacity: 0.65; transform: translateX(-2%); }
+  100% { opacity: 1; transform: translateX(2%); }
+}
+@keyframes title-halo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes title-float-a {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes title-float-b {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@keyframes eq-bounce {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+
+@media (max-width: 960px) {
+  .title-stage {
+    grid-template-columns: 1fr;
+    max-width: 36rem;
+    min-height: auto;
+  }
+  .title-content {
+    align-items: center;
+    text-align: center;
+  }
+  .title-logo-wrap,
+  .title-logo {
+    align-items: center;
+  }
+  .title-cast-stage {
+    display: none;
+  }
+}
+
+html[data-reduced-motion="true"] .title-emblem-disc,
+html[data-reduced-motion="true"] .title-spark,
+html[data-reduced-motion="true"] .title-menu-btn-main,
+html[data-reduced-motion="true"] .title-sunbeams,
+html[data-reduced-motion="true"] .title-cast-halo,
+html[data-reduced-motion="true"] .title-cast-figure,
+html[data-reduced-motion="true"] .title-wave-bars span,
+.reduced-motion .title-emblem-disc,
+.reduced-motion .title-spark,
+.reduced-motion .title-menu-btn-main,
+.reduced-motion .title-sunbeams,
+.reduced-motion .title-cast-halo,
+.reduced-motion .title-cast-figure,
+.reduced-motion .title-wave-bars span {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .title-emblem-disc,
+  .title-spark,
+  .title-menu-btn-main,
+  .title-sunbeams,
+  .title-cast-halo,
+  .title-cast-figure,
+  .title-wave-bars span {
+    animation: none !important;
+  }
+}
+
+/* ===== Game juice: kelas gerak fx-*. Warna hanya lewat token --game-* dan --vn-*. ===== */
+@keyframes fx-panel-in-kf {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes fx-pop-kf {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+@keyframes fx-bounce-kf {
+  0% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(2px) scale(1.06, 0.92); }
+  70% { transform: translateY(-3px) scale(0.97, 1.05); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes fx-ribbon-shine-kf {
+  0%, 60% { background-position: -150% 0; }
+  100% { background-position: 250% 0; }
+}
+@keyframes fx-card-chosen-kf {
+  0% { filter: brightness(1); }
+  40% { filter: brightness(1.35); box-shadow: 0 0 0 4px var(--game-gold); }
+  100% { filter: brightness(1.1); box-shadow: 0 0 0 3px var(--game-gold); }
+}
+@keyframes fx-bubble-kf {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes fx-next-arrow-kf {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+@keyframes fx-emote-pop-kf {
+  0% { opacity: 0; transform: translateY(6px) scale(0.4); }
+  20% { opacity: 1; transform: translateY(-2px) scale(1.2); }
+  35% { transform: translateY(0) scale(1); }
+  85% { opacity: 1; transform: translateY(-4px) scale(1); }
+  100% { opacity: 0; transform: translateY(-8px) scale(0.9); }
+}
+@keyframes fx-dust-kf {
+  0% { opacity: 0; transform: translate(0, 0); }
+  20% { opacity: 0.5; }
+  80% { opacity: 0.5; }
+  100% { opacity: 0; transform: translate(12px, -28px); }
+}
+@keyframes fx-iris-kf {
+  from { clip-path: circle(0% at 50% 50%); }
+  to { clip-path: circle(75% at 50% 50%); }
+}
+@keyframes fx-fade-kf {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fx-star-burst-kf {
+  0% { opacity: 0; transform: scale(0.2) rotate(-20deg); }
+  50% { opacity: 1; transform: scale(1.3) rotate(8deg); }
+  100% { opacity: 0; transform: scale(1.8) rotate(20deg); }
+}
+@keyframes fx-confetti-kf {
+  0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(80px) rotate(360deg); }
+}
+@keyframes fx-logo-bounce-kf {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(0) scale(1.04, 0.94); }
+}
+@keyframes fx-sparkle-kf {
+  0%, 100% { opacity: 0; transform: scale(0.4) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(45deg); }
+}
+
+.fx-panel-in { animation: fx-panel-in-kf 320ms ease-out both; }
+.fx-pop { animation: fx-pop-kf 600ms ease-out both; }
+.fx-bounce:active { animation: fx-bounce-kf 220ms ease-out both; }
+.fx-ribbon-shine {
+  position: relative;
+  background-image: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.35) 50%, transparent 60%);
+  background-size: 60% 100%;
+  background-repeat: no-repeat;
+  animation: fx-ribbon-shine-kf 1600ms ease-in-out infinite;
+}
+.fx-card {
+  background: var(--game-cream-paper);
+  color: var(--game-ink);
+  border: var(--game-outline-width) solid var(--game-wood-dark);
+  box-shadow: 0 4px 0 var(--game-wood-dark);
+  transition: transform 140ms ease, box-shadow 140ms ease, opacity 160ms ease, filter 160ms ease;
+}
+.fx-card:hover:not(:disabled) {
+  transform: translateY(-3px) rotate(-0.6deg);
+  box-shadow: 0 7px 0 var(--game-wood-dark);
+}
+.fx-card:active:not(:disabled) {
+  transform: translateY(3px) scale(1, 0.96);
+  box-shadow: 0 1px 0 var(--game-wood-dark);
+}
+.fx-card-chosen { animation: fx-card-chosen-kf 240ms ease-out both; }
+.fx-card-dim { opacity: 0.45; filter: saturate(0.6); }
+.fx-bubble {
+  background: var(--game-cream-paper);
+  color: var(--game-ink);
+  border: var(--game-outline-width) solid var(--game-wood-dark);
+  animation: fx-bubble-kf 220ms ease-out both;
+}
+.fx-bubble-tail {
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 14px solid var(--game-wood-dark);
+}
+.fx-next-arrow { animation: fx-next-arrow-kf 900ms ease-in-out infinite; }
+.fx-emote-pop { animation: fx-emote-pop-kf 1400ms ease-out both; }
+.fx-vignette {
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(18, 32, 58, 0.45) 100%);
+}
+.fx-dust {
+  pointer-events: none;
+  background: var(--game-cream-paper);
+  border-radius: 50%;
+  animation: fx-dust-kf 8s ease-in-out infinite;
+}
+.fx-iris { animation: fx-iris-kf 520ms ease-in-out both; }
+.fx-fade { animation: fx-fade-kf 520ms ease-in-out both; }
+.fx-star-burst { color: var(--game-gold); animation: fx-star-burst-kf 900ms ease-out both; }
+.fx-confetti { animation: fx-confetti-kf 1600ms ease-in both; }
+.fx-logo-bounce { display: inline-block; animation: fx-logo-bounce-kf 1200ms ease-in-out infinite; }
+.fx-sparkle { color: var(--game-gold); animation: fx-sparkle-kf 2200ms ease-in-out infinite; }
+
+/* Gerak-dikurangi: semua fx-* tanpa animasi dan transisi. */
+html[data-reduced-motion='true'] .fx-panel-in,
+html[data-reduced-motion='true'] .fx-pop,
+html[data-reduced-motion='true'] .fx-bounce,
+html[data-reduced-motion='true'] .fx-bounce:active,
+html[data-reduced-motion='true'] .fx-ribbon-shine,
+html[data-reduced-motion='true'] .fx-card,
+html[data-reduced-motion='true'] .fx-card:hover:not(:disabled),
+html[data-reduced-motion='true'] .fx-card:active:not(:disabled),
+html[data-reduced-motion='true'] .fx-card-chosen,
+html[data-reduced-motion='true'] .fx-card-dim,
+html[data-reduced-motion='true'] .fx-bubble,
+html[data-reduced-motion='true'] .fx-bubble-tail,
+html[data-reduced-motion='true'] .fx-next-arrow,
+html[data-reduced-motion='true'] .fx-emote-pop,
+html[data-reduced-motion='true'] .fx-vignette,
+html[data-reduced-motion='true'] .fx-dust,
+html[data-reduced-motion='true'] .fx-iris,
+html[data-reduced-motion='true'] .fx-fade,
+html[data-reduced-motion='true'] .fx-star-burst,
+html[data-reduced-motion='true'] .fx-confetti,
+html[data-reduced-motion='true'] .fx-logo-bounce,
+html[data-reduced-motion='true'] .fx-sparkle {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-panel-in,
+  .fx-pop,
+  .fx-bounce,
+  .fx-bounce:active,
+  .fx-ribbon-shine,
+  .fx-card,
+  .fx-card:hover:not(:disabled),
+  .fx-card:active:not(:disabled),
+  .fx-card-chosen,
+  .fx-card-dim,
+  .fx-bubble,
+  .fx-bubble-tail,
+  .fx-next-arrow,
+  .fx-emote-pop,
+  .fx-vignette,
+  .fx-dust,
+  .fx-iris,
+  .fx-fade,
+  .fx-star-burst,
+  .fx-confetti,
+  .fx-logo-bounce,
+  .fx-sparkle {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ===== VN ala referensi (vn-lean-upgrade): token --vnp-* dan kelas .vn-*. =====
+   Kontras WCAG, kasus terburuk (latar hitam di balik lapisan tembus pandang):
+   - --vnp-ink di atas .vn-box 8,40:1 (7,72:1 di garis grid); di atas .vn-choice + scrim 8,15:1;
+     di atas krem penuh (.vn-box--solid, .vn-drawer) 10,52:1.
+   - --vnp-name-dosen / --vnp-name-mhs di atas --vnp-tab 4,75:1 / 4,86:1 (5,80:1 / 5,93:1 di atas krem penuh).
+   - Teks putih di atas --vnp-pill 5,74:1 (hover 7,46:1, aktif 10,53:1).
+   - Angka krem di atas lencana --vnp-ink 10,52:1.
+   Ukuran teks memakai rem sehingga mengikuti html[data-text-size]. */
+:root {
+  --vnp-font: 'Plus Jakarta Sans', 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --vnp-font-display: 'Georgia', 'Cambria', 'Times New Roman', serif;
+  --vnp-paper: rgba(253, 249, 242, 0.94);
+  --vnp-paper-solid: #fdf9f2;
+  --vnp-choice-paper: rgba(253, 249, 242, 0.96);
+  --vnp-grid: rgba(120, 92, 62, 0.045);
+  --vnp-grid-size: 24px;
+  --vnp-border: #d8c7ab;
+  --vnp-border-strong: #b89c72;
+  --vnp-ink: #2c211b;
+  --vnp-ink-muted: #5f4e43;
+  --vnp-name-dosen: #1c5a47;
+  --vnp-name-mhs: #8f3451;
+  --vnp-tab: rgba(255, 253, 248, 0.96);
+  --vnp-pill: rgba(31, 44, 68, 0.86);
+  --vnp-pill-hover: #1d5d7a;
+  --vnp-pill-on: #12203a;
+  --vnp-pill-text: #fbf6ec;
+  --vnp-scrim: rgba(15, 23, 42, 0.34);
+  --vnp-shadow: 0 18px 44px rgba(15, 23, 42, 0.28), 0 4px 12px rgba(44, 33, 27, 0.14);
+}
+
+@keyframes vn-continue-bob {
+  from { transform: translateY(0); }
+  to { transform: translateY(4px); }
+}
+@keyframes vn-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes vn-rise-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes vn-drawer-left-in {
+  from { opacity: 0; transform: translateX(-104%); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes vn-drawer-right-in {
+  from { opacity: 0; transform: translateX(104%); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Panggung Visual Novel full-bleed simetris:
+   latar (z 0), potret karakter (z 1), scrim pilihan (z 2), kotak dialog (z 3),
+   menu pilihan (z 4), bilah atas & Location_Card (z 5), laci melayang (z 6). */
+.vn-stage {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background: #141e33;
+  font-family: var(--vnp-font);
+}
+
+/* Grade latar sinematik lembut agar potret dan teks selalu menonjol tajam. */
+.vn-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  filter: saturate(0.86) brightness(0.98);
+}
+.vn-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.34) 0%, rgba(15, 23, 42, 0.04) 26%, rgba(15, 23, 42, 0.08) 64%, rgba(15, 23, 42, 0.62) 100%),
+    radial-gradient(ellipse at center, transparent 52%, rgba(15, 23, 42, 0.36) 100%);
+}
+
+/* Lapisan dua karakter hidup transparan yang saling berhadapan di dalam ruangan */
+.vn-cast {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.vn-char {
+  position: absolute;
+  bottom: clamp(4.25rem, 10.5svh, 7.5rem);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: clamp(22rem, 74svh, 40rem);
+  aspect-ratio: 420 / 504;
+  max-width: 45vw;
+  transition: transform 280ms ease, filter 280ms ease;
+  filter: drop-shadow(0 16px 32px rgba(10, 16, 30, 0.36));
+}
+.vn-char--left {
+  left: max(1.5vw, calc(50% - 34.5rem));
+}
+.vn-char--right {
+  right: max(1.5vw, calc(50% - 34.5rem));
+}
+.vn-char--active {
+  z-index: 2;
+  filter: drop-shadow(0 20px 38px rgba(10, 16, 30, 0.46));
+}
+.vn-char--idle {
+  z-index: 1;
+  filter: drop-shadow(0 12px 24px rgba(10, 16, 30, 0.28));
+}
+
+/* Gambar sprite karakter transparan beresolusi tinggi (tanpa bingkai foto) */
+.vn-sprite-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+/* Permukaan kaca-akademik premium untuk kotak dialog & pilihan Visual Novel */
+.vn-box--solid,
+.vn-drawer {
+  background-image:
+    linear-gradient(var(--vnp-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--vnp-grid) 1px, transparent 1px);
+  background-size: var(--vnp-grid-size) var(--vnp-grid-size);
+}
+
+/* Lapisan suasana emosi halus berbasis ekspresi wajah terlihat (tanpa variabel tersembunyi). */
+.vn-mood-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  transition: background 420ms ease, opacity 420ms ease;
+}
+.vn-stage[data-mood="hangat"] .vn-mood-layer {
+  background:
+    radial-gradient(ellipse at 72% 28%, rgba(253, 224, 150, 0.22) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(255, 232, 175, 0.08) 0%, transparent 45%);
+}
+.vn-stage[data-mood="tegang"] .vn-mood-layer {
+  background:
+    radial-gradient(ellipse at center, transparent 44%, rgba(122, 29, 52, 0.24) 100%);
+}
+.vn-stage[data-mood="murung"] .vn-mood-layer {
+  background:
+    linear-gradient(180deg, rgba(18, 36, 68, 0.22) 0%, rgba(12, 22, 44, 0.14) 55%, rgba(12, 22, 44, 0.34) 100%);
+}
+
+/* Kotak dialog VN Batik-Blueprint Atelier: sudut terpotong arsitektural + motif kawung samar + bingkai ganda emas */
+.vn-box {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  min-height: clamp(10.5rem, 23.5svh, 14rem);
+  padding: 1.85rem 2.1rem 0.9rem;
+  color: #faf6ec;
+  background-color: rgba(15, 26, 49, 0.94);
+  background-image:
+    var(--atelier-batik),
+    linear-gradient(180deg, rgba(20, 35, 66, 0.92) 0%, rgba(11, 20, 38, 0.96) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 2.5px solid var(--atelier-gold);
+  border-radius: 6px 24px 6px 24px;
+  box-shadow:
+    inset 0 1px 0 rgba(251, 224, 156, 0.3),
+    inset 0 0 0 5px rgba(229, 172, 63, 0.09),
+    0 8px 0 rgba(8, 14, 28, 0.65),
+    0 24px 52px rgba(5, 10, 22, 0.56);
+  cursor: pointer;
+}
+.vn-box::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--atelier-gold-light), var(--atelier-gold-light)) top left / 14px 2px no-repeat,
+    linear-gradient(var(--atelier-gold-light), var(--atelier-gold-light)) top left / 2px 14px no-repeat,
+    linear-gradient(var(--atelier-gold-light), var(--atelier-gold-light)) bottom right / 14px 2px no-repeat,
+    linear-gradient(var(--atelier-gold-light), var(--atelier-gold-light)) bottom right / 2px 14px no-repeat;
+  opacity: 0.72;
+}
+.vn-stage .vn-box {
+  position: absolute;
+  left: 50%;
+  bottom: max(1.1rem, 2.4svh);
+  transform: translateX(-50%);
+  width: min(62rem, 94vw);
+}
+.vn-box--solid {
+  color: var(--vnp-ink);
+  background-color: var(--vnp-paper-solid);
+  border: 2px solid var(--atelier-ink);
+  border-radius: 6px 20px 6px 20px;
+  box-shadow: 0 6px 0 rgba(15, 27, 51, 0.32), var(--vnp-shadow);
+}
+.vn-box-body {
+  flex: 1 1 auto;
+  max-height: 30svh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.25rem;
+}
+
+/* Name_Tab: papan nama jajar-genjang berkarakter dengan indikator gelombang suara aktif. */
+.vn-nametab {
+  position: absolute;
+  top: -1.3rem;
+  left: 1.75rem;
+  right: 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  pointer-events: none;
+}
+.vn-nametab--left {
+  justify-content: flex-start;
+}
+.vn-nametab--right {
+  justify-content: flex-end;
+}
+.vn-nametab-line {
+  flex: 1;
+  min-width: 2rem;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(229, 172, 63, 0.78), transparent 88%);
+}
+.vn-nametab-line--right {
+  background: linear-gradient(270deg, rgba(229, 172, 63, 0.78), transparent 88%);
+}
+.vn-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  max-width: 21rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0.38rem 1.45rem;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  font-family: 'Outfit', var(--vnp-font);
+  font-size: 0.94rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  color: #ffffff;
+  background: #1a2c4d;
+  border-bottom: 2.5px solid var(--atelier-gold-light);
+  box-shadow: 0 6px 18px rgba(6, 10, 22, 0.52);
+}
+.vn-name--dosen {
+  background: linear-gradient(135deg, #1b7462 0%, #114b41 100%);
+  color: #f6fdfb;
+}
+.vn-name--mhs {
+  background: linear-gradient(135deg, #b53d5f 0%, #7d1f3c 100%);
+  color: #fff6f9;
+}
+/* Indikator gelombang suara aktif saat pembicara sedang berbicara */
+.vn-eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 0.85rem;
+}
+.vn-eq span {
+  display: block;
+  width: 2.5px;
+  border-radius: 1.5px;
+  background: #fde3a0;
+  animation: eq-bounce 0.75s ease-in-out infinite;
+}
+.vn-eq span:nth-child(1) { height: 45%; animation-delay: 0s; }
+.vn-eq span:nth-child(2) { height: 100%; animation-delay: 0.14s; }
+.vn-eq span:nth-child(3) { height: 65%; animation-delay: 0.28s; }
+.vn-eq span:nth-child(4) { height: 85%; animation-delay: 0.42s; }
+
+.vn-text {
+  margin: 0;
+  font-family: var(--vnp-font);
+  font-size: clamp(1.06rem, 1.35vw, 1.22rem);
+  font-weight: 500;
+  line-height: 1.68;
+  color: #f7f3eb;
+  overflow-wrap: break-word;
+  letter-spacing: 0.008em;
+}
+.vn-text--narration {
+  font-style: italic;
+  color: #d6deea;
+  border-left: 3px solid rgba(229, 172, 63, 0.78);
+  padding-left: 0.9rem;
+}
+
+/* Glyph lanjut berkilau emas di akhir kalimat */
+.vn-continue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.45em;
+  padding: 0.05em 0.3em;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: #fde08d;
+  font: inherit;
+  font-size: 0.8em;
+  line-height: 1;
+  vertical-align: middle;
+  cursor: pointer;
+  animation: vn-continue-bob 0.85s ease-in-out infinite alternate;
+}
+.vn-continue:focus-visible {
+  outline: 2px solid #f3d285;
+  outline-offset: 2px;
+}
+
+/* Quick_Menu: bilah tombol chamfered taktis di kanan bawah kotak dialog */
+.vn-quickmenu {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.42rem;
+  margin-top: auto;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(251, 224, 156, 0.16);
+}
+.vn-pill,
+.vn-topbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38rem;
+  min-height: 30px;
+  padding: 0.25rem 0.82rem;
+  border: 1.5px solid rgba(251, 224, 156, 0.28);
+  border-radius: 4px 10px 4px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #eef2fa;
+  font-family: 'Outfit', var(--vnp-font);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, transform 110ms ease, color 140ms ease, box-shadow 110ms ease;
+}
+.vn-topbtn {
+  min-height: 36px;
+  padding: 0.35rem 1.05rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: linear-gradient(180deg, rgba(22, 37, 68, 0.92) 0%, rgba(13, 23, 44, 0.95) 100%);
+  border: 2px solid rgba(229, 172, 63, 0.56);
+  box-shadow: 0 3px 0 rgba(7, 12, 24, 0.72), 0 8px 18px rgba(6, 10, 22, 0.36);
+}
+.vn-pill:hover:not(:disabled),
+.vn-topbtn:hover:not(:disabled) {
+  background: rgba(229, 172, 63, 0.24);
+  border-color: var(--atelier-gold-light);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+.vn-pill[aria-pressed='true'],
+.vn-topbtn[aria-pressed='true'],
+.vn-topbtn[aria-expanded='true'] {
+  background: linear-gradient(180deg, #fde29a 0%, #e0a332 100%);
+  color: var(--atelier-ink);
+  border-color: var(--atelier-ink);
+  box-shadow: 0 3px 0 #080f1e;
+}
+.vn-pill:focus-visible,
+.vn-topbtn:focus-visible {
+  outline: 2px solid var(--vn-gold);
+  outline-offset: 2px;
+}
+.vn-pill:disabled,
+.vn-topbtn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+.vn-drawer .vn-pill {
+  color: var(--vnp-ink);
+  background: rgba(22, 36, 64, 0.08);
+  border-color: rgba(22, 36, 64, 0.24);
+}
+.vn-drawer .vn-pill:hover:not(:disabled) {
+  color: #ffffff;
+  background: var(--vn-navy);
+  border-color: var(--vn-navy);
+}
+
+/* Menu pilihan kinetik berpotongan sudut & bilah kilau emas */
+.vn-choice-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4.5rem 4vw clamp(12.5rem, 29svh, 17rem);
+  pointer-events: none;
+}
+.vn-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(ellipse at center, rgba(10, 16, 30, 0.22) 0%, rgba(10, 16, 30, 0.54) 100%);
+  animation: vn-fade-in 200ms ease-out;
+}
+.vn-choice-menu {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: min(42rem, 92vw);
+  max-height: 100%;
+  margin: auto;
+  padding: 0.5rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  pointer-events: auto;
+  animation: vn-rise-in 220ms ease-out;
+}
+.vn-choice {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+  width: 100%;
+  min-height: 3.55rem;
+  padding: 0.85rem 1.35rem;
+  text-align: left;
+  font-family: var(--vnp-font);
+  font-size: clamp(0.95rem, 1.15vw, 1.04rem);
+  font-weight: 600;
+  line-height: 1.48;
+  color: #faf6ec;
+  background-color: rgba(15, 26, 49, 0.94);
+  background-image:
+    var(--atelier-batik),
+    linear-gradient(135deg, rgba(20, 35, 66, 0.94) 0%, rgba(13, 24, 46, 0.96) 100%);
+  border: 2px solid rgba(229, 172, 63, 0.52);
+  border-left: 6px solid var(--atelier-gold);
+  border-radius: 4px 18px 4px 18px;
+  box-shadow:
+    0 5px 0 rgba(7, 12, 24, 0.72),
+    0 14px 28px rgba(6, 10, 22, 0.42);
+  cursor: pointer;
+  transition: transform 130ms ease, border-color 140ms ease, box-shadow 130ms ease, background-color 140ms ease;
+}
+.vn-choice:hover:not(:disabled),
+.vn-choice.fx-card:hover:not(:disabled) {
+  transform: translateX(6px) translateY(-1px);
+  border-color: var(--atelier-gold-light);
+  border-left-color: #fff2c2;
+  background-image:
+    var(--atelier-batik),
+    linear-gradient(135deg, rgba(25, 53, 94, 0.98) 0%, rgba(21, 86, 114, 0.98) 100%);
+  box-shadow:
+    0 6px 0 rgba(7, 12, 24, 0.78),
+    0 18px 34px rgba(6, 10, 22, 0.5),
+    0 0 0 1px rgba(251, 224, 156, 0.55);
+}
+.vn-choice.fx-card:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 rgba(7, 12, 24, 0.75);
+}
+.vn-choice:focus-visible {
+  outline: 2.5px solid #f3d285;
+  outline-offset: 2px;
+}
+.vn-choice-num {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 4px 10px 4px 10px;
+  background: linear-gradient(180deg, #ffe294 0%, #dc9d2b 100%);
+  color: var(--atelier-ink);
+  border: 2px solid var(--atelier-ink);
+  font-family: 'Outfit', var(--vnp-font);
+  font-size: 0.88rem;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 2px 0 #0a1222;
+}
+
+/* Bilah atas 3 kolom simetris: Kiri (Daftar), Tengah (Lokasi), Kanan (Profil + Bantuan) */
+.vn-topbar {
+  position: absolute;
+  top: 0.85rem;
+  left: 1.25rem;
+  right: 1.25rem;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+.vn-topbar-left {
+  display: flex;
+  align-items: center;
+  justify-self: start;
+  gap: 0.5rem;
+  pointer-events: auto;
+}
+.vn-topbar-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-self: center;
+  gap: 0.35rem;
+  max-width: min(30rem, 48vw);
+  pointer-events: none;
+}
+.vn-topbar-right {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 0.5rem;
+  pointer-events: auto;
+}
+
+/* Location_Card: kartu lokasi gaya episode anime berbingkai sudut kuningan */
+.vn-location {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.16rem;
+  padding: 0.5rem 1.5rem;
+  font-family: var(--vnp-font);
+  font-size: 0.84rem;
+  line-height: 1.35;
+  text-align: center;
+  color: #faf6ec;
+  background-color: rgba(15, 26, 49, 0.9);
+  background-image: var(--atelier-batik);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 2px solid rgba(229, 172, 63, 0.62);
+  border-radius: 4px 14px 4px 14px;
+  box-shadow: 0 4px 0 rgba(7, 12, 24, 0.65), 0 12px 26px rgba(6, 10, 22, 0.36);
+  pointer-events: auto;
+  opacity: 1;
+  transition: opacity 0.6s ease;
+  animation: vn-fade-in 0.35s ease-out;
+}
+.vn-location--hide {
+  opacity: 0;
+  pointer-events: none;
+}
+.vn-location-title {
+  font-family: 'Outfit', var(--vnp-font);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: #fde08d;
+}
+.vn-location-caption {
+  font-size: 0.76rem;
+  color: #dce5f2;
+}
+
+/* Bilah Tahapan Teori Konseling & Umpan Balik Kaidah Buku Ajar di panggung VN */
+.vn-theory-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.28rem;
+  width: min(36rem, 62vw);
+  padding: 0.42rem 0.85rem;
+  background-color: rgba(14, 24, 46, 0.9);
+  background-image: var(--atelier-batik);
+  border: 1.5px solid rgba(229, 172, 63, 0.56);
+  border-radius: 4px 14px 4px 14px;
+  box-shadow: 0 4px 0 rgba(7, 12, 24, 0.6);
+  color: #f8f5ec;
+  pointer-events: auto;
+}
+.vn-theory-bar[data-repair="true"] {
+  border-color: #f87171;
+  background-color: rgba(76, 18, 34, 0.94);
+}
+.vn-theory-steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.32rem;
+}
+.vn-theory-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.14rem 0.52rem;
+  border-radius: 3px 8px 3px 8px;
+  font-family: 'Outfit', var(--vnp-font);
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #b7c5de;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.vn-theory-step[data-state="done"] {
+  color: #a7f3d0;
+  border-color: rgba(16, 185, 129, 0.48);
+  background: rgba(16, 185, 129, 0.16);
+}
+.vn-theory-step[data-state="active"] {
+  color: #0f1b33;
+  background: linear-gradient(180deg, #ffe294 0%, #e5ac3f 100%);
+  border-color: #0f1b33;
+  box-shadow: 0 2px 0 rgba(7, 12, 24, 0.55);
+}
+.vn-theory-guide {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  text-align: center;
+  color: #e2eaf6;
+}
+.vn-energy-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.16rem 0.62rem;
+  border-radius: 3px 9px 3px 9px;
+  font-family: 'Outfit', var(--vnp-font);
+  font-size: 0.69rem;
+  font-weight: 800;
+  border: 1.5px solid rgba(229, 172, 63, 0.55);
+  background: rgba(15, 27, 51, 0.9);
+  color: #fff8e6;
+}
+.vn-energy-chip[data-tier="kritis"] {
+  border-color: #f87171;
+  background: rgba(127, 29, 29, 0.92);
+  color: #fee2e2;
+}
+.vn-energy-chip[data-tier="waspada"] {
+  border-color: #fbbf24;
+  background: rgba(120, 53, 15, 0.92);
+  color: #fef3c7;
+}
+.vn-feedback-toast {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.55rem;
+  padding: 0.4rem 0.78rem;
+  border-radius: 4px 12px 4px 12px;
+  border: 1.5px solid rgba(229, 172, 63, 0.52);
+  background: rgba(11, 22, 42, 0.85);
+  font-size: 0.74rem;
+  line-height: 1.38;
+  color: #e8effa;
+}
+.vn-feedback-toast[data-tone="positif"] {
+  border-color: rgba(52, 211, 153, 0.65);
+  background: rgba(10, 46, 38, 0.88);
+}
+.vn-feedback-toast[data-tone="perbaikan"] {
+  border-color: rgba(251, 191, 36, 0.75);
+  background: rgba(17, 52, 68, 0.9);
+}
+.vn-feedback-toast[data-tone="hati-hati"] {
+  border-color: rgba(251, 191, 36, 0.68);
+  background: rgba(78, 43, 12, 0.88);
+}
+.vn-feedback-toast[data-tone="penghambat"] {
+  border-color: rgba(248, 113, 113, 0.78);
+  background: rgba(96, 20, 36, 0.9);
+}
+
+/* Lencana Peringatan Isolasi Interaktif di Peta 2D */
+.mission-alert-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.34rem 0.9rem;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #fff8ea;
+  background-color: rgba(15, 27, 51, 0.92);
+  background-image: var(--atelier-batik);
+  border: 2px solid rgba(229, 172, 63, 0.72);
+  border-radius: 4px 14px 4px 14px;
+  box-shadow: 0 3px 0 rgba(7, 12, 24, 0.68);
+  transition: transform 130ms ease, filter 130ms ease;
+}
+.mission-alert-pill:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+.mission-alert-pill[data-status="darurat"] {
+  background-color: rgba(136, 22, 42, 0.95);
+  border-color: #fca5a5;
+}
+.mission-alert-pill[data-status="waspada"] {
+  background-color: rgba(120, 58, 14, 0.94);
+  border-color: #fde08d;
+}
+.mission-alert-pill[data-status="terjaga"] {
+  background-color: rgba(16, 68, 56, 0.92);
+  border-color: #6ee7b7;
+}
+
+/* Kartu Misi Dossier Mahasiswa berpotongan sudut & nomor indeks miring */
+.dossier-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 5px 16px 5px 16px;
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+}
+.dossier-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 rgba(15, 27, 51, 0.2), 0 12px 22px rgba(15, 27, 51, 0.12);
+}
+.dossier-index-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.12rem 0.5rem;
+  font-family: 'Outfit', monospace;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #fff8e6;
+  background: var(--atelier-ink);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+.map-hud-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.85rem;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #fff9ec;
+  background-color: rgba(15, 27, 51, 0.88);
+  background-image: var(--atelier-batik);
+  border: 1.5px solid rgba(229, 172, 63, 0.65);
+  border-radius: 4px 12px 4px 12px;
+  box-shadow: 0 3px 0 rgba(7, 12, 24, 0.62);
+}
+.roster-card-chamfer {
+  border-radius: 6px 20px 6px 20px;
+  border: 2.5px solid var(--atelier-ink);
+  box-shadow: 0 5px 0 rgba(15, 27, 51, 0.26), 0 10px 20px rgba(15, 27, 51, 0.14);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+.roster-card-chamfer:hover {
+  transform: translateY(-4px);
+  border-color: var(--atelier-gold);
+  box-shadow: 0 8px 0 rgba(15, 27, 51, 0.34), 0 16px 28px rgba(15, 27, 51, 0.22);
+}
+.roster-card-chamfer:hover .roster-chibi-hop {
+  transform: translateY(-4px) scale(1.06);
+}
+.roster-chibi-hop {
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Laci melayang simetris kiri/kanan (tertutup bawaan) */
+.vn-drawer-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: rgba(15, 23, 42, 0.28);
+  animation: vn-fade-in 180ms ease-out;
+}
+.vn-drawer {
+  position: absolute;
+  top: 4rem;
+  bottom: 1.25rem;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  width: min(21.5rem, 90vw);
+  overflow: hidden;
+  color: var(--vnp-ink);
+  background-color: var(--vnp-paper-solid);
+  border: 2px solid var(--atelier-ink);
+  border-radius: 6px 20px 6px 20px;
+  box-shadow: 0 6px 0 rgba(15, 27, 51, 0.25), var(--vnp-shadow);
+}
+.vn-drawer--left {
+  left: 1.25rem;
+  animation: vn-drawer-left-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.vn-drawer--right {
+  right: 1.25rem;
+  animation: vn-drawer-right-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Status banner melayang rapi di bawah Location_Card (di dalam .vn-topbar-center, anti-tumpuk!) */
+.vn-status-pill {
+  position: relative;
+  z-index: 5;
+  max-width: min(32rem, 90vw);
+  padding: 0.34rem 1rem;
+  border-radius: 4px 12px 4px 12px;
+  background: rgba(15, 27, 51, 0.94);
+  color: #fbf6ec;
+  border: 1.5px solid var(--atelier-gold);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 4px 0 rgba(7, 12, 24, 0.6), 0 8px 20px rgba(10, 16, 30, 0.28);
+  pointer-events: auto;
+  animation: vn-rise-in 200ms ease-out;
+}
+
+.vn-summary-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4.25rem 1.25rem clamp(12rem, 27svh, 16rem);
+  background: rgba(15, 23, 42, 0.38);
+  animation: vn-fade-in 220ms ease-out;
+}
+
+/* Layar sempit (< 640px) */
+@media (max-width: 639.98px) {
+  .vn-topbar {
+    left: 0.75rem;
+    right: 0.75rem;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.4rem;
+  }
+  .vn-topbar-center {
+    max-width: 52vw;
+  }
+  .vn-location-caption,
+  .vn-theory-guide {
+    display: none;
+  }
+  .vn-theory-bar {
+    width: min(92vw, 24rem);
+  }
+  .vn-char {
+    height: clamp(15rem, 52svh, 24rem);
+    max-width: 49vw;
+    bottom: clamp(7.5rem, 20svh, 11.5rem);
+  }
+  .vn-char--left { left: -0.25rem; }
+  .vn-char--right { right: -0.25rem; }
+  .vn-box {
+    padding: 1.55rem 1rem 0.65rem;
+    border-radius: 14px;
+  }
+  .vn-nametab {
+    left: 1rem;
+    right: 1rem;
+  }
+  .vn-text { font-size: 1rem; }
+  .vn-choice-menu { width: 94vw; }
+}
+
+/* Gerak-dikurangi: semua .vn-* (glyph lanjut, Location_Card, menu pilihan, scrim, laci) & kartu atelier tanpa animasi dan transisi. */
+[data-reduced-motion='true'] [class^='vn-'],
+[data-reduced-motion='true'] [class*=' vn-'],
+[data-reduced-motion='true'] [class^='vn-']::before,
+[data-reduced-motion='true'] [class*=' vn-']::before,
+[data-reduced-motion='true'] [class^='vn-']::after,
+[data-reduced-motion='true'] [class*=' vn-']::after,
+[data-reduced-motion='true'] .vn-eq span,
+[data-reduced-motion='true'] .dossier-card,
+[data-reduced-motion='true'] .mission-alert-pill,
+[data-reduced-motion='true'] .roster-card-chamfer,
+[data-reduced-motion='true'] .roster-chibi-hop {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class^='vn-'],
+  [class*=' vn-'],
+  [class^='vn-']::before,
+  [class*=' vn-']::before,
+  [class^='vn-']::after,
+  [class*=' vn-']::after,
+  .vn-eq span,
+  .dossier-card,
+  .mission-alert-pill,
+  .roster-card-chamfer,
+  .roster-chibi-hop {
+    animation: none !important;
+    transition: none !important;
+  }
+}

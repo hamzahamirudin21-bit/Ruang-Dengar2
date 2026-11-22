@@ -1,0 +1,69 @@
+/**
+ * Penata Daftar Karakter ringkas (fungsi murni).
+ * Memilih jumlah kolom (5 → 2) agar semua kartu muat dalam satu layar.
+ */
+
+export interface RosterLayout {
+  columns: number;
+  rows: number;
+  cardWidth: number;
+  cardHeight: number;
+  gap: number;
+  portraitScale: 1 | 2;
+  fitsOneScreen: boolean;
+}
+
+/** Tinggi header + footer + padding vertikal. */
+export const ROSTER_CHROME_HEIGHT = 168;
+
+const GAP = 12;
+const PAD_X = 24;
+const MIN_CARD_HEIGHT = 150;
+const MAX_CARD_HEIGHT = 220;
+const MIN_CARD_WIDTH = 200;
+const COLUMN_CANDIDATES = [5, 4, 3, 2] as const;
+
+function finiteOr(value: number, fallback: number): number {
+  return Number.isFinite(value) ? value : fallback;
+}
+
+export function computeRosterLayout(
+  viewport: { width: number; height: number },
+  count: number,
+): RosterLayout {
+  const width = Math.max(0, finiteOr(viewport.width, 0));
+  const height = Math.max(0, finiteOr(viewport.height, 0));
+  const total = Math.max(1, Math.floor(finiteOr(count, 1)));
+  const avail = height - ROSTER_CHROME_HEIGHT;
+
+  for (const columns of COLUMN_CANDIDATES) {
+    const rows = Math.ceil(total / columns);
+    const cardW = Math.floor((width - 2 * PAD_X - (columns - 1) * GAP) / columns);
+    const cardH = Math.floor((avail - (rows - 1) * GAP) / rows);
+    if (cardH >= MIN_CARD_HEIGHT && cardW >= MIN_CARD_WIDTH) {
+      return {
+        columns,
+        rows,
+        cardWidth: cardW,
+        cardHeight: Math.min(cardH, MAX_CARD_HEIGHT),
+        gap: GAP,
+        portraitScale: cardH >= 192 ? 2 : 1,
+        fitsOneScreen: true,
+      };
+    }
+  }
+
+  const columns = 2;
+  return {
+    columns,
+    rows: Math.ceil(total / columns),
+    cardWidth: Math.max(
+      MIN_CARD_WIDTH,
+      Math.floor((width - 2 * PAD_X - (columns - 1) * GAP) / columns),
+    ),
+    cardHeight: MIN_CARD_HEIGHT,
+    gap: GAP,
+    portraitScale: 1,
+    fitsOneScreen: false,
+  };
+}
