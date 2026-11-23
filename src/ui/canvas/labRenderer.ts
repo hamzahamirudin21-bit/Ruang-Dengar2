@@ -61,6 +61,14 @@ export interface ClickRippleState {
   startedAtSec: number;
 }
 
+export interface WorldPopup {
+  x: number;
+  y: number;
+  text: string;
+  tone: 'gold' | 'teal' | 'warn';
+  startedAtSec: number;
+}
+
 export interface LabRenderInput {
   map: LabMapData;
   camera: CameraTransform;
@@ -79,6 +87,8 @@ export interface LabRenderInput {
   clickRipple?: ClickRippleState | null;
   /** Daftar hiasan Ruang BK yang terpasang agar tampil nyata di peta 2D. */
   equippedDecor?: readonly RoomDecorId[];
+  /** Teks umpan balik melayang pada koordinat dunia (mis. +2 ⭐ Pulih!). */
+  worldPopups?: readonly WorldPopup[];
   /** Opsional. Bila tidak ada, render identik dengan sebelumnya. */
   story?: StoryRenderLayer;
 }
@@ -516,6 +526,53 @@ function drawClickRipple(
   ctx.restore();
 }
 
+function drawWorldPopups(
+  ctx: CanvasRenderingContext2D,
+  popups: readonly WorldPopup[] | undefined,
+  timeSeconds: number,
+  reducedMotion: boolean
+): void {
+  if (!popups || popups.length === 0) return;
+  const duration = reducedMotion ? 1.2 : 2.1;
+
+  ctx.save();
+  ctx.font = '700 10px Fredoka, Plus Jakarta Sans, ui-sans-serif, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  for (const p of popups) {
+    const elapsed = timeSeconds - p.startedAtSec;
+    if (elapsed < 0 || elapsed >= duration) continue;
+    const progress = elapsed / duration;
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+    const lift = reducedMotion ? 14 : 6 + easeOut * 28;
+    const alpha = progress < 0.68 ? 1 : Math.max(0, 1 - (progress - 0.68) / 0.32);
+
+    const cx = p.x;
+    const cy = p.y - lift;
+    const tw = ctx.measureText(p.text).width;
+    const bw = tw + 14;
+    const bh = 18;
+    const bx = cx - bw / 2;
+    const by = cy - bh / 2;
+
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle =
+      p.tone === 'gold' ? '#ffe694' : p.tone === 'teal' ? '#d8faef' : '#fee2e2';
+    ctx.strokeStyle = '#3e2517';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, bw, bh, 9);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle =
+      p.tone === 'gold' ? '#3e2517' : p.tone === 'teal' ? '#165442' : '#991b1b';
+    ctx.fillText(p.text, cx, cy + 0.5);
+  }
+  ctx.restore();
+}
+
 // ---------------------------------------------------------------------------
 // Render utama
 // ---------------------------------------------------------------------------
@@ -826,9 +883,10 @@ export function renderLabCanvas(
     ctx.fillText(doorBadgeText, doorBadgeX, doorBadgeY + 0.5);
   }
 
-  // 9. Cahaya matahari dinamis (pagi/siang/sore), debu cahaya, & riak klik kanvas
+  // 9. Cahaya matahari dinamis (pagi/siang/sore), debu cahaya, riak klik, & teks pop-up dunia
   drawDaylightAtmosphere(ctx, worldW, worldH, clockMinutesOfDay, timeSec, reduced);
   drawClickRipple(ctx, input.clickRipple, timeSec, reduced);
+  drawWorldPopups(ctx, input.worldPopups, timeSec, reduced);
 
   ctx.restore();
 

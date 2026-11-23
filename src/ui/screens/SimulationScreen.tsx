@@ -58,6 +58,7 @@ import { animationTick, shouldRedrawForAnimation } from '../characters/animation
 import {
   CameraTransform,
   ClickRippleState,
+  WorldPopup,
   findZoneAtTile,
   renderLabCanvas,
   screenToTile,
@@ -313,7 +314,27 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   const needsRedrawRef = useRef<boolean>(true);
   const lastDrawTimeRef = useRef<number>(0);
   const clickRippleRef = useRef<ClickRippleState | null>(null);
+  const worldPopupsRef = useRef<WorldPopup[]>([]);
+  const prevEnergyByAgentRef = useRef<Record<string, number>>({});
   const timeSecRef = useRef<number>(0);
+
+  const pushWorldPopup = useCallback(
+    (agent: Pick<StudentAgent, 'position'>, text: string, tone: WorldPopup['tone']) => {
+      const t = LAB_MAP.tileSizePx;
+      worldPopupsRef.current = [
+        ...worldPopupsRef.current.slice(-7),
+        {
+          x: (agent.position.x + 0.5) * t,
+          y: (agent.position.y - 0.5) * t,
+          text,
+          tone,
+          startedAtSec: timeSecRef.current,
+        },
+      ];
+      needsRedrawRef.current = true;
+    },
+    []
+  );
   const pointerDownRef = useRef<boolean>(false);
 
   const viewOptionsRef = useRef<CanvasViewOptions>(viewOptions);
@@ -401,22 +422,71 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     document.body.dataset.state = clock.paused ? 'paused' : 'playing';
   }, [clock.paused]);
 
-  // Pintasan keyboard Ctrl+Shift+D untuk Panel Dev & Esc menutup laci/modal
+  // Pintasan keyboard: Ctrl+Shift+D (Dev Panel), Esc (tutup modal/laci), Spasi/1-3/M/R/B/H/J/S
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'd') {
         e.preventDefault();
         setDevPanelOpen((prev) => !prev);
-      } else if (e.key === 'Escape') {
+        return;
+      }
+      if (e.key === 'Escape') {
         setActiveDrawer(null);
         setJournalOpen(false);
         setShiftReportOpen(false);
         setDecorShopOpen(false);
+        return;
+      }
+      // Jangan bajak tombol saat sedang mengetik di formulir, di percakapan VN, atau saat briefing/debrief terbuka
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      if (target && (target.closest('input, textarea, select') || target.isContentEditable)) return;
+      if (briefingOpenRef.current || storyRef.current?.storyVisible || storyRef.current?.debriefProps) return;
+
+      const key = e.key.toLowerCase();
+      if (key === ' ' && !target?.closest('button, a, [role="button"]')) {
+        e.preventDefault();
+        playSfx('klik');
+        const nextWorld = setWorldPaused(worldRef.current, !worldRef.current.clock.paused);
+        worldRef.current = nextWorld;
+        setClock(nextWorld.clock);
+      } else if (key === '1') {
+        playSfx('klik');
+        const nextWorld = setWorldSpeed(worldRef.current, 1);
+        worldRef.current = nextWorld;
+        setClock(nextWorld.clock);
+      } else if (key === '2') {
+        playSfx('klik');
+        const nextWorld = setWorldSpeed(worldRef.current, 2);
+        worldRef.current = nextWorld;
+        setClock(nextWorld.clock);
+      } else if (key === '3') {
+        playSfx('klik');
+        const nextWorld = setWorldSpeed(worldRef.current, 4);
+        worldRef.current = nextWorld;
+        setClock(nextWorld.clock);
+      } else if (key === 'm') {
+        playFeedbackSfx('drawer');
+        setActiveDrawer((cur) => (cur === 'misi' ? null : 'misi'));
+      } else if (key === 'r') {
+        playFeedbackSfx('drawer');
+        setActiveDrawer((cur) => (cur === 'sosiogram' ? null : 'sosiogram'));
+      } else if (key === 'b') {
+        playFeedbackSfx('drawer');
+        setActiveDrawer((cur) => (cur === 'catatan' ? null : 'catatan'));
+      } else if (key === 'h') {
+        playSfx('klik');
+        setDecorShopOpen((cur) => !cur);
+      } else if (key === 'j') {
+        playSfx('klik');
+        setJournalOpen((cur) => !cur);
+      } else if (key === 's' && onToggleAudio) {
+        onToggleAudio();
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
+  }, [onToggleAudio]);
 
   const handleTogglePause = useCallback(() => {
     const nextWorld = setWorldPaused(worldRef.current, !worldRef.current.clock.paused);
@@ -661,6 +731,16 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           needsRedrawRef.current = true;
         }
       }
+      if (worldPopupsRef.current.length > 0) {
+        const alive = worldPopupsRef.current.filter((p) => nowSec - p.startedAtSec < 2.2);
+        if (alive.length !== worldPopupsRef.current.length) {
+          worldPopupsRef.current = alive;
+          needsRedrawRef.current = true;
+        }
+        if (alive.length > 0) {
+          walkingDirty = true;
+        }
+      }
       lastAnimTick = animTick;
 
       const shouldDraw =
@@ -691,6 +771,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               reducedMotion: reducedMotionRef.current,
               clickRipple: clickRippleRef.current,
               equippedDecor: equippedDecorRef.current,
+              worldPopups: worldPopupsRef.current,
               story: storyApi
                 ? {
                     avatar: storyApi.avatarRef.current,
@@ -1032,17 +1113,48 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
 
   const [celebrationToast, setCelebrationToast] = useState<string | null>(null);
   const prevMissionsDoneRef = useRef<number>(missionsDone);
+  const prevCompletedIdsRef = useRef<ReadonlySet<string>>(new Set());
   useEffect(() => {
     const prev = prevMissionsDoneRef.current;
     prevMissionsDoneRef.current = missionsDone;
+    const completedNow = new Set(
+      agentsSnapshot
+        .filter((a) => !lostStudentSet.has(a.id) && story.missions[a.id]?.status === 'selesai')
+        .map((a) => a.id)
+    );
     if (missionsDone > prev) {
+      for (const id of completedNow) {
+        if (!prevCompletedIdsRef.current.has(id)) {
+          const agent = agentsSnapshot.find((a) => a.id === id);
+          if (agent) pushWorldPopup(agent, '✨ +2 ⭐ Pulih!', 'gold');
+        }
+      }
       setCelebrationToast(
         `✨ Kisah terungkap (${missionsDone}/${STUDENT_COUNT}) · ⭐ +2 Bintang Empati siap untuk Hias Ruang BK!`
       );
       const timer = window.setTimeout(() => setCelebrationToast(null), 5500);
+      prevCompletedIdsRef.current = completedNow;
       return () => window.clearTimeout(timer);
     }
-  }, [missionsDone]);
+    prevCompletedIdsRef.current = completedNow;
+  }, [missionsDone, agentsSnapshot, lostStudentSet, story.missions, pushWorldPopup]);
+
+  // Munculkan teks pop-up halus di peta saat energi mahasiswa turun ke batas kritis (<35%) atau naik drastis karena mengobrol
+  useEffect(() => {
+    const prevMap = prevEnergyByAgentRef.current;
+    for (const a of agentsSnapshot) {
+      if (lostStudentSet.has(a.id)) continue;
+      const prevE = prevMap[a.id];
+      if (typeof prevE === 'number') {
+        if (prevE >= 0.35 && a.energy < 0.35 && story.missions[a.id]?.status !== 'selesai') {
+          pushWorldPopup(a, '⚠ Energi <35%!', 'warn');
+        } else if (a.energy - prevE >= 0.08 && a.interactingWithIds.length > 0) {
+          pushWorldPopup(a, '💬 +Energi', 'teal');
+        }
+      }
+      prevMap[a.id] = a.energy;
+    }
+  }, [agentsSnapshot, lostStudentSet, story.missions, pushWorldPopup]);
 
   const handleBuyDecor = useCallback(
     (itemId: RoomDecorId) => {
@@ -1662,6 +1774,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         <button
           type="button"
           aria-pressed={activeDrawer === 'misi'}
+          title="Daftar Misi & Energi Mahasiswa [M]"
           onClick={() => toggleDrawer('misi')}
           className={`hud-dock-btn ${activeDrawer === 'misi' ? 'hud-dock-btn--active' : ''}`}
         >
@@ -1683,6 +1796,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         <button
           type="button"
           aria-pressed={activeDrawer === 'sosiogram'}
+          title="Peta Relasi & Sosiogram [R]"
           onClick={() => toggleDrawer('sosiogram')}
           className={`hud-dock-btn ${activeDrawer === 'sosiogram' ? 'hud-dock-btn--active' : ''}`}
         >
@@ -1695,6 +1809,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         <button
           type="button"
           aria-pressed={activeDrawer === 'catatan' || activeDrawer === 'pengamatan'}
+          title="Buku Pengamatan, Catatan & Pustaka [B]"
           onClick={() =>
             toggleDrawer(
               activeDrawer === 'catatan' || activeDrawer === 'pengamatan' ? activeDrawer : 'catatan'
@@ -1722,7 +1837,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
             playSfx('klik');
             setDecorShopOpen(true);
           }}
-          title="Hias Ruang Konsultasi BK dengan Bintang Empati"
+          title="Hias Ruang Konsultasi BK dengan Bintang Empati [H]"
           className="hud-dock-btn hud-dock-btn--gold"
         >
           <span

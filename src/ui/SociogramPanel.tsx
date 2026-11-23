@@ -677,7 +677,7 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
       )}
 
       {/* Legenda Sosiogram */}
-      <div className="space-y-1 text-[11px] text-[var(--ui-text-muted)]">
+      <div className="space-y-1.5 rounded-2xl border-2 border-[#3e2517]/20 bg-[#fffaf0] p-2.5 text-[11px] text-[#6b482e]">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <span className="inline-flex items-center gap-1.5">
             <svg width="24" height="10" aria-hidden="true">
@@ -698,21 +698,30 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
         <p>{STRINGS.sociogram.legendSize} · {STRINGS.sociogram.dragHint}</p>
         {colorMode === 'station' && (
           <div className="flex flex-wrap gap-x-3 gap-y-1 pt-0.5">
-            {(['cetak-3d', 'pemrograman', 'las', 'elektronik-iot', 'diskusi', 'istirahat'] as ZoneType[]).map(
-              (zId) => (
-                <span key={zId} className="inline-flex items-center gap-1">
-                  <span
-                    className="inline-block h-2.5 w-2.5 rounded-full border"
-                    style={{
-                      backgroundColor: ZONE_NODE_COLORS[zId].fill,
-                      borderColor: ZONE_NODE_COLORS[zId].stroke,
-                    }}
-                    aria-hidden="true"
-                  />
-                  <span>{ZONE_NODE_COLORS[zId].label}</span>
-                </span>
-              )
-            )}
+            {(
+              [
+                'cetak-3d',
+                'pemrograman',
+                'las',
+                'elektronik-iot',
+                'diskusi',
+                'istirahat',
+                'studio-desain',
+                'pojok-baca',
+              ] as ZoneType[]
+            ).map((zId) => (
+              <span key={zId} className="inline-flex items-center gap-1">
+                <span
+                  className="inline-block h-2.5 w-2.5 rounded-full border"
+                  style={{
+                    backgroundColor: ZONE_NODE_COLORS[zId].fill,
+                    borderColor: ZONE_NODE_COLORS[zId].stroke,
+                  }}
+                  aria-hidden="true"
+                />
+                <span>{ZONE_NODE_COLORS[zId].label}</span>
+              </span>
+            ))}
           </div>
         )}
       </div>
@@ -721,19 +730,19 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
       {selectedMetric && (
         <section
           aria-label={STRINGS.sociogram.selectedNodeTitle}
-          className="rounded-lg border border-[var(--ui-border)] bg-[var(--ui-surface-muted)] p-3"
+          className="rounded-2xl border-2 border-[#3e2517] bg-gradient-to-b from-[#fffdf7] to-[#f8ecd2] p-3 shadow-[0_4px_0_#3e2517]"
         >
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <h3 className="text-xs font-bold text-[var(--ui-text)]">
+              <h3 className="font-['Fredoka'] text-sm font-bold text-[#3e2517]">
                 {selectedMetric.name}
               </h3>
-              <p className="font-mono-data mt-0.5 text-[11px] text-[var(--ui-text-muted)]">
+              <p className="font-mono-data mt-0.5 text-[11px] text-[#6b482e]">
                 {STRINGS.sociogram.receivedPrefix}: {selectedMetric.receivedCount} ·{' '}
                 {STRINGS.sociogram.sentPrefix}: {selectedMetric.sentCount} ·{' '}
                 {STRINGS.sociogram.mutualPrefix}: {selectedMetric.mutualCount}
               </p>
-              <p className="mt-0.5 text-[11px] font-medium text-[var(--ui-text)]">
+              <p className="mt-0.5 text-[11px] font-bold text-[#267567]">
                 {formatNodeStatusText(selectedMetric)} ·{' '}
                 {LAB_MAP.zones.find((z) => z.id === selectedMetric.dominantZoneId)?.shortLabel}
               </p>
@@ -741,16 +750,16 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
             <button
               type="button"
               onClick={() => setHypothesisDraftOpen((prev) => !prev)}
-              className="whitespace-nowrap rounded-md bg-[var(--ui-accent)] px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-[var(--ui-accent-hover)]"
+              className="game-btn-primary !min-h-[1.9rem] whitespace-nowrap !px-3 text-[11px]"
             >
               {STRINGS.sociogram.recordHypothesisBtn}
             </button>
           </div>
 
           {/* Daftar pilihan keluar & masuk */}
-          <div className="mt-2 space-y-1 text-[11px] text-[var(--ui-text-muted)]">
+          <div className="mt-2 space-y-1 text-[11px] text-[#6b482e]">
             <p>
-              <span className="font-medium text-[var(--ui-text)]">Memilih: </span>
+              <span className="font-bold text-[#3e2517]">Memilih: </span>
               {selectedMetric.outgoingToIds.length === 0
                 ? 'Belum ada'
                 : selectedMetric.outgoingToIds
@@ -758,7 +767,7 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
                     .join(', ')}
             </p>
             <p>
-              <span className="font-medium text-[var(--ui-text)]">Dipilih oleh: </span>
+              <span className="font-bold text-[#3e2517]">Dipilih oleh: </span>
               {selectedMetric.incomingFromIds.length === 0
                 ? 'Tidak ada (0 pilihan diterima)'
                 : selectedMetric.incomingFromIds
@@ -768,8 +777,8 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
           </div>
 
           {hypothesisDraftOpen && (
-            <form onSubmit={handleSaveHypothesis} className="mt-3 space-y-2 border-t border-[var(--ui-border)] pt-2.5">
-              <p className="font-semibold text-[var(--ui-text)]">
+            <form onSubmit={handleSaveHypothesis} className="mt-3 space-y-2 border-t-2 border-dashed border-[#3e2517]/20 pt-2.5">
+              <p className="font-['Fredoka'] font-bold text-[#3e2517]">
                 {STRINGS.sociogram.hypothesisFormTitle}
               </p>
               <textarea
@@ -778,17 +787,17 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
                 value={hypothesisText}
                 onChange={(e) => setHypothesisText(e.target.value)}
                 placeholder={STRINGS.sociogram.hypothesisPlaceholder}
-                className="w-full rounded border border-[var(--ui-border)] bg-[var(--ui-surface)] px-2.5 py-1.5 text-xs text-[var(--ui-text)]"
+                className="w-full rounded-xl border-2 border-[#3e2517]/35 bg-[#fffdf7] px-2.5 py-1.5 text-xs text-[#3e2517]"
               />
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <label className="flex items-center gap-2 text-[11px] text-[var(--ui-text)]">
+                <label className="flex items-center gap-2 text-[11px] font-semibold text-[#3e2517]">
                   <span>{STRINGS.sociogram.confidenceLabel}:</span>
                   <select
                     value={hypothesisConfidence}
                     onChange={(e) =>
                       setHypothesisConfidence(e.target.value as HypothesisConfidence)
                     }
-                    className="rounded border border-[var(--ui-border)] bg-[var(--ui-surface)] px-2 py-1 text-[11px]"
+                    className="rounded-xl border-2 border-[#3e2517]/35 bg-[#fffdf7] px-2 py-1 text-[11px]"
                   >
                     <option value="rendah">{STRINGS.sociogram.confidenceOptions.rendah}</option>
                     <option value="sedang">{STRINGS.sociogram.confidenceOptions.sedang}</option>
@@ -799,13 +808,13 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
                   <button
                     type="button"
                     onClick={() => setHypothesisDraftOpen(false)}
-                    className="rounded border border-[var(--ui-border)] bg-[var(--ui-surface)] px-2.5 py-1 text-[11px] font-medium text-[var(--ui-text-muted)]"
+                    className="game-btn-secondary !min-h-[1.8rem] !px-3 text-[11px]"
                   >
                     {STRINGS.sociogram.cancelHypothesisBtn}
                   </button>
                   <button
                     type="submit"
-                    className="rounded bg-[var(--ui-accent)] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[var(--ui-accent-hover)]"
+                    className="game-btn-primary !min-h-[1.8rem] !px-3 text-[11px]"
                   >
                     {STRINGS.sociogram.saveHypothesisBtn}
                   </button>
@@ -817,49 +826,49 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
       )}
 
       {/* Laporan Statistik Sosiometri Klasik */}
-      <section aria-label={STRINGS.sociogram.statsTitle} className="space-y-3 border-t border-[var(--ui-border)] pt-3">
-        <h3 className="text-xs font-bold text-[var(--ui-text)]">
-          {STRINGS.sociogram.statsTitle} (Hari {primaryStats.day})
+      <section aria-label={STRINGS.sociogram.statsTitle} className="space-y-3 rounded-2xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-3.5 shadow-[inset_0_-3px_0_#f0e0bf]">
+        <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
+          📊 {STRINGS.sociogram.statsTitle} (Hari {primaryStats.day})
         </h3>
 
-        <div className="grid grid-cols-3 gap-2 rounded-lg border border-[var(--ui-border)] bg-[var(--ui-surface-muted)] p-2.5 text-center">
-          <div>
-            <div className="font-mono-data text-sm font-bold text-[var(--ui-text)]">
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-xl border-2 border-[#3e2517]/25 bg-[#fffaf0] p-2">
+            <div className="font-['Fredoka'] text-sm font-bold text-[#2e8274]">
               {primaryStats.reciprocityChoicePercent}%
             </div>
-            <div className="text-[10px] text-[var(--ui-text-muted)]">
+            <div className="text-[10px] font-semibold text-[#6b482e]">
               {STRINGS.sociogram.reciprocityChoicesLabel}
             </div>
           </div>
-          <div>
-            <div className="font-mono-data text-sm font-bold text-[var(--ui-text)]">
+          <div className="rounded-xl border-2 border-[#3e2517]/25 bg-[#fffaf0] p-2">
+            <div className="font-['Fredoka'] text-sm font-bold text-[#c6453c]">
               {primaryStats.agentsWithReciprocalPercent}%
             </div>
-            <div className="text-[10px] text-[var(--ui-text-muted)]">
+            <div className="text-[10px] font-semibold text-[#6b482e]">
               {STRINGS.sociogram.reciprocityAgentsLabel}
             </div>
           </div>
-          <div>
-            <div className="font-mono-data text-sm font-bold text-[var(--ui-text)]">
+          <div className="rounded-xl border-2 border-[#3e2517]/25 bg-[#fffaf0] p-2">
+            <div className="font-['Fredoka'] text-sm font-bold text-[#b87314]">
               {primaryStats.componentCount}
             </div>
-            <div className="text-[10px] text-[var(--ui-text-muted)]">
+            <div className="text-[10px] font-semibold text-[#6b482e]">
               {STRINGS.sociogram.componentsLabel}
             </div>
           </div>
         </div>
 
         {/* Daftar komponen terhubung & anggotanya */}
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           {primaryStats.components.map((members, idx) => (
             <div
               key={members[0] ?? idx}
-              className="rounded border border-[var(--ui-border)] bg-[var(--ui-surface)] px-2.5 py-1.5 text-[11px]"
+              className="rounded-xl border border-[#3e2517]/20 bg-[#fffaf0] px-2.5 py-1.5 text-[11px]"
             >
-              <span className="font-semibold text-[var(--ui-text)]">
+              <span className="font-bold text-[#3e2517]">
                 {STRINGS.sociogram.componentGroupPrefix} {idx + 1} ({members.length} anggota):{' '}
               </span>
-              <span className="text-[var(--ui-text-muted)]">
+              <span className="text-[#6b482e]">
                 {members.map((id) => agentById.get(id)?.name ?? id).join(', ')}
               </span>
             </div>
@@ -868,51 +877,51 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
 
         {/* Tabel per agen */}
         <div>
-          <h4 className="mb-1.5 text-[11px] font-semibold text-[var(--ui-text)]">
+          <h4 className="mb-1.5 font-['Fredoka'] text-[11px] font-bold text-[#3e2517]">
             {STRINGS.sociogram.tableTitle}
           </h4>
-          <div className="max-h-56 overflow-y-auto rounded-lg border border-[var(--ui-border)]">
+          <div className="max-h-56 overflow-y-auto rounded-xl border-2 border-[#3e2517]/25">
             <table className="w-full border-collapse text-left text-[11px]">
-              <thead className="sticky top-0 bg-[var(--ui-surface-muted)] text-[10px] text-[var(--ui-text-muted)]">
+              <thead className="sticky top-0 bg-[#f6e6c8] text-[10px] text-[#5c3d26]">
                 <tr>
-                  <th className="px-2 py-1.5 font-semibold">{STRINGS.sociogram.colName}</th>
-                  <th className="px-1.5 py-1.5 text-right font-semibold">{STRINGS.sociogram.colIn}</th>
-                  <th className="px-1.5 py-1.5 text-right font-semibold">{STRINGS.sociogram.colOut}</th>
-                  <th className="px-2 py-1.5 font-semibold">{STRINGS.sociogram.colStatus}</th>
-                  <th className="px-1.5 py-1.5 text-right font-semibold">Aksi</th>
+                  <th className="px-2 py-1.5 font-bold">{STRINGS.sociogram.colName}</th>
+                  <th className="px-1.5 py-1.5 text-right font-bold">{STRINGS.sociogram.colIn}</th>
+                  <th className="px-1.5 py-1.5 text-right font-bold">{STRINGS.sociogram.colOut}</th>
+                  <th className="px-2 py-1.5 font-bold">{STRINGS.sociogram.colStatus}</th>
+                  <th className="px-1.5 py-1.5 text-right font-bold">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--ui-border)] bg-[var(--ui-surface)]">
+              <tbody className="divide-y divide-[#3e2517]/15 bg-[#fffdf7]">
                 {primaryStats.orderedMetrics.map((m) => {
                   const active = m.agentId === selectedAgentId;
                   return (
                     <tr
                       key={m.agentId}
-                      className={active ? 'bg-[var(--ui-accent-soft)]' : 'hover:bg-[var(--ui-surface-muted)]'}
+                      className={active ? 'bg-[#e6f7f2]' : 'hover:bg-[#fff7e2]'}
                     >
                       <td className="px-2 py-1.5">
                         <button
                           type="button"
                           onClick={() => onSelectAgent(m.agentId)}
-                          className="text-left font-medium text-[var(--ui-text)] hover:underline"
+                          className="cursor-pointer text-left font-bold text-[#3e2517] hover:underline"
                         >
                           {m.name}
                         </button>
                       </td>
-                      <td className="font-mono-data px-1.5 py-1.5 text-right text-[var(--ui-text)]">
+                      <td className="font-mono-data px-1.5 py-1.5 text-right font-bold text-[#3e2517]">
                         {m.receivedCount}
                       </td>
-                      <td className="font-mono-data px-1.5 py-1.5 text-right text-[var(--ui-text-muted)]">
+                      <td className="font-mono-data px-1.5 py-1.5 text-right text-[#6b482e]">
                         {m.sentCount}
                       </td>
-                      <td className="px-2 py-1.5 text-[var(--ui-text-muted)]">
+                      <td className="px-2 py-1.5 text-[#5c3d26]">
                         {formatNodeStatusText(m)}
                       </td>
                       <td className="px-1.5 py-1.5 text-right">
                         <button
                           type="button"
                           onClick={() => handleOpenHypothesisForAgent(m.agentId)}
-                          className="whitespace-nowrap font-medium text-[var(--ui-accent)] hover:underline"
+                          className="cursor-pointer whitespace-nowrap font-['Fredoka'] font-bold text-[#267567] hover:underline"
                         >
                           Hipotesis
                         </button>
@@ -927,28 +936,28 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
       </section>
 
       {/* Daftar Hipotesis Tersimpan */}
-      <section aria-label={STRINGS.sociogram.savedHypothesesTitle} className="border-t border-[var(--ui-border)] pt-3">
-        <h3 className="text-xs font-bold text-[var(--ui-text)]">
-          {STRINGS.sociogram.savedHypothesesTitle} ({hypotheses.length})
+      <section aria-label={STRINGS.sociogram.savedHypothesesTitle} className="rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffdf7] p-3">
+        <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
+          🔎 {STRINGS.sociogram.savedHypothesesTitle} ({hypotheses.length})
         </h3>
         {hypotheses.length === 0 ? (
-          <p className="mt-1 text-[11px] text-[var(--ui-text-muted)]">
+          <p className="mt-1 text-[11px] text-[#6b482e]">
             {STRINGS.sociogram.noHypothesesYet}
           </p>
         ) : (
-          <ul className="mt-1.5 space-y-1.5">
+          <ul className="mt-2 space-y-1.5">
             {hypotheses.map((h) => (
               <li
                 key={h.id}
-                className="rounded border border-[var(--ui-border)] bg-[var(--ui-surface-muted)] px-2.5 py-2 text-[11px]"
+                className="rounded-xl border border-[#3e2517]/20 bg-[#fffaf0] px-2.5 py-2 text-[11px]"
               >
-                <div className="flex items-center justify-between gap-2 font-semibold text-[var(--ui-text)]">
+                <div className="flex items-center justify-between gap-2 font-bold text-[#3e2517]">
                   <span>{h.agentName}</span>
-                  <span className="font-mono-data text-[10px] font-normal text-[var(--ui-text-muted)]">
+                  <span className="font-mono-data text-[10px] font-normal text-[#7a5234]">
                     Hari {h.day} · {h.timeFormatted} · Keyakinan {h.confidence}
                   </span>
                 </div>
-                <p className="mt-1 text-[var(--ui-text)]">{h.hypothesisText}</p>
+                <p className="mt-1 text-[#5c3d26]">{h.hypothesisText}</p>
               </li>
             ))}
           </ul>

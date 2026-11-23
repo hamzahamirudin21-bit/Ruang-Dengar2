@@ -1,0 +1,19 @@
+{
+  "name": "RUANG DENGAR — Simulator Konseling Kampus 2D",
+  "short_name": "Ruang Dengar",
+  "description": "Simulator interaktif kehidupan kampus vokasi dengan 18 kisah mahasiswa & 11 ruangan untuk melatih empati, observasi, dan keterampilan dasar konseling.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#e8d8be",
+  "theme_color": "#3e2517",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

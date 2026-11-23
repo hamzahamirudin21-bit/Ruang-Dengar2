@@ -4,6 +4,8 @@ import fs from 'fs';
 import path from 'path';
 import {defineConfig} from 'vite';
 
+const ROOT_DIR = import.meta.dirname;
+
 export default defineConfig(() => {
   return {
     plugins: [
@@ -19,8 +21,8 @@ export default defineConfig(() => {
           if (error) {
             return;
           }
-          const distDir = path.resolve(__dirname, 'dist');
-          const srcAssets = path.resolve(__dirname, 'src/assets');
+          const distDir = path.resolve(ROOT_DIR, 'dist');
+          const srcAssets = path.resolve(ROOT_DIR, 'src/assets');
           const distAssets = path.resolve(distDir, 'src/assets');
           if (fs.existsSync(distDir) && fs.existsSync(srcAssets)) {
             fs.cpSync(srcAssets, distAssets, {recursive: true, force: true});
@@ -28,9 +30,39 @@ export default defineConfig(() => {
         },
       },
     ],
+    build: {
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              {
+                name: 'vendor-react',
+                test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+                priority: 30,
+              },
+              {
+                name: 'stories-full',
+                test: /[\\/]src[\\/]data[\\/]stories[\\/]/,
+                priority: 20,
+              },
+              {
+                name: 'stories-compact',
+                test: /[\\/]src[\\/]data[\\/]storiesCompact[\\/]/,
+                priority: 20,
+              },
+              {
+                name: 'world-engine',
+                test: /[\\/]src[\\/](engine|ui[\\/]world)[\\/]/,
+                priority: 10,
+              },
+            ],
+          },
+        },
+      },
+    },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(ROOT_DIR, '.'),
       },
     },
     server: {

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffe799"/>
+      <stop offset="100%" stop-color="#f0b034"/>
+    </linearGradient>
+    <linearGradient id="cloud" x1="16" y1="14" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3da18f"/>
+      <stop offset="100%" stop-color="#226e60"/>
+    </linearGradient>
+  </defs>
+  <!-- Lencana perisai bulat hangat berbingkai tinta espresso -->
+  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#bg)" stroke="#3e2517" stroke-width="4"/>
+  <rect x="9" y="9" width="46" height="46" rx="13" stroke="#fffdf5" stroke-opacity="0.45" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <!-- Awan bicara toska -->
+  <path d="M16 26C16 18.8 22.8 14 32 14C41.2 14 48 18.8 48 26C48 33.2 41.2 38 32 38C29.8 38 27.6 37.7 25.6 37.1L18 42.5L20.4 34.8C17.6 32.6 16 29.5 16 26Z" fill="url(#cloud)" stroke="#3e2517" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Gelombang dengar emas hangat di dalam awan -->
+  <rect x="23" y="24" width="3.5" height="6" rx="1.75" fill="#fffdf5"/>
+  <rect x="29" y="20" width="3.5" height="14" rx="1.75" fill="#ffe694"/>
+  <rect x="35" y="22.5" width="3.5" height="9" rx="1.75" fill="#fffdf5"/>
+  <rect x="41" y="24.5" width="3.5" height="5" rx="1.75" fill="#ffe694"/>
+  <!-- Hati empati mungil di sudut bawah kanan -->
+  <path d="M46 42.5C46 40.8 47.4 39.5 49 39.5C50.1 39.5 51 40.1 51.5 41C52 40.1 52.9 39.5 54 39.5C55.6 39.5 57 40.8 57 42.5C57 45.2 51.5 48.5 51.5 48.5C51.5 48.5 46 45.2 46 42.5Z" fill="#e5534b" stroke="#3e2517" stroke-width="2" stroke-linejoin="round"/>
+</svg>

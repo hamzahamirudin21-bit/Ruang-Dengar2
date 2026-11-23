@@ -245,20 +245,20 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
       </section>
 
       {/* Formulir Catatan Anekdot (FAKTA terpisah dari TAFSIR) */}
-      <section aria-label={STRINGS.observation.anecdotalTitle} className="border-t border-[var(--ui-border)] pt-3">
-        <h3 className="text-xs font-bold text-[var(--ui-text)]">
-          {STRINGS.observation.anecdotalTitle}
+      <section aria-label={STRINGS.observation.anecdotalTitle} className="rounded-2xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-3.5 shadow-[inset_0_-3px_0_#f0e0bf]">
+        <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
+          📝 {STRINGS.observation.anecdotalTitle}
         </h3>
 
         {!selectedAgent ? (
-          <p className="mt-1.5 rounded-lg border border-dashed border-[var(--ui-border)] bg-[var(--ui-surface-muted)] p-3 text-[11px] text-[var(--ui-text-muted)]">
+          <p className="mt-2 rounded-xl border-2 border-dashed border-[#3e2517]/25 bg-[#fff7e2] p-3 text-[11px] text-[#6b482e]">
             {STRINGS.observation.anecdotalStudentRequired}
           </p>
         ) : (
-          <form onSubmit={handleSubmitAnecdotal} className="mt-2 space-y-2.5">
+          <form onSubmit={handleSubmitAnecdotal} className="mt-2.5 space-y-2.5">
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label htmlFor="anecdotal-date" className="block text-[11px] font-medium text-[var(--ui-text)]">
+                <label htmlFor="anecdotal-date" className="block font-['Fredoka'] text-[11px] font-bold text-[#5c3d26]">
                   {STRINGS.observation.fieldDate}
                 </label>
                 <input
@@ -266,11 +266,11 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
                   type="text"
                   value={dateLabel}
                   onChange={(e) => setDateLabel(e.target.value)}
-                  className="mt-1 w-full rounded border border-[var(--ui-border)] bg-[var(--ui-surface)] px-2 py-1 text-xs"
+                  className="mt-1 w-full rounded-xl border-2 border-[#3e2517]/35 bg-[#fffaf0] px-2.5 py-1.5 text-xs text-[#3e2517]"
                 />
               </div>
               <div>
-                <label htmlFor="anecdotal-time" className="block text-[11px] font-medium text-[var(--ui-text)]">
+                <label htmlFor="anecdotal-time" className="block font-['Fredoka'] text-[11px] font-bold text-[#5c3d26]">
                   {STRINGS.observation.fieldTime}
                 </label>
                 <input
@@ -278,20 +278,20 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
                   type="text"
                   value={timeLabel}
                   onChange={(e) => setTimeLabel(e.target.value)}
-                  className="font-mono-data mt-1 w-full rounded border border-[var(--ui-border)] bg-[var(--ui-surface)] px-2 py-1 text-xs"
+                  className="font-mono-data mt-1 w-full rounded-xl border-2 border-[#3e2517]/35 bg-[#fffaf0] px-2.5 py-1.5 text-xs text-[#3e2517]"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="anecdotal-location" className="block text-[11px] font-medium text-[var(--ui-text)]">
+              <label htmlFor="anecdotal-location" className="block font-['Fredoka'] text-[11px] font-bold text-[#5c3d26]">
                 {STRINGS.observation.fieldLocation}
               </label>
               <select
                 id="anecdotal-location"
                 value={locationZoneId}
                 onChange={(e) => setLocationZoneId(e.target.value as ZoneType)}
-                className="mt-1 w-full rounded border border-[var(--ui-border)] bg-[var(--ui-surface)] px-2 py-1.5 text-xs"
+                className="mt-1 w-full rounded-xl border-2 border-[#3e2517]/35 bg-[#fffaf0] px-2.5 py-1.5 text-xs font-semibold text-[#3e2517]"
               >
                 {LAB_MAP.zones.map((z) => (
                   <option key={z.id} value={z.id}>
@@ -302,7 +302,7 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
             </div>
 
             <div>
-              <label htmlFor="anecdotal-fact" className="block text-[11px] font-semibold text-[var(--ui-text)]">
+              <label htmlFor="anecdotal-fact" className="block font-['Fredoka'] text-[11px] font-bold text-[#3e2517]">
                 {STRINGS.observation.fieldFact}
               </label>
               <textarea
@@ -312,16 +312,16 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
                 value={observedFact}
                 onChange={(e) => setObservedFact(e.target.value)}
                 placeholder={STRINGS.observation.fieldFactPlaceholder}
-                className="mt-1 w-full rounded border border-[var(--ui-border)] bg-[var(--ui-surface)] px-2.5 py-1.5 text-xs text-[var(--ui-text)]"
+                className="mt-1 w-full rounded-xl border-2 border-[#3e2517]/35 bg-[#fffaf0] px-2.5 py-1.5 text-xs text-[#3e2517]"
               />
 
               {detectedInterpretiveWords.length > 0 && (
                 <div
                   role="status"
                   data-testid="anecdotal-fact-warning"
-                  className="mt-1.5 rounded border border-[var(--ui-warning-border)] bg-[var(--ui-warning-bg)] p-2.5 text-[11px] text-[var(--ui-warning-text)]"
+                  className="mt-1.5 rounded-xl border-2 border-[#c9862d] bg-[#fff5d6] p-2.5 text-[11px] text-[#6b4208]"
                 >
-                  <p className="font-semibold">
+                  <p className="font-bold">
                     {STRINGS.observation.interpretiveWarningPrefix}{' '}
                     <span className="underline">
                       {detectedInterpretiveWords.join(', ')}
@@ -333,7 +333,7 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
                   <button
                     type="button"
                     onClick={handleMoveFactToInterpretation}
-                    className="mt-1.5 rounded border border-[var(--ui-warning-border)] bg-white px-2.5 py-1 text-[11px] font-semibold text-[var(--ui-warning-text)] hover:bg-[var(--ui-surface-muted)]"
+                    className="mt-1.5 cursor-pointer rounded-full border-2 border-[#3e2517] bg-[#fffdf6] px-3 py-1 font-['Fredoka'] text-[11px] font-bold text-[#3e2517] hover:bg-[#ffe9a6]"
                   >
                     {STRINGS.observation.moveToInterpretationBtn}
                   </button>
@@ -342,7 +342,7 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
             </div>
 
             <div>
-              <label htmlFor="anecdotal-interpretation" className="block text-[11px] font-semibold text-[var(--ui-text)]">
+              <label htmlFor="anecdotal-interpretation" className="block font-['Fredoka'] text-[11px] font-bold text-[#3e2517]">
                 {STRINGS.observation.fieldInterpretation}
               </label>
               <textarea
@@ -351,7 +351,7 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
                 value={counselorInterpretation}
                 onChange={(e) => setCounselorInterpretation(e.target.value)}
                 placeholder={STRINGS.observation.fieldInterpretationPlaceholder}
-                className="mt-1 w-full rounded border border-[var(--ui-border)] bg-[var(--ui-surface)] px-2.5 py-1.5 text-xs text-[var(--ui-text)]"
+                className="mt-1 w-full rounded-xl border-2 border-[#3e2517]/35 bg-[#fffaf0] px-2.5 py-1.5 text-xs text-[#3e2517]"
               />
             </div>
 
