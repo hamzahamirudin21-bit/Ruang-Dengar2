@@ -1,0 +1,230 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" shape-rendering="geometricPrecision">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2d3254"/><stop offset="100%" stop-color="#1e2440"/></linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3a3959"/><stop offset="100%" stop-color="#25243d"/></linearGradient>
+  </defs>
+  <rect width="1280" height="500" fill="url(#wall)"/>
+  <rect y="500" width="1280" height="220" fill="url(#floor)"/>
+  <!-- Strip lampu LED neon studio coding -->
+  <rect x="40" y="28" width="1200" height="8" rx="4" fill="#7aa2f7" opacity="0.85"/>
+  <!-- Panel dinding akustik geometris -->
+  <rect x="42" y="54" width="106" height="440" rx="8" fill="rgba(255,255,255,0.035)"/><rect x="164" y="54" width="106" height="440" rx="8" fill="rgba(255,255,255,0.035)"/><rect x="286" y="54" width="106" height="440" rx="8" fill="rgba(255,255,255,0.035)"/><rect x="408" y="54" width="106" height="440" rx="8" fill="rgba(255,255,255,0.035)"/><rect x="530" y="54" width="106" height="440" rx="8" fill="rgba(255,255,255,0.035)"/><rect x="652" y="54" width="106" height="440" rx="8" fill="rgba(255,255,255,0.035)"/><rect x="774" y="54" width="106" height="440" rx="8" fill="rgba(255,255,255,0.035)"/><rect x="896" y="54" width="106" height="440" rx="8" fill="rgba(255,255,255,0.035)"/><rect x="1018" y="54" width="106" height="440" rx="8" fill="rgba(255,255,255,0.035)"/><rect x="1140" y="54" width="106" height="440" rx="8" fill="rgba(255,255,255,0.035)"/>
+  <line x1="0" y1="500" x2="1280" y2="500" stroke="#3e2517" stroke-width="4"/>
+
+  <!-- Papan Nama Studio Coding -->
+  
+  <g>
+    <rect x="410" y="48" width="420" height="52" rx="10" fill="#1a2342" stroke="#3e2517" stroke-width="3.5"/>
+    <rect x="416" y="54" width="408" height="40" rx="6" fill="none" stroke="#65e5b8" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="620" y="81" text-anchor="middle" font-family="Fredoka, 'Segoe UI', sans-serif" font-size="21" font-weight="700" fill="#e8f6ff" letter-spacing="1.2">LAB PEMROGRAMAN &amp; MCU</text>
+  </g>
+
+  <!-- Rak Server Kiri -->
+  <rect x="42" y="136" width="140" height="340" rx="10" fill="#171d30" stroke="#3e2517" stroke-width="4"/>
+  
+      <rect x="56" y="156" width="112" height="28" rx="4" fill="#232a42" stroke="#3e2517" stroke-width="2"/>
+      <circle cx="70" cy="170" r="4" fill="#4ff5b4"/>
+      <circle cx="84" cy="170" r="4" fill="#ffe169"/>
+      <line x1="102" y1="170" x2="156" y2="170" stroke="#4e5c82" stroke-width="3"/>
+    
+      <rect x="56" y="194" width="112" height="28" rx="4" fill="#232a42" stroke="#3e2517" stroke-width="2"/>
+      <circle cx="70" cy="208" r="4" fill="#6cc8ff"/>
+      <circle cx="84" cy="208" r="4" fill="#4ff5b4"/>
+      <line x1="102" y1="208" x2="156" y2="208" stroke="#4e5c82" stroke-width="3"/>
+    
+      <rect x="56" y="232" width="112" height="28" rx="4" fill="#232a42" stroke="#3e2517" stroke-width="2"/>
+      <circle cx="70" cy="246" r="4" fill="#4ff5b4"/>
+      <circle cx="84" cy="246" r="4" fill="#4ff5b4"/>
+      <line x1="102" y1="246" x2="156" y2="246" stroke="#4e5c82" stroke-width="3"/>
+    
+      <rect x="56" y="270" width="112" height="28" rx="4" fill="#232a42" stroke="#3e2517" stroke-width="2"/>
+      <circle cx="70" cy="284" r="4" fill="#6cc8ff"/>
+      <circle cx="84" cy="284" r="4" fill="#ffe169"/>
+      <line x1="102" y1="284" x2="156" y2="284" stroke="#4e5c82" stroke-width="3"/>
+    
+      <rect x="56" y="308" width="112" height="28" rx="4" fill="#232a42" stroke="#3e2517" stroke-width="2"/>
+      <circle cx="70" cy="322" r="4" fill="#4ff5b4"/>
+      <circle cx="84" cy="322" r="4" fill="#4ff5b4"/>
+      <line x1="102" y1="322" x2="156" y2="322" stroke="#4e5c82" stroke-width="3"/>
+    
+      <rect x="56" y="346" width="112" height="28" rx="4" fill="#232a42" stroke="#3e2517" stroke-width="2"/>
+      <circle cx="70" cy="360" r="4" fill="#6cc8ff"/>
+      <circle cx="84" cy="360" r="4" fill="#4ff5b4"/>
+      <line x1="102" y1="360" x2="156" y2="360" stroke="#4e5c82" stroke-width="3"/>
+    
+      <rect x="56" y="384" width="112" height="28" rx="4" fill="#232a42" stroke="#3e2517" stroke-width="2"/>
+      <circle cx="70" cy="398" r="4" fill="#4ff5b4"/>
+      <circle cx="84" cy="398" r="4" fill="#ffe169"/>
+      <line x1="102" y1="398" x2="156" y2="398" stroke="#4e5c82" stroke-width="3"/>
+    
+      <rect x="56" y="422" width="112" height="28" rx="4" fill="#232a42" stroke="#3e2517" stroke-width="2"/>
+      <circle cx="70" cy="436" r="4" fill="#6cc8ff"/>
+      <circle cx="84" cy="436" r="4" fill="#4ff5b4"/>
+      <line x1="102" y1="436" x2="156" y2="436" stroke="#4e5c82" stroke-width="3"/>
+    
+
+  <!-- Jendela Kampus Tengah -->
+  
+  <defs>
+    <clipPath id="win-236-126"><rect x="236" y="126" width="390" height="224" rx="8"/></clipPath>
+    <linearGradient id="sky-win-236-126" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6bb9ef"/><stop offset="55%" stop-color="#b7e2fb"/><stop offset="100%" stop-color="#eef8ff"/>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#win-236-126)">
+    <rect x="236" y="126" width="390" height="224" fill="url(#sky-win-236-126)"/>
+    <!-- Awan lembut -->
+    <ellipse cx="345.20000000000005" cy="179.76" rx="56" ry="18" fill="#ffffff" opacity="0.65"/>
+    <ellipse cx="516.8" cy="168.56" rx="48" ry="15" fill="#ffffff" opacity="0.55"/>
+    <!-- Gedung kampus di luar -->
+    <rect x="259.4" y="224.56" width="109.20000000000002" height="125.44000000000001" fill="#8aa7c7" opacity="0.6"/>
+    <rect x="462.2" y="202.16000000000003" width="132.60000000000002" height="147.84" fill="#8aa7c7" opacity="0.5"/>
+    <!-- Jendela gedung kampus -->
+    <rect x="275" y="242.48000000000002" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="303" y="242.48000000000002" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="331" y="242.48000000000002" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="275" y="268.48" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="303" y="268.48" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="331" y="268.48" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="275" y="294.48" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="303" y="294.48" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="331" y="294.48" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/>
+    <rect x="481.7" y="220.07999999999998" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="513.7" y="220.07999999999998" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="545.7" y="220.07999999999998" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="481.7" y="248.07999999999998" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="513.7" y="248.07999999999998" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="545.7" y="248.07999999999998" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="481.7" y="276.08" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="513.7" y="276.08" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="545.7" y="276.08" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/>
+    <!-- Tajuk pepohonan kampus -->
+    <circle cx="290.6" cy="332.08000000000004" r="66" fill="#4c8e5c"/>
+    <circle cx="368.6" cy="345.52" r="58" fill="#70b376"/>
+    <circle cx="477.8" cy="341.03999999999996" r="62" fill="#4c8e5c"/>
+    <circle cx="579.2" cy="323.12" r="72" fill="#70b376"/>
+    <!-- Kusen kaca -->
+    <line x1="366" y1="126" x2="366" y2="350" stroke="#3f4b6e" stroke-width="8"/>
+    <line x1="496" y1="126" x2="496" y2="350" stroke="#3f4b6e" stroke-width="8"/>
+    <line x1="236" y1="264.88" x2="626" y2="264.88" stroke="#3f4b6e" stroke-width="8"/>
+    
+  </g>
+  <rect x="236" y="126" width="390" height="224" rx="8" fill="none" stroke="#3f4b6e" stroke-width="10"/>
+  <rect x="236" y="126" width="390" height="224" rx="8" fill="none" stroke="#3e2517" stroke-width="3"/>
+  <rect x="222" y="348" width="418" height="16" rx="5" fill="#637199" stroke="#3e2517" stroke-width="3"/>
+
+  <!-- Papan Tulis Flowchart & Git Branch Kanan -->
+  <g transform="translate(684,126)">
+    <rect width="540" height="224" rx="12" fill="#f8fafc" stroke="#4f5f7a" stroke-width="8"/>
+    <rect width="540" height="224" rx="12" fill="none" stroke="#3e2517" stroke-width="3"/>
+    <text x="28" y="38" font-family="Fredoka, sans-serif" font-size="18" font-weight="700" fill="#2d3a5c">ALUR FIRMWARE &amp; TELEMETRI</text>
+    <rect x="34" y="64" width="110" height="44" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/>
+    <text x="89" y="91" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#1e3a8a">sensor()</text>
+    <line x1="144" y1="86" x2="196" y2="86" stroke="#3e2517" stroke-width="3"/>
+    <rect x="196" y="64" width="122" height="44" rx="8" fill="#d1fae5" stroke="#059669" stroke-width="3"/>
+    <text x="257" y="91" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#065f46">filter()</text>
+    <line x1="318" y1="86" x2="370" y2="86" stroke="#3e2517" stroke-width="3"/>
+    <rect x="370" y="64" width="134" height="44" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="3"/>
+    <text x="437" y="91" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#92400e">sendMQTT()</text>
+    <!-- Garis cabang Git -->
+    <line x1="56" y1="168" x2="480" y2="168" stroke="#6366f1" stroke-width="4"/>
+    <path d="M130 168 Q170 132 230 132 H340 Q380 132 410 168" fill="none" stroke="#ec4899" stroke-width="4"/>
+    <circle cx="90" cy="168" r="8" fill="#fffdf6" stroke="#6366f1" stroke-width="4"/><circle cx="210" cy="168" r="8" fill="#fffdf6" stroke="#6366f1" stroke-width="4"/><circle cx="320" cy="168" r="8" fill="#fffdf6" stroke="#6366f1" stroke-width="4"/><circle cx="440" cy="168" r="8" fill="#fffdf6" stroke="#6366f1" stroke-width="4"/>
+    <circle cx="284" cy="132" r="8" fill="#fffdf6" stroke="#ec4899" stroke-width="4"/>
+  </g>
+
+  <!-- Meja Kerja Panjang Coding + 3 Monitor -->
+  <rect x="86" y="470" width="1108" height="30" rx="8" fill="#6f4f3b" stroke="#3e2517" stroke-width="4"/>
+  <rect x="118" y="500" width="26" height="150" fill="#2c334a" stroke="#3e2517" stroke-width="3.5"/>
+  <rect x="1136" y="500" width="26" height="150" fill="#2c334a" stroke="#3e2517" stroke-width="3.5"/>
+
+  
+    <g transform="translate(160,304)">
+      <rect width="240" height="146" rx="10" fill="#1b2036" stroke="#3e2517" stroke-width="4"/>
+      <rect x="10" y="10" width="220" height="122" rx="5" fill="#0f1528"/>
+      <rect x="10" y="10" width="220" height="16" rx="4" fill="#1e2745"/>
+      <circle cx="22" cy="18" r="3.5" fill="#ff6b6b"/><circle cx="34" cy="18" r="3.5" fill="#ffd966"/><circle cx="46" cy="18" r="3.5" fill="#5bf0a4"/>
+      
+        <rect x="20" y="36" width="44" height="7" rx="3" fill="#7aa2f7" opacity="0.9"/>
+        <rect x="76" y="36" width="26" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="34" y="52" width="73" height="7" rx="3" fill="#73e8b5" opacity="0.9"/>
+        <rect x="119" y="52" width="48" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="48" y="68" width="44" height="7" rx="3" fill="#7aa2f7" opacity="0.9"/>
+        <rect x="104" y="68" width="26" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="20" y="84" width="73" height="7" rx="3" fill="#73e8b5" opacity="0.9"/>
+        <rect x="105" y="84" width="48" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="34" y="100" width="44" height="7" rx="3" fill="#7aa2f7" opacity="0.9"/>
+        <rect x="90" y="100" width="26" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="48" y="116" width="73" height="7" rx="3" fill="#73e8b5" opacity="0.9"/>
+        <rect x="133" y="116" width="48" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+      <rect x="106" y="146" width="28" height="22" fill="#323b57" stroke="#3e2517" stroke-width="3"/>
+      <rect x="78" y="164" width="84" height="10" rx="4" fill="#465173" stroke="#3e2517" stroke-width="3"/>
+    </g>
+  
+    <g transform="translate(436,286)">
+      <rect width="274" height="164" rx="10" fill="#1b2036" stroke="#3e2517" stroke-width="4"/>
+      <rect x="10" y="10" width="254" height="140" rx="5" fill="#0f1528"/>
+      <rect x="10" y="10" width="254" height="16" rx="4" fill="#1e2745"/>
+      <circle cx="22" cy="18" r="3.5" fill="#ff6b6b"/><circle cx="34" cy="18" r="3.5" fill="#ffd966"/><circle cx="46" cy="18" r="3.5" fill="#5bf0a4"/>
+      
+        <rect x="20" y="36" width="44" height="7" rx="3" fill="#c084fc" opacity="0.9"/>
+        <rect x="76" y="36" width="26" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="34" y="52" width="73" height="7" rx="3" fill="#73e8b5" opacity="0.9"/>
+        <rect x="119" y="52" width="48" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="48" y="68" width="44" height="7" rx="3" fill="#c084fc" opacity="0.9"/>
+        <rect x="104" y="68" width="26" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="20" y="84" width="73" height="7" rx="3" fill="#73e8b5" opacity="0.9"/>
+        <rect x="105" y="84" width="48" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="34" y="100" width="44" height="7" rx="3" fill="#c084fc" opacity="0.9"/>
+        <rect x="90" y="100" width="26" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="48" y="116" width="73" height="7" rx="3" fill="#73e8b5" opacity="0.9"/>
+        <rect x="133" y="116" width="48" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+      <rect x="123" y="164" width="28" height="22" fill="#323b57" stroke="#3e2517" stroke-width="3"/>
+      <rect x="95" y="182" width="84" height="10" rx="4" fill="#465173" stroke="#3e2517" stroke-width="3"/>
+    </g>
+  
+    <g transform="translate(744,304)">
+      <rect width="240" height="146" rx="10" fill="#1b2036" stroke="#3e2517" stroke-width="4"/>
+      <rect x="10" y="10" width="220" height="122" rx="5" fill="#0f1528"/>
+      <rect x="10" y="10" width="220" height="16" rx="4" fill="#1e2745"/>
+      <circle cx="22" cy="18" r="3.5" fill="#ff6b6b"/><circle cx="34" cy="18" r="3.5" fill="#ffd966"/><circle cx="46" cy="18" r="3.5" fill="#5bf0a4"/>
+      
+        <rect x="20" y="36" width="44" height="7" rx="3" fill="#4ff5b4" opacity="0.9"/>
+        <rect x="76" y="36" width="26" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="34" y="52" width="73" height="7" rx="3" fill="#73e8b5" opacity="0.9"/>
+        <rect x="119" y="52" width="48" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="48" y="68" width="44" height="7" rx="3" fill="#4ff5b4" opacity="0.9"/>
+        <rect x="104" y="68" width="26" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="20" y="84" width="73" height="7" rx="3" fill="#73e8b5" opacity="0.9"/>
+        <rect x="105" y="84" width="48" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="34" y="100" width="44" height="7" rx="3" fill="#4ff5b4" opacity="0.9"/>
+        <rect x="90" y="100" width="26" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+        <rect x="48" y="116" width="73" height="7" rx="3" fill="#73e8b5" opacity="0.9"/>
+        <rect x="133" y="116" width="48" height="7" rx="3" fill="#ffd875" opacity="0.8"/>
+      
+      <rect x="106" y="146" width="28" height="22" fill="#323b57" stroke="#3e2517" stroke-width="3"/>
+      <rect x="78" y="164" width="84" height="10" rx="4" fill="#465173" stroke="#3e2517" stroke-width="3"/>
+    </g>
+
+  <!-- Keyboard mekanikal + Mug kopi + Headphone -->
+  <rect x="466" y="454" width="212" height="18" rx="5" fill="#1e2438" stroke="#3e2517" stroke-width="2.5"/>
+  <line x1="478" y1="463" x2="664" y2="463" stroke="#a78bfa" stroke-width="4" stroke-dasharray="10 6"/>
+  <!-- Mug kopi mengepul -->
+  <g transform="translate(1038,418)">
+    <rect width="38" height="48" rx="8" fill="#fffdf5" stroke="#3e2517" stroke-width="3"/>
+    <path d="M38 12 C52 12 52 34 38 34" fill="none" stroke="#3e2517" stroke-width="4"/>
+    <path d="M12 -6 Q16 -18 12 -28 M26 -8 Q30 -20 26 -30" fill="none" stroke="#fff7dc" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  </g>
+  <!-- Headphone di stand -->
+  <g transform="translate(1110,398)">
+    <path d="M16 44 C16 8 64 8 64 44" fill="none" stroke="#e5534b" stroke-width="7"/>
+    <rect x="8" y="38" width="16" height="28" rx="6" fill="#283044" stroke="#3e2517" stroke-width="3"/>
+    <rect x="56" y="38" width="16" height="28" rx="6" fill="#283044" stroke="#3e2517" stroke-width="3"/>
+  </g>
+  
+  <g pointer-events="none">
+    <polygon points="340,0 500,0 240,720 80,720" fill="rgba(255,250,224,0.16)"/>
+    <polygon points="620,0 780,0 520,720 360,720" fill="rgba(255,250,224,0.16)"/>
+    <rect x="0" y="0" width="1280" height="720" fill="rgba(255,244,210,0.03)"/>
+  </g></svg>

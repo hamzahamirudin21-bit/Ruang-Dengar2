@@ -110,8 +110,10 @@ export function classifyAgentWellbeing(
 export function sortAgentsByUrgency(
   agents: readonly StudentAgent[],
   missions: Readonly<Record<string, MissionRecord>>,
+  lostAgentIds?: ReadonlySet<string>,
 ): StudentAgent[] {
   const rank = (a: StudentAgent): number => {
+    if (lostAgentIds?.has(a.id)) return 5;
     if (a.energy < ENERGY_CRITICAL_THRESHOLD) return 0;
     if (a.energy < ENERGY_WARNING_THRESHOLD) return 1;
     const status = missions[a.id]?.status ?? 'belum';
@@ -130,21 +132,26 @@ export function sortAgentsByUrgency(
 export function computeCampusMissionSummary(
   agents: readonly StudentAgent[],
   missions: Readonly<Record<string, MissionRecord>>,
+  lostAgentIds?: ReadonlySet<string>,
 ): CampusMissionSummary {
+  const activeAgents = lostAgentIds
+    ? agents.filter((a) => !lostAgentIds.has(a.id))
+    : agents;
   const total = agents.length;
-  const energySum = agents.reduce((acc, a) => acc + Math.min(1, Math.max(0, a.energy)), 0);
-  const averageEnergyPct = total > 0 ? Math.round((energySum / total) * 100) : 0;
+  const activeTotal = activeAgents.length;
+  const energySum = activeAgents.reduce((acc, a) => acc + Math.min(1, Math.max(0, a.energy)), 0);
+  const averageEnergyPct = activeTotal > 0 ? Math.round((energySum / activeTotal) * 100) : 0;
 
-  const criticalAgents = agents
+  const criticalAgents = activeAgents
     .filter((a) => a.energy < ENERGY_CRITICAL_THRESHOLD)
     .sort((a, b) => a.energy - b.energy);
-  const warningAgents = agents
+  const warningAgents = activeAgents
     .filter((a) => a.energy >= ENERGY_CRITICAL_THRESHOLD && a.energy < ENERGY_WARNING_THRESHOLD)
     .sort((a, b) => a.energy - b.energy);
 
-  const communicatingCount = agents.filter((a) => isAgentCommunicating(a)).length;
-  const healthyCount = agents.filter((a) => a.energy >= ENERGY_WARNING_THRESHOLD).length;
-  const missionsCompleted = agents.filter((a) => missions[a.id]?.status === 'selesai').length;
+  const communicatingCount = activeAgents.filter((a) => isAgentCommunicating(a)).length;
+  const healthyCount = activeAgents.filter((a) => a.energy >= ENERGY_WARNING_THRESHOLD).length;
+  const missionsCompleted = activeAgents.filter((a) => missions[a.id]?.status === 'selesai').length;
 
   const topPriorityAgent = criticalAgents[0] ?? warningAgents[0] ?? null;
   const campusStatus: CampusMissionSummary['campusStatus'] =

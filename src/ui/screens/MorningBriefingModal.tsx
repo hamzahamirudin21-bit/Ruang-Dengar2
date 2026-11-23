@@ -1,5 +1,5 @@
 import React from 'react';
-import { SHIFT_TARGET_STORIES } from '../../engine/storySignals';
+import { MAX_LOST_STUDENTS } from '../../engine/survivalMission';
 import { assetUrl } from '../characters/assetSlots';
 import { GameButton } from '../components/game';
 
@@ -9,7 +9,8 @@ export interface MorningBriefingModalProps {
 
 /**
  * Briefing Pagi bergaya kartu ilustrasi tinta hangat (hand-inked cozy):
- * langsung memberi premis cerita, alasan menghampiri, ritme 7 giliran, & fitur Hias Ruang BK.
+ * menjelaskan aturan jaga energi (1-1,5 menit), kalah saat 3 mahasiswa hilang,
+ * dan percakapan 7 langkah dengan 2 pilihan jawaban yang makin menantang.
  */
 export const MorningBriefingModal: React.FC<MorningBriefingModalProps> = ({ onStartShift }) => {
   const dosenSrc = assetUrl('dosen-portrait.png');
@@ -35,21 +36,21 @@ export const MorningBriefingModal: React.FC<MorningBriefingModalProps> = ({ onSt
           />
         </div>
 
-        {/* Sisi Kanan: Premis & 3 Langkah Main yang Seru */}
+        {/* Sisi Kanan: Aturan Main yang Jelas & Seru */}
         <div className="flex flex-col justify-between gap-4 p-5 sm:p-6">
           <div>
             <p className="font-['Fredoka'] text-xs font-bold uppercase tracking-wider text-[#c4453d]">
-              Ruang Dengar · Di Balik Lab Vokasi
+              Ruang Dengar · Misi Dosen Konselor
             </p>
             <h2
               id="briefing-title"
               className="mt-1 font-['Fredoka'] text-2xl font-bold leading-tight text-[#3e2517]"
             >
-              Amati Sinyalnya, Dengarkan Ceritanya!
+              Jangan Biarkan Energi Mereka Habis!
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-[#5c3d28]">
-              Di balik sibuknya praktikum hari ini, ada mahasiswa yang diam-diam menjauh dan
-              energinya perlahan meredup.
+              Waktu peta berjalan terus dan energi tiap mahasiswa bertahan sekitar <strong>1–1,5 menit</strong>.
+              Dampingi mereka sebelum energinya kosong!
             </p>
 
             <ol className="mt-3.5 space-y-2 text-xs leading-relaxed text-[#3e2517]">
@@ -58,9 +59,8 @@ export const MorningBriefingModal: React.FC<MorningBriefingModalProps> = ({ onSt
                   1
                 </span>
                 <span>
-                  <strong>Pantau energi &amp; sinyal di peta.</strong> Yang mengobrol energinya
-                  naik (<strong className="text-emerald-700">+</strong>), yang menyendiri terus
-                  energinya turun (<strong className="text-red-700">▼</strong>).
+                  <strong>Cegah mahasiswa hilang (0%).</strong> Bila energi menyentuh 0%, mahasiswa
+                  meninggalkan kelas. Jika <strong>{MAX_LOST_STUDENTS} mahasiswa hilang</strong>, kamu kalah!
                 </span>
               </li>
               <li className="flex items-start gap-2.5 rounded-[16px] border-2 border-[#3e2517]/25 bg-[#fffdf7] p-2.5 shadow-[inset_0_-3px_0_#eedcb9]">
@@ -68,8 +68,9 @@ export const MorningBriefingModal: React.FC<MorningBriefingModalProps> = ({ onSt
                   2
                 </span>
                 <span>
-                  <strong>Ngobrol hangat dalam 7 langkah.</strong> Hampiri mereka dan pilih cara
-                  bicara yang sabar agar mereka berani membuka kisahnya dan energinya pulih!
+                  <strong>7 percakapan · 2 pilihan jawaban.</strong> Respons tepat memulihkan energi
+                  (<strong className="text-emerald-700">+12%</strong>); respons keliru justru menguras
+                  energi (<strong className="text-red-700">-14%</strong>)!
                 </span>
               </li>
               <li className="flex items-start gap-2.5 rounded-[16px] border-2 border-[#3e2517]/25 bg-[#fffdf7] p-2.5 shadow-[inset_0_-3px_0_#eedcb9]">
@@ -77,14 +78,14 @@ export const MorningBriefingModal: React.FC<MorningBriefingModalProps> = ({ onSt
                   3
                 </span>
                 <span>
-                  <strong>Raih ⭐ Bintang Empati &amp; Hias Ruang BK!</strong> Pasang tanaman, teko
-                  teh, lampu senja, sampai patung kucing sapa agar ruang konsultasimu makin nyaman!
+                  <strong>Kenali latar belakang tiap mahasiswa.</strong> Makin jauh percakapan, pilihan
+                  makin menantang — cek tombol profil kanan atas saat ngobrol kalau butuh petunjuk!
                 </span>
               </li>
             </ol>
 
             <div className="mt-3.5 rounded-[16px] border-2 border-[#3e2517] bg-[#fff3cc] px-3.5 py-2 font-['Fredoka'] text-xs font-semibold text-[#3e2517] shadow-[0_3px_0_#3e2517]">
-              🎯 Target Shift: Ungkap {SHIFT_TARGET_STORIES} kisah mahasiswa &amp; hias Ruang BK-mu!
+              🛡️ Target: Stabilkan mahasiswa sebelum {MAX_LOST_STUDENTS} orang hilang &amp; hias Ruang BK-mu!
             </div>
           </div>
 

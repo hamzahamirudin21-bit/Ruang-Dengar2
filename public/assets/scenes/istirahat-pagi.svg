@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" shape-rendering="geometricPrecision">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d8ece0"/><stop offset="100%" stop-color="#bddac9"/></linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ddb988"/><stop offset="100%" stop-color="#be9562"/></linearGradient>
+  </defs>
+  <rect width="1280" height="482" fill="url(#wall)"/>
+  <rect y="482" width="1280" height="238" fill="url(#floor)"/>
+  <line x1="0" y1="482" x2="1280" y2="482" stroke="#3e2517" stroke-width="4"/>
+
+  
+  <g>
+    <rect x="430" y="38" width="420" height="52" rx="10" fill="#327a66" stroke="#3e2517" stroke-width="3.5"/>
+    <rect x="436" y="44" width="408" height="40" rx="6" fill="none" stroke="#ffe494" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="640" y="71" text-anchor="middle" font-family="Fredoka, 'Segoe UI', sans-serif" font-size="21" font-weight="700" fill="#fffdf6" letter-spacing="1.2">SUDUT ISTIRAHAT MAHASISWA</text>
+  </g>
+
+  <!-- Mesin Penjual Minuman Retro Merah di Kiri -->
+  <g transform="translate(58,128)">
+    <rect width="212" height="356" rx="16" fill="#cf453d" stroke="#3e2517" stroke-width="4"/>
+    <rect x="18" y="22" width="128" height="224" rx="8" fill="#182a38" stroke="#3e2517" stroke-width="3.5"/>
+    
+      <line x1="22" y1="74" x2="142" y2="74" stroke="#8ca2b3" stroke-width="4"/>
+      <rect x="30" y="38" width="20" height="34" rx="5" fill="#f4be3b" stroke="#3e2517" stroke-width="2"/><rect x="58" y="38" width="20" height="34" rx="5" fill="#4eb8e5" stroke="#3e2517" stroke-width="2"/><rect x="86" y="38" width="20" height="34" rx="5" fill="#58c488" stroke="#3e2517" stroke-width="2"/><rect x="114" y="38" width="20" height="34" rx="5" fill="#f2849e" stroke="#3e2517" stroke-width="2"/>
+    
+      <line x1="22" y1="126" x2="142" y2="126" stroke="#8ca2b3" stroke-width="4"/>
+      <rect x="30" y="90" width="20" height="34" rx="5" fill="#f4be3b" stroke="#3e2517" stroke-width="2"/><rect x="58" y="90" width="20" height="34" rx="5" fill="#4eb8e5" stroke="#3e2517" stroke-width="2"/><rect x="86" y="90" width="20" height="34" rx="5" fill="#58c488" stroke="#3e2517" stroke-width="2"/><rect x="114" y="90" width="20" height="34" rx="5" fill="#f2849e" stroke="#3e2517" stroke-width="2"/>
+    
+      <line x1="22" y1="178" x2="142" y2="178" stroke="#8ca2b3" stroke-width="4"/>
+      <rect x="30" y="142" width="20" height="34" rx="5" fill="#f4be3b" stroke="#3e2517" stroke-width="2"/><rect x="58" y="142" width="20" height="34" rx="5" fill="#4eb8e5" stroke="#3e2517" stroke-width="2"/><rect x="86" y="142" width="20" height="34" rx="5" fill="#58c488" stroke="#3e2517" stroke-width="2"/><rect x="114" y="142" width="20" height="34" rx="5" fill="#f2849e" stroke="#3e2517" stroke-width="2"/>
+    
+      <line x1="22" y1="230" x2="142" y2="230" stroke="#8ca2b3" stroke-width="4"/>
+      <rect x="30" y="194" width="20" height="34" rx="5" fill="#f4be3b" stroke="#3e2517" stroke-width="2"/><rect x="58" y="194" width="20" height="34" rx="5" fill="#4eb8e5" stroke="#3e2517" stroke-width="2"/><rect x="86" y="194" width="20" height="34" rx="5" fill="#58c488" stroke="#3e2517" stroke-width="2"/><rect x="114" y="194" width="20" height="34" rx="5" fill="#f2849e" stroke="#3e2517" stroke-width="2"/>
+    
+    <rect x="158" y="54" width="38" height="84" rx="6" fill="#2c3540" stroke="#3e2517" stroke-width="2.5"/>
+    <circle cx="177" cy="78" r="6" fill="#5bf0a4"/><circle cx="177" cy="100" r="6" fill="#ffe169"/>
+    <rect x="24" y="274" width="122" height="48" rx="8" fill="#141c24" stroke="#3e2517" stroke-width="3"/>
+  </g>
+
+  <!-- Jendela Cerah Bertirai Tengah -->
+  
+  <defs>
+    <clipPath id="win-356-120"><rect x="356" y="120" width="444" height="240" rx="8"/></clipPath>
+    <linearGradient id="sky-win-356-120" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6bb9ef"/><stop offset="55%" stop-color="#b7e2fb"/><stop offset="100%" stop-color="#eef8ff"/>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#win-356-120)">
+    <rect x="356" y="120" width="444" height="240" fill="url(#sky-win-356-120)"/>
+    <!-- Awan lembut -->
+    <ellipse cx="480.32" cy="177.6" rx="56" ry="18" fill="#ffffff" opacity="0.65"/>
+    <ellipse cx="675.6800000000001" cy="165.6" rx="48" ry="15" fill="#ffffff" opacity="0.55"/>
+    <!-- Gedung kampus di luar -->
+    <rect x="382.64" y="225.6" width="124.32000000000001" height="134.4" fill="#8aa7c7" opacity="0.6"/>
+    <rect x="613.52" y="201.60000000000002" width="150.96" height="158.4" fill="#8aa7c7" opacity="0.5"/>
+    <!-- Jendela gedung kampus -->
+    <rect x="400.4" y="244.8" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="428.4" y="244.8" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="456.4" y="244.8" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="400.4" y="270.8" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="428.4" y="270.8" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="456.4" y="270.8" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="400.4" y="296.8" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="428.4" y="296.8" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="456.4" y="296.8" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/>
+    <rect x="635.72" y="220.8" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="667.72" y="220.8" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="699.72" y="220.8" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="635.72" y="248.8" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="667.72" y="248.8" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="699.72" y="248.8" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="635.72" y="276.8" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="667.72" y="276.8" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="699.72" y="276.8" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/>
+    <!-- Tajuk pepohonan kampus -->
+    <circle cx="418.16" cy="340.8" r="66" fill="#4c8e5c"/>
+    <circle cx="506.96000000000004" cy="355.2" r="58" fill="#70b376"/>
+    <circle cx="631.28" cy="350.4" r="62" fill="#4c8e5c"/>
+    <circle cx="746.72" cy="331.2" r="72" fill="#70b376"/>
+    <!-- Kusen kaca -->
+    <line x1="504" y1="120" x2="504" y2="360" stroke="#8b6546" stroke-width="8"/>
+    <line x1="652" y1="120" x2="652" y2="360" stroke="#8b6546" stroke-width="8"/>
+    <line x1="356" y1="268.8" x2="800" y2="268.8" stroke="#8b6546" stroke-width="8"/>
+    
+      <path d="M356 120 H404 Q390 240 410 360 H356 Z" fill="#f5e6cc" stroke="#3e2517" stroke-width="2.5"/>
+      <path d="M800 120 H752 Q766 240 746 360 H800 Z" fill="#f5e6cc" stroke="#3e2517" stroke-width="2.5"/>
+    
+  </g>
+  <rect x="356" y="120" width="444" height="240" rx="8" fill="none" stroke="#8b6546" stroke-width="10"/>
+  <rect x="356" y="120" width="444" height="240" rx="8" fill="none" stroke="#3e2517" stroke-width="3"/>
+  <rect x="342" y="358" width="472" height="16" rx="5" fill="#ba8f63" stroke="#3e2517" stroke-width="3"/>
+
+  <!-- Jam Dinding & Konter Kopi / Teh Hangat Kanan -->
+  <g transform="translate(888,124)">
+    <circle cx="52" cy="52" r="46" fill="#fffdf6" stroke="#8b6546" stroke-width="7"/>
+    <circle cx="52" cy="52" r="46" fill="none" stroke="#3e2517" stroke-width="3"/>
+    <line x1="52" y1="52" x2="52" y2="26" stroke="#3e2517" stroke-width="4" stroke-linecap="round"/>
+    <line x1="52" y1="52" x2="74" y2="60" stroke="#cf453d" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- Konter Kopi & Toples Camilan Kanan -->
+  <g transform="translate(874,316)">
+    <rect x="0" y="96" width="346" height="92" rx="10" fill="#e6cfa8" stroke="#3e2517" stroke-width="4"/>
+    <rect x="-8" y="84" width="362" height="20" rx="6" fill="#9c6c46" stroke="#3e2517" stroke-width="3.5"/>
+    <!-- Mesin Kopi -->
+    <rect x="34" y="10" width="96" height="76" rx="10" fill="#374352" stroke="#3e2517" stroke-width="3.5"/>
+    <rect x="52" y="24" width="60" height="24" rx="4" fill="#d9534f"/>
+    <rect x="64" y="54" width="34" height="30" rx="5" fill="#fffdf6" stroke="#3e2517" stroke-width="2.5"/>
+    <!-- Teko & Cangkir Teh + Toples Kue -->
+    <circle cx="196" cy="58" r="24" fill="#5da68a" stroke="#3e2517" stroke-width="3"/>
+    <rect x="256" y="28" width="54" height="58" rx="10" fill="#fff7dc" stroke="#3e2517" stroke-width="3"/>
+    <circle cx="274" cy="64" r="9" fill="#c9854a"/><circle cx="294" cy="68" r="9" fill="#b36e38"/><circle cx="284" cy="50" r="9" fill="#d99a5b"/>
+  </g>
+
+  <!-- Karpet & Sofa Empuk Lounge -->
+  <ellipse cx="590" cy="628" rx="340" ry="52" fill="#f2d699" stroke="#3e2517" stroke-width="3.5"/>
+  <!-- Sofa Biru-Teal -->
+  <g transform="translate(332,424)">
+    <rect x="16" y="0" width="234" height="76" rx="20" fill="#4285a8" stroke="#3e2517" stroke-width="4"/>
+    <rect x="0" y="52" width="266" height="62" rx="16" fill="#5399bd" stroke="#3e2517" stroke-width="4"/>
+    <rect x="44" y="22" width="44" height="40" rx="10" fill="#ffe184" stroke="#3e2517" stroke-width="3"/>
+    <rect x="178" y="22" width="44" height="40" rx="10" fill="#f08f6b" stroke="#3e2517" stroke-width="3"/>
+  </g>
+  <!-- Sofa Oker Hangat -->
+  <g transform="translate(646,434)">
+    <rect x="14" y="0" width="194" height="70" rx="20" fill="#d98943" stroke="#3e2517" stroke-width="4"/>
+    <rect x="0" y="48" width="222" height="58" rx="16" fill="#e89f5a" stroke="#3e2517" stroke-width="4"/>
+  </g>
+  <!-- Meja Kopi Rendah -->
+  <rect x="498" y="576" width="190" height="24" rx="10" fill="#b88252" stroke="#3e2517" stroke-width="3.5"/>
+  <rect x="520" y="600" width="16" height="40" fill="#825632" stroke="#3e2517" stroke-width="3"/>
+  <rect x="650" y="600" width="16" height="40" fill="#825632" stroke="#3e2517" stroke-width="3"/>
+  
+  <g transform="translate(1214,640) scale(0.95)">
+    <ellipse cx="0" cy="4" rx="34" ry="8" fill="rgba(62,37,23,0.22)"/>
+    <path d="M-8 -58 C-42 -84 -54 -128 -22 -140 C-2 -146 6 -112 -2 -62 Z" fill="#3f8256" stroke="#3e2517" stroke-width="3"/>
+    <path d="M8 -58 C46 -84 56 -124 26 -138 C6 -146 -4 -110 2 -62 Z" fill="#4f9965" stroke="#3e2517" stroke-width="3"/>
+    <path d="M0 -62 C-18 -114 -16 -160 4 -168 C24 -160 22 -114 4 -62 Z" fill="#5fb074" stroke="#3e2517" stroke-width="3"/>
+    <path d="M-12 -52 C-52 -66 -66 -94 -44 -108 C-26 -118 -14 -88 -8 -54 Z" fill="#37734c" stroke="#3e2517" stroke-width="3"/>
+    <path d="M12 -52 C52 -66 66 -94 44 -108 C26 -118 14 -88 8 -54 Z" fill="#468a5c" stroke="#3e2517" stroke-width="3"/>
+    <path d="M-30 -58 L30 -58 L22 0 L-22 0 Z" fill="#d98758" stroke="#3e2517" stroke-width="3.2"/>
+    <rect x="-35" y="-68" width="70" height="14" rx="5" fill="#e69a6a" stroke="#3e2517" stroke-width="3.2"/>
+  </g>
+  
+  <g pointer-events="none">
+    <polygon points="340,0 500,0 240,720 80,720" fill="rgba(255,250,224,0.16)"/>
+    <polygon points="620,0 780,0 520,720 360,720" fill="rgba(255,250,224,0.16)"/>
+    <rect x="0" y="0" width="1280" height="720" fill="rgba(255,244,210,0.03)"/>
+  </g></svg>

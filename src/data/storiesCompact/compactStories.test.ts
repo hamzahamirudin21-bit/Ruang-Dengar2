@@ -1,15 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { STUDENT_BLUEPRINTS } from '../agents.seed';
+import { STUDENT_BACKGROUNDS } from '../studentBackgrounds';
 import { COMPACT_STORY_GRAPHS } from './index';
 import { chooseStoryChoice, startStory } from '../../engine/story/runner';
 import { createTestAgent, createTestMemory } from '../../engine/story/testGraph';
 
 const FORBIDDEN_DIAGNOSIS = /\b(depresi|gangguan jiwa|skizofrenia|bipolar|adhd|autis|psikopat|stres berat|trauma berat)\b/i;
 
-test('semua 15 mahasiswa memiliki graf cerita ringkas tepat 7 giliran tanpa istilah diagnosis', () => {
+test('semua 15 mahasiswa memiliki latar belakang kartu balik dan graf 7 giliran tepat 2 pilihan tanpa diagnosis', () => {
   assert.equal(STUDENT_BLUEPRINTS.length, 15);
   for (const bp of STUDENT_BLUEPRINTS) {
+    // Pastikan latar belakang sisi belakang kartu tersedia lengkap
+    const bg = STUDENT_BACKGROUNDS[bp.id];
+    assert.ok(bg, `latar belakang kartu hilang untuk ${bp.id}`);
+    assert.ok(bg.typeTag.length >= 4);
+    assert.ok(bg.likes.length >= 8);
+    assert.ok(bg.background.length >= 20);
+
     const graph = COMPACT_STORY_GRAPHS[bp.id];
     assert.ok(graph, `graf ringkas hilang untuk ${bp.id}`);
 
@@ -28,8 +36,12 @@ test('semua 15 mahasiswa memiliki graf cerita ringkas tepat 7 giliran tanpa isti
     while (!state.ended && turns < 20) {
       const node = graph.nodes.find((n) => n.id === state.nodeId);
       assert.ok(node, `simpul ${state.nodeId} ada`);
-      const best = node.choices.find((c) => c.best) ?? node.choices[0];
-      assert.ok(best, `pilihan tersedia pada ${node.id}`);
+      // Setiap giliran wajib tepat 2 pilihan (1 tepat vs 1 salah)!
+      assert.equal(node.choices.length, 2, `${bp.id}/${node.id} harus tepat 2 pilihan`);
+      assert.equal(node.choices.filter((c) => c.best === true).length, 1, `${bp.id}/${node.id} harus ada 1 pilihan tepat`);
+      assert.equal(node.choices.filter((c) => c.best === false).length, 1, `${bp.id}/${node.id} harus ada 1 pilihan salah`);
+
+      const best = node.choices.find((c) => c.best === true)!;
       const res = chooseStoryChoice(graph, agent, state, best.id);
       assert.ok(res.ok, `${bp.id}/${node.id}/${best.id} harus diterima`);
       state = res.state;
@@ -38,7 +50,7 @@ test('semua 15 mahasiswa memiliki graf cerita ringkas tepat 7 giliran tanpa isti
 
     assert.equal(state.ended, true, `${bp.id} harus selesai`);
     assert.equal(turns, 7, `${bp.id} jalur utama harus tepat 7 giliran (dapat ${turns})`);
-    assert.equal(state.outcome?.kind, 'terbantu', `${bp.id} jalur empatik harus menghasilkan terbantu`);
+    assert.equal(state.outcome?.kind, 'terbantu', `${bp.id} jalur tepat harus menghasilkan terbantu`);
 
     // Pastikan tidak ada istilah diagnosis pada seluruh teks
     for (const node of graph.nodes) {
@@ -53,12 +65,11 @@ test('semua 15 mahasiswa memiliki graf cerita ringkas tepat 7 giliran tanpa isti
   }
 });
 
-test('jalur menekan/menghakimi di graf ringkas memicu ketegangan dan dapat pulih atau menarik diri', () => {
+test('memilih jawaban salah terus-menerus pada graf 2-pilihan tetap 7 giliran dan menghasilkan menarik-diri-sementara', () => {
   const graph = COMPACT_STORY_GRAPHS['mhs-14'];
   const agent = createTestAgent('mhs-14');
 
-  // Skenario A: memicu ketegangan lalu terus mendesak -> menarik diri sementara
-  let stateA = startStory({
+  let state = startStory({
     graph,
     agent,
     memory: createTestMemory('mhs-14'),
@@ -67,42 +78,45 @@ test('jalur menekan/menghakimi di graf ringkas memicu ketegangan dan dapat pulih
     day: 1,
     timeFormatted: '09:00',
   });
-  const a1 = chooseStoryChoice(graph, agent, stateA, 'nasihat');
-  assert.ok(a1.ok);
-  stateA = a1.state;
-  assert.equal(stateA.nodeId, 'mhs-14-tegang-awal');
 
-  const a2 = chooseStoryChoice(graph, agent, stateA, 'desak');
-  assert.ok(a2.ok);
-  stateA = a2.state;
-  const a3 = chooseStoryChoice(graph, agent, stateA, 'desak');
-  assert.ok(a3.ok);
-  assert.equal(a3.state.ended, true);
-  assert.equal(a3.state.outcome?.kind, 'menarik-diri-sementara');
+  let turns = 0;
+  while (!state.ended && turns < 20) {
+    const node = graph.nodes.find((n) => n.id === state.nodeId)!;
+    const wrong = node.choices.find((c) => c.best === false)!;
+    const res = chooseStoryChoice(graph, agent, state, wrong.id);
+    assert.ok(res.ok);
+    state = res.state;
+    turns += 1;
+  }
 
-  // Skenario B: memicu ketegangan lalu diakui & diperbaiki -> kembali ke alur utama
-  let stateB = startStory({
+  assert.equal(turns, 7);
+  assert.equal(state.ended, true);
+  assert.equal(state.outcome?.kind, 'menarik-diri-sementara');
+});
+
+test('kombinasi 4 tepat dan 3 salah menghasilkan kemajuan-kecil', () => {
+  const graph = COMPACT_STORY_GRAPHS['mhs-01'];
+  const agent = createTestAgent('mhs-01');
+
+  let state = startStory({
     graph,
     agent,
-    memory: createTestMemory('mhs-14'),
+    memory: createTestMemory('mhs-01'),
     exposure: 0,
-    seed: 7,
+    seed: 12,
     day: 1,
     timeFormatted: '09:00',
   });
-  const b1 = chooseStoryChoice(graph, agent, stateB, 'nasihat');
-  assert.ok(b1.ok);
-  stateB = b1.state;
-  const b2 = chooseStoryChoice(graph, agent, stateB, 'akui');
-  assert.ok(b2.ok);
-  stateB = b2.state;
-  assert.equal(stateB.nodeId, 'mhs-14-tegang-perbaikan');
-  const b3 = chooseStoryChoice(graph, agent, stateB, 'akui-dampak');
-  assert.ok(b3.ok);
-  stateB = b3.state;
-  const b4 = chooseStoryChoice(graph, agent, stateB, 'beri-pilihan');
-  assert.ok(b4.ok);
-  stateB = b4.state;
-  assert.equal(stateB.session.rupture.active, false);
-  assert.equal(stateB.nodeId, 'mhs-14-t1');
+
+  for (let i = 0; i < 7; i += 1) {
+    const node = graph.nodes.find((n) => n.id === state.nodeId)!;
+    const pickRight = i < 4;
+    const choice = node.choices.find((c) => c.best === pickRight)!;
+    const res = chooseStoryChoice(graph, agent, state, choice.id);
+    assert.ok(res.ok);
+    state = res.state;
+  }
+
+  assert.equal(state.ended, true);
+  assert.equal(state.outcome?.kind, 'kemajuan-kecil');
 });

@@ -20,15 +20,30 @@ export function onExternalSceneReady(listener: () => void): () => void {
 }
 
 /**
- * Memetakan setiap zona ke lukisan HD studio di `public/assets/scenes/`.
- * Ruang tenang/privat -> `ruang-bk-{variant}.png`; seluruh zona laboratorium -> `lab-vokasi-{variant}.png`.
+ * Memetakan setiap zona ke ilustrasi latar ruangan HD unik di `public/assets/scenes/`.
+ * Setiap lab memiliki arsitektur, peralatan, palet, dan papan nama khasnya sendiri (0 duplikasi antar-lab!).
  */
 function sceneFileFor(id: SceneArtId, variant: SceneVariant): string {
-  const base =
-    id === 'ruang-bk' || id === 'istirahat' || id === 'ruang-dosen'
-      ? 'ruang-bk'
-      : 'lab-vokasi'
-  return `/assets/scenes/${base}-${variant}.png`
+  switch (id) {
+    case 'ruang-bk':
+    case 'ruang-dosen':
+      return `/assets/scenes/ruang-bk-${variant}.png`
+    case 'cetak-3d':
+      return `/assets/scenes/lab-vokasi-${variant}.png`
+    case 'elektronik':
+      return `/assets/scenes/elektronik-${variant}.svg`
+    case 'pemrograman':
+      return `/assets/scenes/pemrograman-${variant}.svg`
+    case 'las':
+      return `/assets/scenes/las-${variant}.svg`
+    case 'diskusi':
+    case 'lab-umum':
+      return `/assets/scenes/diskusi-${variant}.svg`
+    case 'istirahat':
+      return `/assets/scenes/istirahat-${variant}.svg`
+    case 'gudang':
+      return `/assets/scenes/gudang-${variant}.svg`
+  }
 }
 
 /**

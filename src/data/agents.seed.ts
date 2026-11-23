@@ -358,7 +358,7 @@ function buildInitialAffinity(
 
   // Mahasiswa rentan terisolasi memiliki afinitas awal lebih hati-hati
   if (a.socialCircleHint === 'terisolasi-rentan' || b.socialCircleHint === 'terisolasi-rentan') {
-    score -= 0.12;
+    score -= 0.15;
   }
 
   // Gesekan spesifik realistis antar-pasangan tertentu

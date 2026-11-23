@@ -8,6 +8,16 @@ import {
 } from '../types';
 import { NavigationGrid, findPath, isPointWalkable } from './pathfinding';
 import { SeededRng, clamp01, clampAffinity, pickOne, randomInt } from './rng';
+import { STABILIZED_MIN_ENERGY } from './survivalMission';
+
+export interface AgentTickControlOptions {
+  /** Mahasiswa yang sedang duduk dalam sesi percakapan (posisi & drain pasifnya ditahan). */
+  inSessionAgentIds?: ReadonlySet<string>;
+  /** Mahasiswa yang sudah hilang dari kelas (energi 0%, tidak bergerak/berinteraksi). */
+  lostAgentIds?: ReadonlySet<string>;
+  /** Mahasiswa yang sudah stabil ('selesai'), energinya terlindungi tidak jatuh ke 0%. */
+  stabilizedAgentIds?: ReadonlySet<string>;
+}
 
 export interface ActivityCandidate {
   zoneId: ZoneType;
@@ -415,7 +425,8 @@ export function findZoneIdForPoint(map: LabMapData, pt: GridPoint): ZoneType | n
 export function moveAgentsAlongPaths(
   agents: StudentAgent[],
   simMinutesDelta: number,
-  map: LabMapData
+  map: LabMapData,
+  control?: AgentTickControlOptions
 ): void {
   if (simMinutesDelta <= 0) return;
 
@@ -424,6 +435,9 @@ export function moveAgentsAlongPaths(
   const maxStep = simMinutesDelta * tilesPerSimMinute;
 
   for (const agent of agents) {
+    if (control?.lostAgentIds?.has(agent.id) || control?.inSessionAgentIds?.has(agent.id)) {
+      continue;
+    }
     if (agent.status !== 'berpindah' || agent.path.length === 0) {
       continue;
     }
@@ -473,12 +487,23 @@ export function moveAgentsAlongPaths(
 export function updateAgentsNeedsAndSocialTick(
   agents: StudentAgent[],
   activeEvents: readonly LabEvent[],
-  rng: SeededRng
+  rng: SeededRng,
+  control?: AgentTickControlOptions
 ): void {
+  const isPausedAgent = (id: string) =>
+    Boolean(control?.lostAgentIds?.has(id) || control?.inSessionAgentIds?.has(id));
+
   // Hitung jumlah penghuni tiap zona untuk mendeteksi kepadatan
   const zoneCounts: Record<string, number> = {};
   for (const agent of agents) {
     agent.interactingWithIds = [];
+    if (control?.lostAgentIds?.has(agent.id)) {
+      agent.energy = 0;
+      continue;
+    }
+    if (control?.inSessionAgentIds?.has(agent.id)) {
+      continue;
+    }
     if (agent.status !== 'berpindah') {
       zoneCounts[agent.currentZoneId] = (zoneCounts[agent.currentZoneId] ?? 0) + 1;
     }
@@ -486,8 +511,10 @@ export function updateAgentsNeedsAndSocialTick(
 
   const hasDeadlineEvent = activeEvents.some((e) => e.kind === 'tenggat-praktikum');
 
-  // 1. Pembaruan kebutuhan individu (energi, stres, beban tugas)
+  // 1. Pembaruan kebutuhan individu (dikalibrasi agar 100% -> 0% bertahan ~65-95 detik nyata pada 1x)
   for (const agent of agents) {
+    if (isPausedAgent(agent.id)) continue;
+
     if (agent.activityDurationTicks > 0 && agent.status !== 'berpindah') {
       agent.activityDurationTicks -= 1;
     }
@@ -497,8 +524,8 @@ export function updateAgentsNeedsAndSocialTick(
 
     switch (agent.status) {
       case 'bekerja': {
-        // Bekerja sendiri menguras energi perlahan; bila sambil berinteraksi akan terisi di langkah sosial
-        agent.energy = clamp01(agent.energy - 0.01);
+        // Bekerja sendiri menguras energi perlahan (-0.3%/detik di 1x)
+        agent.energy = clamp01(agent.energy - 0.003);
         const { interest, skill } = getInterestAndSkillForZone(
           agent,
           agent.currentZoneId
@@ -509,40 +536,40 @@ export function updateAgentsNeedsAndSocialTick(
         // Tekanan kerja meningkat jika lelah, beban tinggi, ada tenggat, atau zona terlalu ramai bagi penyendiri
         let stressDelta = 0;
         if (agent.energy < 0.36 || agent.taskLoad > 0.68) {
-          stressDelta += 0.016 * (0.6 + agent.personality.stressSensitivity);
+          stressDelta += 0.014 * (0.6 + agent.personality.stressSensitivity);
         } else if (interest > 0.68 && agent.stress > stressFloor + 0.06) {
           stressDelta -= 0.004;
         }
         if (hasDeadlineEvent && agent.taskLoad > 0.5) {
-          stressDelta += 0.008 * (0.5 + agent.personality.stressSensitivity);
+          stressDelta += 0.007 * (0.5 + agent.personality.stressSensitivity);
         }
         if (peersNearby >= 5 && agent.solitudePreference > 0.55) {
-          stressDelta += 0.012 * agent.personality.stressSensitivity;
+          stressDelta += 0.01 * agent.personality.stressSensitivity;
         }
         agent.stress = clamp01(Math.max(stressFloor * 0.7, agent.stress + stressDelta));
         break;
       }
       case 'berpindah':
-        agent.energy = clamp01(agent.energy - 0.006);
+        agent.energy = clamp01(agent.energy - 0.002);
         break;
       case 'istirahat':
-        // Istirahat memberi jeda singkat (+0.032), tetap lebih lambat dari pemulihan lewat interaksi/konseling
-        agent.energy = clamp01(agent.energy + 0.032);
+        // Istirahat memulihkan energi bertahap (+1.5%/detik), tetap lebih pelan dari konseling
+        agent.energy = clamp01(agent.energy + 0.015);
         agent.stress = clamp01(
-          Math.max(stressFloor * 0.65, agent.stress - 0.024)
+          Math.max(stressFloor * 0.65, agent.stress - 0.02)
         );
         break;
       case 'mengobrol':
         // Mengobrol di meja diskusi menambah energi positif secara bertahap
-        agent.energy = clamp01(agent.energy + 0.012);
+        agent.energy = clamp01(agent.energy + 0.006);
         // Bagi penyendiri yang terpaksa ramai-ramai, keramaian tetap memberi sedikit penat
         if (agent.solitudePreference > 0.65 && peersNearby >= 4) {
-          agent.stress = clamp01(agent.stress + 0.006 * agent.personality.stressSensitivity);
+          agent.stress = clamp01(agent.stress + 0.005 * agent.personality.stressSensitivity);
         }
         break;
       case 'menunggu':
-        agent.energy = clamp01(agent.energy - 0.008);
-        agent.stress = clamp01(agent.stress + 0.008 * agent.personality.stressSensitivity);
+        agent.energy = clamp01(agent.energy - 0.003);
+        agent.stress = clamp01(agent.stress + 0.006 * agent.personality.stressSensitivity);
         break;
     }
 
@@ -558,11 +585,11 @@ export function updateAgentsNeedsAndSocialTick(
   // 2. Interaksi sosial & evolusi afinitas antar-agen yang berada di zona yang sama
   for (let i = 0; i < agents.length; i += 1) {
     const a = agents[i];
-    if (a.status === 'berpindah') continue;
+    if (isPausedAgent(a.id) || a.status === 'berpindah') continue;
 
     for (let j = i + 1; j < agents.length; j += 1) {
       const b = agents[j];
-      if (b.status === 'berpindah') continue;
+      if (isPausedAgent(b.id) || b.status === 'berpindah') continue;
       if (a.currentZoneId !== b.currentZoneId) continue;
 
       const dist = Math.hypot(
@@ -586,8 +613,8 @@ export function updateAgentsNeedsAndSocialTick(
         if (rng() < 0.4) {
           a.affinities[b.id] = clampAffinity(affAB - 0.025);
           b.affinities[a.id] = clampAffinity(affBA - 0.025);
-          a.stress = clamp01(a.stress + 0.032);
-          b.stress = clamp01(b.stress + 0.032);
+          a.stress = clamp01(a.stress + 0.026);
+          b.stress = clamp01(b.stress + 0.026);
           a.socialStatus = 'konflik-ringan';
           b.socialStatus = 'konflik-ringan';
           // Salah satu cenderung menyingkir di evaluasi berikut
@@ -621,6 +648,7 @@ export function updateAgentsNeedsAndSocialTick(
   }
 
   for (const agent of agents) {
+    if (isPausedAgent(agent.id)) continue;
     if (gotWarmSupport.has(agent.id)) {
       const floor = 0.06 + agent.personality.stressSensitivity * 0.14;
       agent.stress = clamp01(Math.max(floor, agent.stress - 0.008));
@@ -636,55 +664,58 @@ export function updateAgentsNeedsAndSocialTick(
   }
 
   for (const agent of agents) {
+    if (isPausedAgent(agent.id)) continue;
+
     if (conflictEventIds.has(agent.id)) {
       agent.socialStatus = 'konflik-ringan';
-      agent.energy = clamp01(agent.energy - 0.032);
-      continue;
-    }
-
-    if (
+      agent.energy = clamp01(agent.energy - 0.014);
+    } else if (
       agent.interactingWithIds.length >= 2 ||
       (agent.currentZoneId === 'diskusi' && agent.interactingWithIds.length >= 1)
     ) {
       agent.socialStatus = 'berkelompok';
       // Sering berinteraksi & mengobrol dalam kelompok meningkatkan energi sosial secara nyata
       const crowdFactor = agent.solitudePreference > 0.7 ? 0.65 : 1;
-      agent.energy = clamp01(agent.energy + 0.042 * crowdFactor);
+      agent.energy = clamp01(agent.energy + 0.016 * crowdFactor);
     } else if (agent.interactingWithIds.length === 1) {
       agent.socialStatus = 'berinteraksi';
       // Interaksi tatap muka 1-lawan-1 mengisi energi bahkan bagi mahasiswa introver
-      agent.energy = clamp01(agent.energy + 0.028);
+      agent.energy = clamp01(agent.energy + 0.012);
     } else {
       // Menyendiri: bedakan menyendiri sehat vs menghindar/tertekan
       const peersInZone = agents.filter(
-        (o) => o.id !== agent.id && o.currentZoneId === agent.currentZoneId
+        (o) => !isPausedAgent(o.id) && o.id !== agent.id && o.currentZoneId === agent.currentZoneId
       );
       const hasDislikedPeerNear = peersInZone.some(
         (o) => (agent.affinities[o.id] ?? 0) <= -0.22
       );
       if (hasDislikedPeerNear && agent.stress > 0.36) {
         agent.socialStatus = 'menghindar';
-        agent.energy = clamp01(agent.energy - 0.038);
+        agent.energy = clamp01(agent.energy - 0.014);
       } else {
         agent.socialStatus = 'sendiri';
-        // Jarang berkomunikasi / terisolasi menurunkan energi secara bertahap
+        // Total penurunan bekerja sendiri ~0.75%-0.95%/detik -> bertahan ~65-100 detik (1 - 1,5 menit!)
         const isolationDrain =
           agent.status === 'istirahat'
-            ? 0.016
+            ? 0.004
             : agent.socialCircleHint === 'terisolasi-rentan' || agent.solitudePreference < 0.5
-              ? 0.028
+              ? 0.0065
               : agent.socialCircleHint === 'mandiri-sehat'
-                ? 0.014
-                : 0.022;
+                ? 0.0045
+                : 0.0055;
         agent.energy = clamp01(agent.energy - isolationDrain);
-        // Mahasiswa dengan kepekaan stres tinggi atau butuh teman sedikit penat jika terus sendirian
         if (
           (agent.solitudePreference < 0.42 && agent.personality.extraversion > 0.6) ||
           (agent.socialCircleHint === 'terisolasi-rentan' && agent.personality.stressSensitivity > 0.6)
         ) {
-          agent.stress = clamp01(agent.stress + 0.01);
+          agent.stress = clamp01(agent.stress + 0.008);
         }
       }
+    }
+
+    // Mahasiswa yang sudah stabil ('selesai' didampingi) energinya terlindungi agar tidak hilang
+    if (control?.stabilizedAgentIds?.has(agent.id)) {
+      agent.energy = Math.max(STABILIZED_MIN_ENERGY, agent.energy);
     }
   }
 }

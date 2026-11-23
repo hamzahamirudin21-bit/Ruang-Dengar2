@@ -2384,3 +2384,49 @@ html[data-reduced-motion="true"] .cozy-vinyl-spin {
 *::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, #c98856 0%, #9f633c 100%);
 }
+
+/* ===== Animasi 3D Flip Card Daftar 15 Mahasiswa ===== */
+.roster-flip-scene {
+  perspective: 950px;
+  list-style: none;
+}
+.roster-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.52s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.roster-flip-inner[data-flipped='true'] {
+  transform: rotateY(180deg);
+}
+.roster-flip-inner--reduced {
+  transition: none !important;
+}
+.roster-flip-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.roster-flip-back {
+  transform: rotateY(180deg);
+}
+
+/* Lencana pop-up delta energi (+12% / -14%) langsung saat memilih jawaban percakapan */
+@keyframes vn-energy-pop-kf {
+  0% { opacity: 0; transform: translateY(8px) scale(0.88); }
+  20% { opacity: 1; transform: translateY(0) scale(1.04); }
+  80% { opacity: 1; transform: translateY(-2px) scale(1); }
+  100% { opacity: 0; transform: translateY(-10px) scale(0.96); }
+}
+.vn-energy-delta-pop {
+  animation: vn-energy-pop-kf 2.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+html[data-reduced-motion='true'] .vn-energy-delta-pop,
+html[data-reduced-motion='true'] .roster-flip-inner {
+  animation: none !important;
+  transition: none !important;
+}

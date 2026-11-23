@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" shape-rendering="geometricPrecision">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#faf2e1"/><stop offset="100%" stop-color="#ede0c7"/></linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d7ae78"/><stop offset="100%" stop-color="#b58852"/></linearGradient>
+  </defs>
+  <rect width="1280" height="476" fill="url(#wall)"/>
+  <!-- Panel kayu bawah dinding -->
+  <rect y="366" width="1280" height="110" fill="#c99c6d" stroke="#3e2517" stroke-width="3.5"/>
+  <line x1="0" y1="366" x2="0" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="80" y1="366" x2="80" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="160" y1="366" x2="160" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="240" y1="366" x2="240" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="320" y1="366" x2="320" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="400" y1="366" x2="400" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="480" y1="366" x2="480" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="560" y1="366" x2="560" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="640" y1="366" x2="640" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="720" y1="366" x2="720" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="800" y1="366" x2="800" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="880" y1="366" x2="880" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="960" y1="366" x2="960" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="1040" y1="366" x2="1040" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="1120" y1="366" x2="1120" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/><line x1="1200" y1="366" x2="1200" y2="476" stroke="#3e2517" stroke-width="2" opacity="0.22"/>
+  <rect y="476" width="1280" height="244" fill="url(#floor)"/>
+  <line x1="0" y1="476" x2="1280" y2="476" stroke="#3e2517" stroke-width="4"/>
+  <line x1="0" y1="526" x2="1280" y2="526" stroke="#875d34" stroke-width="2" opacity="0.35"/><line x1="0" y1="586" x2="1280" y2="586" stroke="#875d34" stroke-width="2" opacity="0.35"/><line x1="0" y1="654" x2="1280" y2="654" stroke="#875d34" stroke-width="2" opacity="0.35"/>
+
+  <!-- Lampu gantung cozy -->
+  
+    <line x1="290" y1="0" x2="290" y2="76" stroke="#3e2517" stroke-width="4"/>
+    <path d="M248 112 Q290 56 332 112 Z" fill="#f3c053" stroke="#3e2517" stroke-width="3.5"/>
+    <ellipse cx="290" cy="112" rx="40" ry="9" fill="#fff7d6" stroke="#3e2517" stroke-width="2.5"/>
+  
+    <line x1="990" y1="0" x2="990" y2="76" stroke="#3e2517" stroke-width="4"/>
+    <path d="M948 112 Q990 56 1032 112 Z" fill="#f3c053" stroke="#3e2517" stroke-width="3.5"/>
+    <ellipse cx="990" cy="112" rx="40" ry="9" fill="#fff7d6" stroke="#3e2517" stroke-width="2.5"/>
+  
+
+  
+  <g>
+    <rect x="450" y="38" width="380" height="52" rx="10" fill="#2e8274" stroke="#3e2517" stroke-width="3.5"/>
+    <rect x="456" y="44" width="368" height="40" rx="6" fill="none" stroke="#ffe494" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="640" y="71" text-anchor="middle" font-family="Fredoka, 'Segoe UI', sans-serif" font-size="21" font-weight="700" fill="#fffdf6" letter-spacing="1.2">AREA MEJA DISKUSI</text>
+  </g>
+
+  <!-- Jendela Kampus Tengah Cerah -->
+  
+  <defs>
+    <clipPath id="win-464-118"><rect x="464" y="118" width="352" height="224" rx="8"/></clipPath>
+    <linearGradient id="sky-win-464-118" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6bb9ef"/><stop offset="55%" stop-color="#b7e2fb"/><stop offset="100%" stop-color="#eef8ff"/>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#win-464-118)">
+    <rect x="464" y="118" width="352" height="224" fill="url(#sky-win-464-118)"/>
+    <!-- Awan lembut -->
+    <ellipse cx="562.56" cy="171.76" rx="56" ry="18" fill="#ffffff" opacity="0.65"/>
+    <ellipse cx="717.44" cy="160.56" rx="48" ry="15" fill="#ffffff" opacity="0.55"/>
+    <!-- Gedung kampus di luar -->
+    <rect x="485.12" y="216.56" width="98.56" height="125.44000000000001" fill="#8aa7c7" opacity="0.6"/>
+    <rect x="668.16" y="194.16000000000003" width="119.68" height="147.84" fill="#8aa7c7" opacity="0.5"/>
+    <!-- Jendela gedung kampus -->
+    <rect x="499.2" y="234.48000000000002" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="527.2" y="234.48000000000002" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="555.2" y="234.48000000000002" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="499.2" y="260.48" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="527.2" y="260.48" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="555.2" y="260.48" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="499.2" y="286.48" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="527.2" y="286.48" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="555.2" y="286.48" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/>
+    <rect x="685.76" y="212.07999999999998" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="717.76" y="212.07999999999998" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="749.76" y="212.07999999999998" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="685.76" y="240.07999999999998" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="717.76" y="240.07999999999998" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="749.76" y="240.07999999999998" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="685.76" y="268.08" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="717.76" y="268.08" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="749.76" y="268.08" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/>
+    <!-- Tajuk pepohonan kampus -->
+    <circle cx="513.28" cy="324.08000000000004" r="66" fill="#4c8e5c"/>
+    <circle cx="583.6800000000001" cy="337.52" r="58" fill="#70b376"/>
+    <circle cx="682.24" cy="333.03999999999996" r="62" fill="#4c8e5c"/>
+    <circle cx="773.76" cy="315.12" r="72" fill="#70b376"/>
+    <!-- Kusen kaca -->
+    <line x1="581.3333333333334" y1="118" x2="581.3333333333334" y2="342" stroke="#8a5d3b" stroke-width="8"/>
+    <line x1="698.6666666666666" y1="118" x2="698.6666666666666" y2="342" stroke="#8a5d3b" stroke-width="8"/>
+    <line x1="464" y1="256.88" x2="816" y2="256.88" stroke="#8a5d3b" stroke-width="8"/>
+    
+  </g>
+  <rect x="464" y="118" width="352" height="224" rx="8" fill="none" stroke="#8a5d3b" stroke-width="10"/>
+  <rect x="464" y="118" width="352" height="224" rx="8" fill="none" stroke="#3e2517" stroke-width="3"/>
+  <rect x="450" y="340" width="380" height="16" rx="5" fill="#b9885a" stroke="#3e2517" stroke-width="3"/>
+
+  <!-- Papan Tulis Kanban & Sticky Notes Kiri -->
+  <g transform="translate(56,120)">
+    <rect width="366" height="224" rx="12" fill="#fffdf8" stroke="#9c714a" stroke-width="8"/>
+    <rect width="366" height="224" rx="12" fill="none" stroke="#3e2517" stroke-width="3"/>
+    <text x="24" y="38" font-family="Fredoka, sans-serif" font-size="16" font-weight="700" fill="#3e2517">PAPAN IDE PROYEK TIM</text>
+    <line x1="20" y1="50" x2="346" y2="50" stroke="#e2d1b5" stroke-width="2.5"/>
+    <line x1="206" y1="54" x2="206" y2="206" stroke="#e2d1b5" stroke-width="2.5" stroke-dasharray="6 4"/>
+    <rect x="40" y="74" width="44" height="44" rx="4" fill="#fef08a" stroke="#3e2517" stroke-width="2"/><rect x="96" y="70" width="44" height="44" rx="4" fill="#fbcfe8" stroke="#3e2517" stroke-width="2"/><rect x="152" y="76" width="44" height="44" rx="4" fill="#bbf7d0" stroke="#3e2517" stroke-width="2"/><rect x="44" y="130" width="44" height="44" rx="4" fill="#bae6fd" stroke="#3e2517" stroke-width="2"/><rect x="100" y="128" width="44" height="44" rx="4" fill="#fed7aa" stroke="#3e2517" stroke-width="2"/><rect x="156" y="134" width="44" height="44" rx="4" fill="#e9d5ff" stroke="#3e2517" stroke-width="2"/><rect x="226" y="74" width="44" height="44" rx="4" fill="#bbf7d0" stroke="#3e2517" stroke-width="2"/><rect x="282" y="78" width="44" height="44" rx="4" fill="#fef08a" stroke="#3e2517" stroke-width="2"/><rect x="230" y="130" width="44" height="44" rx="4" fill="#fbcfe8" stroke="#3e2517" stroke-width="2"/>
+  </g>
+
+  <!-- Rak Buku & Prototipe Kanan -->
+  <g transform="translate(866,118)">
+    <rect width="356" height="252" rx="10" fill="#9c6c46" stroke="#3e2517" stroke-width="4"/>
+    
+      <rect x="14" y="16" width="328" height="64" rx="4" fill="#6b452a"/>
+      <rect x="24" y="26" width="26" height="52" rx="3" fill="#d9534f" stroke="#3e2517" stroke-width="2"/><rect x="66" y="34" width="26" height="44" rx="3" fill="#3a88c8" stroke="#3e2517" stroke-width="2"/><rect x="108" y="26" width="26" height="52" rx="3" fill="#3ba08e" stroke="#3e2517" stroke-width="2"/><rect x="150" y="34" width="26" height="44" rx="3" fill="#f2b53b" stroke="#3e2517" stroke-width="2"/><rect x="192" y="26" width="26" height="52" rx="3" fill="#8a6bb8" stroke="#3e2517" stroke-width="2"/><rect x="234" y="34" width="26" height="44" rx="3" fill="#e57c4b" stroke="#3e2517" stroke-width="2"/><rect x="276" y="26" width="26" height="52" rx="3" fill="#5da678" stroke="#3e2517" stroke-width="2"/>
+    
+      <rect x="14" y="94" width="328" height="64" rx="4" fill="#6b452a"/>
+      <rect x="24" y="104" width="26" height="52" rx="3" fill="#d9534f" stroke="#3e2517" stroke-width="2"/><rect x="66" y="112" width="26" height="44" rx="3" fill="#3a88c8" stroke="#3e2517" stroke-width="2"/><rect x="108" y="104" width="26" height="52" rx="3" fill="#3ba08e" stroke="#3e2517" stroke-width="2"/><rect x="150" y="112" width="26" height="44" rx="3" fill="#f2b53b" stroke="#3e2517" stroke-width="2"/><rect x="192" y="104" width="26" height="52" rx="3" fill="#8a6bb8" stroke="#3e2517" stroke-width="2"/><rect x="234" y="112" width="26" height="44" rx="3" fill="#e57c4b" stroke="#3e2517" stroke-width="2"/><rect x="276" y="104" width="26" height="52" rx="3" fill="#5da678" stroke="#3e2517" stroke-width="2"/>
+    
+      <rect x="14" y="172" width="328" height="64" rx="4" fill="#6b452a"/>
+      <rect x="24" y="182" width="26" height="52" rx="3" fill="#d9534f" stroke="#3e2517" stroke-width="2"/><rect x="66" y="190" width="26" height="44" rx="3" fill="#3a88c8" stroke="#3e2517" stroke-width="2"/><rect x="108" y="182" width="26" height="52" rx="3" fill="#3ba08e" stroke="#3e2517" stroke-width="2"/><rect x="150" y="190" width="26" height="44" rx="3" fill="#f2b53b" stroke="#3e2517" stroke-width="2"/><rect x="192" y="182" width="26" height="52" rx="3" fill="#8a6bb8" stroke="#3e2517" stroke-width="2"/><rect x="234" y="190" width="26" height="44" rx="3" fill="#e57c4b" stroke="#3e2517" stroke-width="2"/><rect x="276" y="182" width="26" height="52" rx="3" fill="#5da678" stroke="#3e2517" stroke-width="2"/>
+    
+  </g>
+
+  <!-- Karpet Hijau Sage + Meja Diskusi Besar + Kursi + Laptop -->
+  <ellipse cx="640" cy="624" rx="430" ry="62" fill="#659479" stroke="#3e2517" stroke-width="3.5"/>
+  <ellipse cx="640" cy="624" rx="394" ry="48" fill="none" stroke="#e8cf8e" stroke-width="3" stroke-dasharray="10 8"/>
+  <!-- Kursi belakang -->
+  
+    <rect x="378" y="444" width="64" height="62" rx="14" fill="#d9694b" stroke="#3e2517" stroke-width="3.5"/>
+  
+    <rect x="528" y="444" width="64" height="62" rx="14" fill="#2e8274" stroke="#3e2517" stroke-width="3.5"/>
+  
+    <rect x="688" y="444" width="64" height="62" rx="14" fill="#d9694b" stroke="#3e2517" stroke-width="3.5"/>
+  
+    <rect x="838" y="444" width="64" height="62" rx="14" fill="#2e8274" stroke="#3e2517" stroke-width="3.5"/>
+  
+  <!-- Meja Kayu Panjang Kolaborasi -->
+  <rect x="280" y="492" width="720" height="42" rx="16" fill="#e8c38c" stroke="#3e2517" stroke-width="4"/>
+  <rect x="332" y="534" width="28" height="100" rx="6" fill="#9e6d42" stroke="#3e2517" stroke-width="3.5"/>
+  <rect x="920" y="534" width="28" height="100" rx="6" fill="#9e6d42" stroke="#3e2517" stroke-width="3.5"/>
+  <!-- Laptop & Buku Sketsa di Meja -->
+  <path d="M404 492 L422 442 H522 L512 492 Z" fill="#3a4556" stroke="#3e2517" stroke-width="3"/>
+  <rect x="386" y="488" width="144" height="10" rx="4" fill="#cbd5e1" stroke="#3e2517" stroke-width="2.5"/>
+  <rect x="596" y="476" width="96" height="18" rx="4" fill="#fffdf6" stroke="#3e2517" stroke-width="2.5"/>
+  <rect x="748" y="458" width="30" height="36" rx="6" fill="#f3c053" stroke="#3e2517" stroke-width="3"/>
+  
+  <g transform="translate(112,620) scale(1.05)">
+    <ellipse cx="0" cy="4" rx="34" ry="8" fill="rgba(62,37,23,0.22)"/>
+    <path d="M-8 -58 C-42 -84 -54 -128 -22 -140 C-2 -146 6 -112 -2 -62 Z" fill="#3f8256" stroke="#3e2517" stroke-width="3"/>
+    <path d="M8 -58 C46 -84 56 -124 26 -138 C6 -146 -4 -110 2 -62 Z" fill="#4f9965" stroke="#3e2517" stroke-width="3"/>
+    <path d="M0 -62 C-18 -114 -16 -160 4 -168 C24 -160 22 -114 4 -62 Z" fill="#5fb074" stroke="#3e2517" stroke-width="3"/>
+    <path d="M-12 -52 C-52 -66 -66 -94 -44 -108 C-26 -118 -14 -88 -8 -54 Z" fill="#37734c" stroke="#3e2517" stroke-width="3"/>
+    <path d="M12 -52 C52 -66 66 -94 44 -108 C26 -118 14 -88 8 -54 Z" fill="#468a5c" stroke="#3e2517" stroke-width="3"/>
+    <path d="M-30 -58 L30 -58 L22 0 L-22 0 Z" fill="#d98758" stroke="#3e2517" stroke-width="3.2"/>
+    <rect x="-35" y="-68" width="70" height="14" rx="5" fill="#e69a6a" stroke="#3e2517" stroke-width="3.2"/>
+  </g>
+  
+  <g transform="translate(1180,626) scale(0.95)">
+    <ellipse cx="0" cy="4" rx="34" ry="8" fill="rgba(62,37,23,0.22)"/>
+    <path d="M-8 -58 C-42 -84 -54 -128 -22 -140 C-2 -146 6 -112 -2 -62 Z" fill="#3f8256" stroke="#3e2517" stroke-width="3"/>
+    <path d="M8 -58 C46 -84 56 -124 26 -138 C6 -146 -4 -110 2 -62 Z" fill="#4f9965" stroke="#3e2517" stroke-width="3"/>
+    <path d="M0 -62 C-18 -114 -16 -160 4 -168 C24 -160 22 -114 4 -62 Z" fill="#5fb074" stroke="#3e2517" stroke-width="3"/>
+    <path d="M-12 -52 C-52 -66 -66 -94 -44 -108 C-26 -118 -14 -88 -8 -54 Z" fill="#37734c" stroke="#3e2517" stroke-width="3"/>
+    <path d="M12 -52 C52 -66 66 -94 44 -108 C26 -118 14 -88 8 -54 Z" fill="#468a5c" stroke="#3e2517" stroke-width="3"/>
+    <path d="M-30 -58 L30 -58 L22 0 L-22 0 Z" fill="#d98758" stroke="#3e2517" stroke-width="3.2"/>
+    <rect x="-35" y="-68" width="70" height="14" rx="5" fill="#e69a6a" stroke="#3e2517" stroke-width="3.2"/>
+  </g>
+  
+  <g pointer-events="none">
+    <polygon points="340,0 500,0 240,720 80,720" fill="rgba(255,250,224,0.16)"/>
+    <polygon points="620,0 780,0 520,720 360,720" fill="rgba(255,250,224,0.16)"/>
+    <rect x="0" y="0" width="1280" height="720" fill="rgba(255,244,210,0.03)"/>
+  </g></svg>

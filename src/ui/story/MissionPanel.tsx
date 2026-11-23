@@ -10,6 +10,7 @@ import { SHIFT_TARGET_STORIES, signalForStudent } from '../../engine/storySignal
 import type { AvatarMode } from '../../engine/story/avatar';
 import type { MissionRecord } from '../../engine/story/saveSlot';
 import type { ObservationLogState, StudentAgent } from '../../types';
+import { MAX_LOST_STUDENTS } from '../../engine/survivalMission';
 import { PixelPortrait } from '../characters/PixelPortrait';
 import { GameBadge, GameButton, frameClass } from '../components/game';
 import { IconBintang, IconJam, IconObrolan } from '../components/GameIcons';
@@ -40,6 +41,8 @@ export interface MissionPanelProps {
   availableStars?: number;
   /** Membuka pop-up Hias Ruang BK (opsional). */
   onOpenDecorShop?: () => void;
+  /** Himpunan mahasiswa yang sudah hilang (energi 0%). */
+  lostAgentIds?: ReadonlySet<string>;
 }
 
 type MissionStatus = MissionRecord['status'];
@@ -77,11 +80,13 @@ export function MissionPanel({
   onOpenShiftReport,
   availableStars = 0,
   onOpenDecorShop,
+  lostAgentIds,
 }: MissionPanelProps): React.ReactElement {
   const S = STRINGS.story;
   const busy = avatarMode !== 'idle';
   const reducedMotion = useReducedMotion();
   const [sortMode, setSortMode] = useState<'urgensi' | 'daftar'>('urgensi');
+  const lostCount = lostAgentIds?.size ?? 0;
 
   const doneCount = Object.values(missions).filter((m) => m.status === 'selesai').length;
   const prevDone = React.useRef(doneCount);
@@ -102,8 +107,8 @@ export function MissionPanel({
   );
 
   const summary = useMemo(
-    () => computeCampusMissionSummary(agents, missions),
-    [agents, missions],
+    () => computeCampusMissionSummary(agents, missions, lostAgentIds),
+    [agents, missions, lostAgentIds],
   );
 
   const originalIndexMap = useMemo(() => {
@@ -113,8 +118,8 @@ export function MissionPanel({
   }, [agents]);
 
   const orderedAgents = useMemo(
-    () => (sortMode === 'urgensi' ? sortAgentsByUrgency(agents, missions) : [...agents]),
-    [agents, missions, sortMode],
+    () => (sortMode === 'urgensi' ? sortAgentsByUrgency(agents, missions, lostAgentIds) : [...agents]),
+    [agents, missions, sortMode, lostAgentIds],
   );
 
   const shiftReached = summary.missionsCompleted >= SHIFT_TARGET_STORIES;
@@ -150,6 +155,28 @@ export function MissionPanel({
                 }%`,
               }}
             />
+          </div>
+
+          {/* Status Ketahanan Kelas: kalah jika 3 mahasiswa hilang */}
+          <div className="mt-2.5 flex items-center justify-between gap-2 rounded-2xl border-2 border-[#3e2517] bg-[#3b2011] px-2.5 py-1.5 text-[11px]">
+            <span className="font-['Fredoka'] font-bold text-[#ffe694]">
+              🛡️ Batas Hilang ({lostCount}/{MAX_LOST_STUDENTS})
+            </span>
+            <span className="inline-flex items-center gap-1" aria-label={`Sisa toleransi ${Math.max(0, MAX_LOST_STUDENTS - lostCount)} dari ${MAX_LOST_STUDENTS}`}>
+              {Array.from({ length: MAX_LOST_STUDENTS }, (_, idx) => {
+                const broken = idx < lostCount;
+                return (
+                  <span
+                    key={idx}
+                    className={`inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#3e2517] text-[10px] ${
+                      broken ? 'bg-[#5a3b2e] opacity-45 grayscale' : 'bg-[#e5534b] text-white'
+                    }`}
+                  >
+                    {broken ? '✕' : '♥'}
+                  </span>
+                );
+              })}
+            </span>
           </div>
 
           <div className="mt-2.5 flex items-center justify-between gap-2 text-[11px]">
@@ -255,19 +282,21 @@ export function MissionPanel({
 
       <ul className="flex flex-col gap-2.5" aria-label={S.missionPanelTitle}>
         {orderedAgents.map((agent) => {
+          const isLost = Boolean(lostAgentIds?.has(agent.id));
           const status: MissionStatus = missions[agent.id]?.status ?? 'belum';
           const roleId = STORY_ROLES[agent.id];
           const roleLabel = roleId ? STORY_ROLE_DEFS[roleId].label : '-';
-          const statusText = S.missionStatus[status];
-          const isActive = activeAgentId === agent.id;
+          const statusText = isLost ? 'Hilang (0%)' : S.missionStatus[status];
+          const isActive = !isLost && activeAgentId === agent.id;
           const idxNum = originalIndexMap.get(agent.id) ?? 1;
           const indexTag = `#${String(idxNum).padStart(2, '0')}`;
           const wellbeing = classifyAgentWellbeing(agent, observationLog, currentDay);
           const isoPct = Math.round(wellbeing.isolationRatio * 100);
           const storySig = signalForStudent(agent.id);
 
-          const urgencyHighlight =
-            wellbeing.tier === 'kritis'
+          const urgencyHighlight = isLost
+            ? 'opacity-70 grayscale-[0.75]'
+            : wellbeing.tier === 'kritis'
               ? 'ring-2 ring-red-600/85'
               : wellbeing.tier === 'waspada'
                 ? 'ring-1 ring-amber-600/75'
@@ -277,6 +306,7 @@ export function MissionPanel({
             <li
               key={agent.id}
               data-agent-id={agent.id}
+              data-lost={isLost ? 'true' : 'false'}
               aria-current={isActive ? 'true' : undefined}
               className={`dossier-card ${frameClass(isActive ? 'navy' : 'krem')} ${urgencyHighlight} flex flex-col gap-2.5 p-3 text-sm`}
             >
@@ -361,7 +391,11 @@ export function MissionPanel({
                   </div>
 
                   {/* Sinyal Perilaku Pemicu Rasa Penasaran atau Judul Kisah Terungkap */}
-                  {status === 'selesai' ? (
+                  {isLost ? (
+                    <p className="mt-1.5 rounded-xl border border-[#c6453c]/35 bg-[#fdeaea] px-2 py-1 text-[11px] font-bold text-[#992b24]">
+                      🚪 Kehabisan energi dan meninggalkan kelas.
+                    </p>
+                  ) : status === 'selesai' ? (
                     <p
                       className={`mt-1.5 line-clamp-2 rounded-xl border border-[#3e2517]/20 px-2 py-1 text-[11px] font-bold ${
                         isActive
@@ -396,7 +430,7 @@ export function MissionPanel({
                       {roleLabel}
                     </dd>
                   </div>
-                  {isoPct >= 50 && (
+                  {isoPct >= 50 && !isLost && (
                     <dd
                       className={`rounded-full px-2.5 py-0.5 font-bold ${
                         isActive
@@ -409,30 +443,36 @@ export function MissionPanel({
                   )}
                 </dl>
 
-                <div className={`grid gap-2 ${status === 'lanjutan' ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                  <GameButton
-                    variant="primer"
-                    size="sm"
-                    aria-label={S.approachAria(agent.name)}
-                    disabled={busy}
-                    onClick={() => onApproach(agent.id)}
-                    className="w-full"
-                  >
-                    {S.approachBtn}
+                {isLost ? (
+                  <GameButton variant="sekunder" size="sm" disabled className="w-full">
+                    Meninggalkan Kelas
                   </GameButton>
-                  {status === 'lanjutan' && (
+                ) : (
+                  <div className={`grid gap-2 ${status === 'lanjutan' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                     <GameButton
-                      variant="sekunder"
+                      variant="primer"
                       size="sm"
-                      aria-label={S.followUpAria(agent.name)}
+                      aria-label={S.approachAria(agent.name)}
                       disabled={busy}
-                      onClick={() => onFollowUp(agent.id)}
+                      onClick={() => onApproach(agent.id)}
                       className="w-full"
                     >
-                      {S.followUpBtn}
+                      {S.approachBtn}
                     </GameButton>
-                  )}
-                </div>
+                    {status === 'lanjutan' && (
+                      <GameButton
+                        variant="sekunder"
+                        size="sm"
+                        aria-label={S.followUpAria(agent.name)}
+                        disabled={busy}
+                        onClick={() => onFollowUp(agent.id)}
+                        className="w-full"
+                      >
+                        {S.followUpBtn}
+                      </GameButton>
+                    )}
+                  </div>
+                )}
               </div>
             </li>
           );

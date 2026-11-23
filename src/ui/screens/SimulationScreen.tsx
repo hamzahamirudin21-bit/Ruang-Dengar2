@@ -114,7 +114,13 @@ import { StoryJournalModal } from '../story/StoryJournalModal';
 import { MorningBriefingModal } from './MorningBriefingModal';
 import { RoomDecorModal } from './RoomDecorModal';
 import { ShiftReportModal } from './ShiftReportModal';
+import { SurvivalResultModal } from './SurvivalResultModal';
 import { computeCampusMissionSummary } from '../../engine/isolationMission';
+import {
+  MAX_LOST_STUDENTS,
+  detectNewlyLostAgentIds,
+  evaluateSurvivalStatus,
+} from '../../engine/survivalMission';
 import {
   ROOM_DECOR_CATALOG,
   buyRoomDecor,
@@ -235,6 +241,67 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   const [decorShopOpen, setDecorShopOpen] = useState<boolean>(false);
   const [roomDecor, setRoomDecor] = useState<RoomDecorState>(() => loadRoomDecorState());
   const shiftCelebratedRef = useRef<boolean | null>(null);
+
+  // Algoritma ketahanan energi: mahasiswa 0% -> hilang; 3 hilang -> Game Over (kalah)
+  const [lostStudentIds, setLostStudentIds] = useState<string[]>([]);
+  const [lostAlertToast, setLostAlertToast] = useState<string | null>(null);
+  const [victoryDismissed, setVictoryDismissed] = useState<boolean>(false);
+  const lostIdsRef = useRef<ReadonlySet<string>>(new Set());
+  const stabilizedIdsRef = useRef<ReadonlySet<string>>(new Set());
+  const inSessionIdsRef = useRef<ReadonlySet<string>>(new Set());
+  const survivalOverRef = useRef<boolean>(false);
+  const lostToastTimerRef = useRef<number | null>(null);
+
+  const lostStudentSet = useMemo(() => new Set(lostStudentIds), [lostStudentIds]);
+  useEffect(() => {
+    lostIdsRef.current = lostStudentSet;
+    needsRedrawRef.current = true;
+  }, [lostStudentSet]);
+
+  const registerLostAgents = useCallback((ids: readonly string[]) => {
+    if (ids.length === 0) return;
+    setLostStudentIds((prev) => {
+      const existing = new Set(prev);
+      const added: string[] = [];
+      for (const id of ids) {
+        if (!existing.has(id)) {
+          existing.add(id);
+          added.push(id);
+        }
+      }
+      if (added.length === 0) return prev;
+      const next = [...prev, ...added];
+      lostIdsRef.current = new Set(next);
+      playSfx('emote');
+      const names = added
+        .map((id) => worldRef.current.agents.find((a) => a.id === id)?.name.split(' ')[0] ?? id)
+        .join(', ');
+      setLostAlertToast(
+        `⚠️ ${names} kehabisan energi (0%) dan meninggalkan kelas! (${next.length}/${MAX_LOST_STUDENTS})`
+      );
+      if (lostToastTimerRef.current !== null) window.clearTimeout(lostToastTimerRef.current);
+      lostToastTimerRef.current = window.setTimeout(() => setLostAlertToast(null), 6500);
+      if (selectedAgentRef.current && existing.has(selectedAgentRef.current)) {
+        setSelectedAgentId(null);
+      }
+      const curStory = storyRef.current;
+      if (
+        curStory &&
+        curStory.avatarRef.current.mode === 'menuju-mahasiswa' &&
+        curStory.avatarRef.current.targetAgentId &&
+        existing.has(curStory.avatarRef.current.targetAgentId)
+      ) {
+        curStory.cancelApproach();
+      }
+      if (next.length >= MAX_LOST_STUDENTS) {
+        survivalOverRef.current = true;
+      }
+      needsRedrawRef.current = true;
+      return next;
+    });
+  }, []);
+  const registerLostAgentsRef = useRef(registerLostAgents);
+  registerLostAgentsRef.current = registerLostAgents;
 
   useEffect(() => {
     saveRoomDecorState(roomDecor);
@@ -567,12 +634,29 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       lastTimestamp = now;
       const dt = Math.min(Math.max(rawDt, 0), 0.05);
 
-      // 1. Majukan dunia seluruh agen mahasiswa & jam simulasi (jeda otomatis saat briefing pagi terbuka)
+      // 1. Majukan dunia seluruh agen mahasiswa & jam simulasi (waktu tetap berjalan saat mengobrol; jeda hanya saat briefing/hasil akhir)
       const prevWorld = worldRef.current;
       let walkingDirty = false;
-      if (!prevWorld.clock.paused && !briefingOpenRef.current) {
-        const nextWorld = advanceWorld(prevWorld, dt, LAB_MAP, navGridRef.current);
+      if (!prevWorld.clock.paused && !briefingOpenRef.current && !survivalOverRef.current) {
+        const nextWorld = advanceWorld(prevWorld, dt, LAB_MAP, navGridRef.current, {
+          inSessionAgentIds: inSessionIdsRef.current,
+          lostAgentIds: lostIdsRef.current,
+          stabilizedAgentIds: stabilizedIdsRef.current,
+        });
         worldRef.current = nextWorld;
+
+        // Deteksi mahasiswa yang baru saja kehabisan energi (0%) -> hilang dari kelas
+        if (nextWorld.tickCount !== prevWorld.tickCount) {
+          const newlyLost = detectNewlyLostAgentIds(
+            nextWorld.agents,
+            lostIdsRef.current,
+            stabilizedIdsRef.current,
+            inSessionIdsRef.current
+          );
+          if (newlyLost.length > 0) {
+            registerLostAgentsRef.current(newlyLost);
+          }
+        }
 
         // Gambar ulang saat tick berubah (langsung) atau saat ada agen berjalan (dibatasi ~30fps)
         if (nextWorld.tickCount !== prevWorld.tickCount) {
@@ -733,7 +817,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               viewOptions: viewOptionsRef.current,
               hoveredZoneId: hoveredZoneRef.current,
               selectedZoneId: selectedZoneRef.current,
-              agents: worldRef.current.agents,
+              agents: worldRef.current.agents.filter((a) => !lostIdsRef.current.has(a.id)),
               selectedAgentId: selectedAgentRef.current,
               hoveredAgentId: hoveredAgentRef.current,
               devPathTest: devPathTestRef.current,
@@ -817,7 +901,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       rect,
       cameraRef.current,
       LAB_MAP.tileSizePx,
-      worldRef.current.agents
+      worldRef.current.agents.filter((a) => !lostIdsRef.current.has(a.id))
     );
     const nextAgentHover = hitAgent ? hitAgent.id : null;
     if (nextAgentHover !== hoveredAgentId) {
@@ -858,7 +942,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         rect,
         cameraRef.current,
         LAB_MAP.tileSizePx,
-        worldRef.current.agents
+        worldRef.current.agents.filter((a) => !lostIdsRef.current.has(a.id))
       );
       if (hitAgent) {
         setSelectedAgentId(hitAgent.id);
@@ -1013,13 +1097,29 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     seed,
     reducedMotion,
     onMemoryMapChange: setAgentMemoryMap,
+    lostAgentIds: lostStudentSet,
+    onAgentLost: (id) => registerLostAgents([id]),
   });
   storyRef.current = story;
+
+  // Sinkronkan himpunan mahasiswa stabil & yang sedang dalam sesi percakapan ke ref loop frame
+  useEffect(() => {
+    const stab = new Set<string>();
+    for (const [id, rec] of Object.entries(story.missions)) {
+      if (rec.status === 'selesai') stab.add(id);
+    }
+    stabilizedIdsRef.current = stab;
+  }, [story.missions]);
+
+  useEffect(() => {
+    inSessionIdsRef.current = story.activeAgentId ? new Set([story.activeAgentId]) : new Set();
+  }, [story.activeAgentId]);
 
   useEffect(() => {
     const ids: string[] = [];
     const badges: Record<string, StoryOutcomeKind> = {};
     for (const a of agentsSnapshot) {
+      if (lostStudentSet.has(a.id)) continue;
       const m = story.missions[a.id];
       if (!m || m.status !== 'selesai') ids.push(a.id);
       if (m?.lastOutcome && m.lastDay === clock.day) badges[a.id] = m.lastOutcome;
@@ -1027,7 +1127,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     storyMarkerIdsRef.current = ids;
     storyBadgesRef.current = badges;
     needsRedrawRef.current = true;
-  }, [agentsSnapshot, story.missions, clock.day]);
+  }, [agentsSnapshot, story.missions, clock.day, lostStudentSet]);
 
   useEffect(() => {
     needsRedrawRef.current = true;
@@ -1043,13 +1143,72 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   );
 
   const missionsDone = useMemo(
-    () => agentsSnapshot.filter((a) => story.missions[a.id]?.status === 'selesai').length,
-    [agentsSnapshot, story.missions]
+    () =>
+      agentsSnapshot.filter(
+        (a) => !lostStudentSet.has(a.id) && story.missions[a.id]?.status === 'selesai'
+      ).length,
+    [agentsSnapshot, story.missions, lostStudentSet]
   );
 
+  const survivalSummary = useMemo(
+    () => evaluateSurvivalStatus(STUDENT_COUNT, lostStudentIds.length, missionsDone),
+    [lostStudentIds.length, missionsDone]
+  );
+
+  useEffect(() => {
+    survivalOverRef.current =
+      survivalSummary.status === 'kalah' ||
+      (survivalSummary.status === 'menang' && !victoryDismissed);
+  }, [survivalSummary.status, victoryDismissed]);
+
+  const lostAgentsList = useMemo(
+    () =>
+      lostStudentIds
+        .map((id) => agentsSnapshot.find((a) => a.id === id))
+        .filter((a): a is StudentAgent => Boolean(a)),
+    [lostStudentIds, agentsSnapshot]
+  );
+
+  const otherCriticalAgent = useMemo(() => {
+    const talkingId = story.agent?.id ?? null;
+    let lowest: StudentAgent | null = null;
+    for (const a of agentsSnapshot) {
+      if (a.id === talkingId || lostStudentSet.has(a.id)) continue;
+      if (story.missions[a.id]?.status === 'selesai') continue;
+      if (a.energy < 0.35 && (!lowest || a.energy < lowest.energy)) {
+        lowest = a;
+      }
+    }
+    return lowest ? { name: lowest.name, energyPct: Math.round(lowest.energy * 100) } : null;
+  }, [agentsSnapshot, story.agent?.id, story.missions, lostStudentSet]);
+
+  const handleRestartRun = useCallback(() => {
+    playSfx('klik');
+    const rebuilt = createWorldState(
+      LAB_MAP,
+      seed,
+      initialClock.speed,
+      viewOptionsRef.current.consultationDoorMode,
+      false
+    );
+    worldRef.current = rebuilt;
+    counselorRef.current = createInitialCounselorState();
+    lostIdsRef.current = new Set();
+    stabilizedIdsRef.current = new Set();
+    inSessionIdsRef.current = new Set();
+    survivalOverRef.current = false;
+    setLostStudentIds([]);
+    setLostAlertToast(null);
+    setVictoryDismissed(false);
+    setSelectedAgentId(null);
+    setSelectedAgentSnapshot(null);
+    story.resetAllMissions();
+    syncWorldUiState(rebuilt);
+  }, [seed, initialClock.speed, story, syncWorldUiState]);
+
   const campusMission = useMemo(
-    () => computeCampusMissionSummary(agentsSnapshot, story.missions),
-    [agentsSnapshot, story.missions]
+    () => computeCampusMissionSummary(agentsSnapshot, story.missions, lostStudentSet),
+    [agentsSnapshot, story.missions, lostStudentSet]
   );
 
   const shiftReport = useMemo(
@@ -1163,7 +1322,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       clockText: formattedTime,
       missionsDone,
       missionsTotal: STUDENT_COUNT,
-      activeStudents: worldSummary.totalAgents,
+      activeStudents: Math.max(0, worldSummary.totalAgents - lostStudentIds.length),
     },
     STRINGS.hud
   );
@@ -1228,6 +1387,27 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               </span>
             );
           })}
+          {/* Lencana Nyawa Kelas / Batas Mahasiswa Hilang (3 = Kalah) */}
+          <span
+            data-testid="survival-lives-badge"
+            title={`Kalah bila ${MAX_LOST_STUDENTS} mahasiswa kehabisan energi (0%) dan hilang`}
+            className={`inline-flex items-center gap-1.5 rounded-full border-[2.5px] border-[#3e2517] px-3 py-1 font-['Fredoka'] text-xs font-bold shadow-[0_3px_0_#3e2517] ${
+              lostStudentIds.length >= 2
+                ? 'bg-[#d9463e] text-[#fffdf6]'
+                : lostStudentIds.length === 1
+                  ? 'bg-[#f5b63b] text-[#3e2517]'
+                  : 'bg-[#fffaf0] text-[#3e2517]'
+            }`}
+          >
+            <span aria-hidden="true">
+              {Array.from({ length: MAX_LOST_STUDENTS }, (_, idx) =>
+                idx < lostStudentIds.length ? '🖤' : '❤️'
+              ).join('')}
+            </span>
+            <span>
+              Hilang {lostStudentIds.length}/{MAX_LOST_STUDENTS}
+            </span>
+          </span>
           <button
             type="button"
             data-testid="open-decor-shop-btn"
@@ -1534,6 +1714,15 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                 </div>
               )}
             </div>
+            {/* Toast Peringatan Mahasiswa Hilang (0%) */}
+            {lostAlertToast && (
+              <div
+                role="alert"
+                className="fx-panel-in absolute bottom-24 left-1/2 z-20 flex max-w-[92%] -translate-x-1/2 items-center gap-2 rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#e05248] to-[#b8322a] px-4 py-1.5 font-['Fredoka'] text-xs font-bold text-[#fffdf6] shadow-[0_4px_0_#3e2517]"
+              >
+                <span>{lostAlertToast}</span>
+              </div>
+            )}
             {/* Toast Perayaan Bintang Empati melayang saat kisah baru terungkap */}
             {celebrationToast && (
               <div
@@ -1828,6 +2017,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                 observationLog={observationLog}
                 currentDay={clock.day}
                 availableStars={availableStars}
+                lostAgentIds={lostStudentSet}
                 onOpenDecorShop={() => {
                   playSfx('klik');
                   setDecorShopOpen(true);
@@ -2011,12 +2201,13 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         </GameFrame>
       </div>
 
-      {/* StoryScreen (mode misi); disembunyikan saat Walk_Together atau Debrief */}
+      {/* StoryScreen (mode misi); disembunyikan saat Walk_Together, Debrief, atau Game Over */}
       {story.storyState &&
         story.graph &&
         story.agent &&
         story.storyVisible &&
-        !story.debriefProps && (
+        !story.debriefProps &&
+        survivalSummary.status !== 'kalah' && (
           <div className="fixed inset-0 z-[60]" data-testid="story-overlay">
             <StoryScreen
               graph={story.graph}
@@ -2035,9 +2226,28 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               missions={story.missions}
               sceneVariant={storySceneVariant}
               equippedDecor={roomDecor.equippedIds}
+              lastChoiceFeedback={story.lastChoiceFeedback}
+              turnResults={story.turnResults}
+              otherCriticalAgent={otherCriticalAgent}
+              lostCount={lostStudentIds.length}
+              maxLost={MAX_LOST_STUDENTS}
             />
           </div>
         )}
+
+      {/* Modal Kalah (3 Mahasiswa Hilang) atau Menang (Semua Mahasiswa Tersisa Stabil) */}
+      {(survivalSummary.status === 'kalah' ||
+        (survivalSummary.status === 'menang' && !victoryDismissed)) && (
+        <SurvivalResultModal
+          summary={survivalSummary}
+          lostAgents={lostAgentsList}
+          reducedMotion={reducedMotion}
+          onRestart={handleRestartRun}
+          onContinueExplore={
+            survivalSummary.status === 'menang' ? () => setVictoryDismissed(true) : undefined
+          }
+        />
+      )}
 
       {/* Debrief mode cerita */}
       {story.debriefProps && (

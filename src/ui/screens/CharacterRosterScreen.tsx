@@ -20,6 +20,21 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
   onOpenSettings,
 }) => {
   const models = useMemo(() => buildRosterModel(STUDENT_BLUEPRINTS), []);
+  const [flippedIds, setFlippedIds] = useState<ReadonlySet<string>>(() => new Set());
+  const allFlipped = flippedIds.size === models.length && models.length > 0;
+  const toggleFlipCard = (studentId: string) => {
+    setFlippedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(studentId)) next.delete(studentId);
+      else next.add(studentId);
+      return next;
+    });
+  };
+  const toggleFlipAll = () => {
+    setFlippedIds((prev) =>
+      prev.size === models.length ? new Set() : new Set(models.map((m) => m.studentId)),
+    );
+  };
   const rootRef = useRef<HTMLElement | null>(null);
   const [viewport, setViewport] = useState(() => ({
     width: typeof window === 'undefined' ? 1366 : window.innerWidth,
@@ -97,17 +112,26 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
             </h1>
             <span aria-hidden="true" className="hidden h-4 w-0.5 bg-[#ffe694]/45 md:block" />
             <p className="hidden truncate text-sm text-[#fff3dc] md:block">
-              {STRINGS.roster.subtitle}
+              Kenali 15 mahasiswa — klik kartu mana saja untuk membalik &amp; membaca latar belakangnya!
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            className={`game-btn-secondary !min-h-[2rem] !px-3.5 !py-1 text-xs ${transition}`}
-          >
-            <IconSettings className="h-4 w-4" />
-            <span>{STRINGS.roster.settingsButton}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleFlipAll}
+              className={`game-btn-secondary !min-h-[2rem] !px-3.5 !py-1 text-xs ${transition}`}
+            >
+              <span>{allFlipped ? '↺ Tampilkan Semua Foto' : '↻ Balik Semua Kartu'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              className={`game-btn-secondary !min-h-[2rem] !px-3.5 !py-1 text-xs ${transition}`}
+            >
+              <IconSettings className="h-4 w-4" />
+              <span>{STRINGS.roster.settingsButton}</span>
+            </button>
+          </div>
         </header>
 
         <ul
@@ -124,12 +148,16 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
               reducedMotion={reducedMotion}
               width={layout.cardWidth}
               height={layout.cardHeight}
+              flipped={flippedIds.has(m.studentId)}
+              onToggleFlip={() => toggleFlipCard(m.studentId)}
             />
           ))}
         </ul>
 
         <footer className="mt-3 flex shrink-0 flex-wrap items-center justify-between gap-3 border-t-2 border-[#0f1b33]/18 pt-3">
-          <p className="text-xs font-semibold text-[#3f4f6b]">{STRINGS.roster.hint}</p>
+          <p className="text-xs font-semibold text-[#5c3d26]">
+            💡 Klik kartu mahasiswa untuk melihat tipe, kesukaan, &amp; latar belakangnya · {STRINGS.roster.hint}
+          </p>
           <div className="flex items-center gap-2.5">
             <button
               type="button"

@@ -307,8 +307,22 @@ export function chooseStoryChoice(
   if (!v.ok) return { ok: false, error: v.error, state };
   const { node, choice } = v;
 
+  const isCompactBinary = graph.version >= 2;
+  const sessionInput = isCompactBinary
+    ? {
+        ...state.session,
+        closed: false,
+        rupture: {
+          ...state.session.rupture,
+          active: false,
+          endedEarlyByRupture: false,
+          ignoredTurnsWhileRuptured: 0,
+        },
+      }
+    : state.session;
+
   // 2
-  const act = stepEngineAction(agent, state.session, choice);
+  const act = stepEngineAction(agent, sessionInput, choice);
   if (!act.ok) return { ok: false, error: act.error, state };
 
   // 4a: flag pilihan (routes dievaluasi atas sesi dan flag terbaru)
@@ -321,8 +335,8 @@ export function chooseStoryChoice(
   let endedBy: 'keretakan' | null = null;
   let redirectedToTensionFallback = false;
 
-  if (act.session.closed) {
-    // 5: penutupan paksa; penanganan '@ending' oleh tugas 5.6.
+  if (act.session.closed && !isCompactBinary) {
+    // 5: penutupan paksa (graf v1); pada graf v2 2-pilihan, sesi lanjut 7 giliran kecuali energi 0%.
     destination = '@ending';
     endedBy = 'keretakan';
   } else {
@@ -332,11 +346,11 @@ export function chooseStoryChoice(
       pendingResume = null;
     }
     const rawDest = destination.startsWith('@') ? undefined : findNode(graph, destination);
-    if (act.session.rupture.active && !rawDest?.tension) {
+    if (!isCompactBinary && act.session.rupture.active && !rawDest?.tension) {
       pendingResume = destination;
       destination = graph.tensionFallbackNodeId;
       redirectedToTensionFallback = true;
-    } else if (rawDest?.tension?.phase === 'awal' && pendingResume === null) {
+    } else if (!isCompactBinary && rawDest?.tension?.phase === 'awal' && pendingResume === null) {
       pendingResume = node.id;
     }
     // 7: gerbang

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { LAB_MAP } from '../../data/map';
 import { STRINGS } from '../../data/strings';
 import type { StoryArrival, StoryOutcome, StoryRunnerState } from '../../engine/story/runner';
 import { presentChoices } from '../../engine/story/runner';
@@ -30,6 +31,8 @@ import { buildListRows, NARROW_BREAKPOINT } from './storyLayout';
 import { buildStudentProfile } from './studentProfile';
 import { autoDelayMs, buildBeats, choiceIndexForKey, decideEnterAction, followUpReplyFor, typewriterStep } from './storyUi';
 import type { BeatSource, StoryBeat } from './storyUi';
+
+import type { ChoiceFeedback } from './useStoryMission';
 
 type ImpactDirection = keyof typeof STRINGS.story.impactWords;
 
@@ -70,6 +73,15 @@ export interface StoryScreenProps {
   sceneVariant?: SceneVariant;
   /** Daftar hiasan Ruang Konsultasi yang sedang terpasang. */
   equippedDecor?: readonly RoomDecorId[];
+  /** Umpan balik energi langsung dari pilihan terakhir (+12% tepat / -14% salah). */
+  lastChoiceFeedback?: ChoiceFeedback | null;
+  /** Riwayat ketepatan tiap giliran pada sesi aktif. */
+  turnResults?: readonly ('tepat' | 'salah')[];
+  /** Peringatan live mahasiswa lain di lab yang sedang kritis saat waktu peta tetap berjalan. */
+  otherCriticalAgent?: { name: string; energyPct: number } | null;
+  /** Jumlah mahasiswa yang sudah hilang (batas kalah = maxLost). */
+  lostCount?: number;
+  maxLost?: number;
   className?: string;
 }
 
@@ -299,6 +311,11 @@ export function StoryScreen({
   missions,
   sceneVariant,
   equippedDecor,
+  lastChoiceFeedback,
+  turnResults,
+  otherCriticalAgent,
+  lostCount = 0,
+  maxLost = 3,
   className,
 }: StoryScreenProps) {
   const S = STRINGS.story;
@@ -531,6 +548,11 @@ export function StoryScreen({
   }, [visibleLen, typing.done]);
 
   const artId = resolveSceneArt({ setting: scene?.setting ?? 'ruang-konsultasi', zoneId: startZoneId });
+  const displayedSceneTitle = useMemo(() => {
+    if (!scene) return '';
+    if (scene.setting === 'ruang-konsultasi') return scene.title;
+    return LAB_MAP.zones.find((z) => z.id === startZoneId)?.label ?? scene.title;
+  }, [scene, startZoneId]);
   const prevArtRef = useRef<string | null>(null);
   useEffect(() => {
     if (prevArtRef.current !== null && prevArtRef.current !== artId) playSfx('ganti-adegan');
@@ -676,13 +698,28 @@ export function StoryScreen({
           >
             ⚡ Energi {studentWellbeing.energyPct}%
           </span>
+          {lastChoiceFeedback && (
+            <span
+              key={`delta-${lastChoiceFeedback.turn}-${lastChoiceFeedback.kind}`}
+              role="status"
+              className={`vn-energy-delta-pop inline-flex items-center gap-1 rounded-full border-2 border-[#3e2517] px-2.5 py-0.5 font-['Fredoka'] text-xs font-bold shadow-[0_3px_0_#3e2517] ${
+                lastChoiceFeedback.kind === 'tepat'
+                  ? 'bg-[#2e8274] text-[#fffdf6]'
+                  : 'bg-[#d9463e] text-[#fffdf6]'
+              }`}
+            >
+              {lastChoiceFeedback.kind === 'tepat'
+                ? `+${lastChoiceFeedback.deltaPct}% ✓ Tepat`
+                : `${lastChoiceFeedback.deltaPct}% ✕ Salah`}
+            </span>
+          )}
         </div>
 
         <div className="vn-topbar-center">
           {scene && (
             <div className="vn-location" data-testid="story-scene-caption">
               <div className="flex flex-wrap items-center justify-center gap-2">
-                <span className="vn-location-title">{scene.title}</span>
+                <span className="vn-location-title">{displayedSceneTitle}</span>
                 {isCompactMode && !state.ended && (
                   <span
                     className="inline-flex items-center gap-1 rounded-full border-2 border-[#3e2517]/50 bg-[#fff5d8] px-2.5 py-0.5"
@@ -691,6 +728,7 @@ export function StoryScreen({
                     <span className="inline-flex items-center gap-1" aria-hidden="true">
                       {[1, 2, 3, 4, 5, 6, 7].map((step) => {
                         const currentStep = Math.min(7, state.turn + 1);
+                        const result = turnResults?.[step - 1];
                         const done = step < currentStep;
                         const active = step === currentStep;
                         return (
@@ -698,9 +736,11 @@ export function StoryScreen({
                             key={step}
                             className={`inline-block rounded-full border border-[#3e2517] transition-all ${
                               active
-                                ? 'h-2.5 w-2.5 bg-[#e56256] scale-110'
+                                ? 'h-2.5 w-2.5 scale-110 bg-[#f5be42]'
                                 : done
-                                  ? 'h-2 w-2 bg-[#2e8274]'
+                                  ? result === 'salah'
+                                    ? 'h-2 w-2 bg-[#d9463e]'
+                                    : 'h-2 w-2 bg-[#2e8274]'
                                   : 'h-1.5 w-1.5 bg-[#e8d5b0]'
                             }`}
                           />
@@ -717,9 +757,17 @@ export function StoryScreen({
             </div>
           )}
 
+          {otherCriticalAgent && (
+            <div
+              role="status"
+              className="vn-status-pill !border-[#8f241f] !bg-[#d9463e] !text-[#fffdf6]"
+            >
+              ⚠️ Di peta: {otherCriticalAgent.name.split(' ')[0]} tinggal {otherCriticalAgent.energyPct}%! · Hilang {lostCount}/{maxLost}
+            </div>
+          )}
           {helpOpen && (
             <div role="status" className="vn-status-pill">
-              Tombol 1–3 memilih respons · Enter / Spasi melanjutkan dialog · Esc menutup panel
+              Tombol 1–{Math.max(2, choices.length)} memilih respons · Enter / Spasi melanjutkan · Esc menutup panel
             </div>
           )}
           {!helpOpen && statusMessage && (

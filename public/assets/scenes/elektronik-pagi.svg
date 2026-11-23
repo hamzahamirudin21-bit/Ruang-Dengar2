@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" shape-rendering="geometricPrecision">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e4eef4"/><stop offset="100%" stop-color="#cadbe6"/></linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#aebcc7"/><stop offset="100%" stop-color="#8b99a5"/></linearGradient>
+  </defs>
+  <rect width="1280" height="495" fill="url(#wall)"/>
+  <rect y="495" width="1280" height="225" fill="url(#floor)"/>
+  <!-- Plafon & lampu LED lab -->
+  <rect width="1280" height="32" fill="#b7c6d2" stroke="#3e2517" stroke-width="3"/>
+  <rect x="180" y="12" width="160" height="16" rx="6" fill="#fffdf2" stroke="#3e2517" stroke-width="2.5"/><rect x="560" y="12" width="160" height="16" rx="6" fill="#fffdf2" stroke="#3e2517" stroke-width="2.5"/><rect x="940" y="12" width="160" height="16" rx="6" fill="#fffdf2" stroke="#3e2517" stroke-width="2.5"/>
+  <!-- Garis ubin lantai perspektif -->
+  <line x1="0" y1="495" x2="1280" y2="495" stroke="#3e2517" stroke-width="4"/>
+  <line x1="0" y1="540" x2="1280" y2="540" stroke="#5f6f7c" stroke-width="2" opacity="0.45"/><line x1="0" y1="595" x2="1280" y2="595" stroke="#5f6f7c" stroke-width="2" opacity="0.45"/><line x1="0" y1="658" x2="1280" y2="658" stroke="#5f6f7c" stroke-width="2" opacity="0.45"/>
+  <line x1="65" y1="495" x2="-285" y2="720" stroke="#5f6f7c" stroke-width="2" opacity="0.4"/><line x1="180" y1="495" x2="-100" y2="720" stroke="#5f6f7c" stroke-width="2" opacity="0.4"/><line x1="295" y1="495" x2="85" y2="720" stroke="#5f6f7c" stroke-width="2" opacity="0.4"/><line x1="410" y1="495" x2="270" y2="720" stroke="#5f6f7c" stroke-width="2" opacity="0.4"/><line x1="525" y1="495" x2="455" y2="720" stroke="#5f6f7c" stroke-width="2" opacity="0.4"/><line x1="640" y1="495" x2="640" y2="720" stroke="#5f6f7c" stroke-width="2" opacity="0.4"/><line x1="755" y1="495" x2="825" y2="720" stroke="#5f6f7c" stroke-width="2" opacity="0.4"/><line x1="870" y1="495" x2="1010" y2="720" stroke="#5f6f7c" stroke-width="2" opacity="0.4"/><line x1="985" y1="495" x2="1195" y2="720" stroke="#5f6f7c" stroke-width="2" opacity="0.4"/><line x1="1100" y1="495" x2="1380" y2="720" stroke="#5f6f7c" stroke-width="2" opacity="0.4"/><line x1="1215" y1="495" x2="1565" y2="720" stroke="#5f6f7c" stroke-width="2" opacity="0.4"/>
+
+  <!-- Jendela kampus tengah -->
+  
+  <defs>
+    <clipPath id="win-340-128"><rect x="340" y="128" width="490" height="260" rx="8"/></clipPath>
+    <linearGradient id="sky-win-340-128" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6bb9ef"/><stop offset="55%" stop-color="#b7e2fb"/><stop offset="100%" stop-color="#eef8ff"/>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#win-340-128)">
+    <rect x="340" y="128" width="490" height="260" fill="url(#sky-win-340-128)"/>
+    <!-- Awan lembut -->
+    <ellipse cx="477.20000000000005" cy="190.4" rx="56" ry="18" fill="#ffffff" opacity="0.65"/>
+    <ellipse cx="692.8" cy="177.4" rx="48" ry="15" fill="#ffffff" opacity="0.55"/>
+    <!-- Gedung kampus di luar -->
+    <rect x="369.4" y="242.4" width="137.20000000000002" height="145.60000000000002" fill="#8aa7c7" opacity="0.6"/>
+    <rect x="624.2" y="216.4" width="166.60000000000002" height="171.6" fill="#8aa7c7" opacity="0.5"/>
+    <!-- Jendela gedung kampus -->
+    <rect x="389" y="263.20000000000005" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="417" y="263.20000000000005" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="445" y="263.20000000000005" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="389" y="289.20000000000005" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="417" y="289.20000000000005" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="445" y="289.20000000000005" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="389" y="315.20000000000005" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="417" y="315.20000000000005" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/><rect x="445" y="315.20000000000005" width="16" height="14" rx="2" fill="#fff7dc" opacity="0.65"/>
+    <rect x="648.7" y="237.2" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="680.7" y="237.2" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="712.7" y="237.2" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="648.7" y="265.2" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="680.7" y="265.2" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="712.7" y="265.2" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="648.7" y="293.2" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="680.7" y="293.2" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/><rect x="712.7" y="293.2" width="18" height="15" rx="2" fill="#fff7dc" opacity="0.6"/>
+    <!-- Tajuk pepohonan kampus -->
+    <circle cx="408.6" cy="367.20000000000005" r="66" fill="#4c8e5c"/>
+    <circle cx="506.6" cy="382.79999999999995" r="58" fill="#70b376"/>
+    <circle cx="643.8" cy="377.6" r="62" fill="#4c8e5c"/>
+    <circle cx="771.2" cy="356.8" r="72" fill="#70b376"/>
+    <!-- Kusen kaca -->
+    <line x1="503.33333333333337" y1="128" x2="503.33333333333337" y2="388" stroke="#5a6f82" stroke-width="8"/>
+    <line x1="666.6666666666667" y1="128" x2="666.6666666666667" y2="388" stroke="#5a6f82" stroke-width="8"/>
+    <line x1="340" y1="289.2" x2="830" y2="289.2" stroke="#5a6f82" stroke-width="8"/>
+    
+  </g>
+  <rect x="340" y="128" width="490" height="260" rx="8" fill="none" stroke="#5a6f82" stroke-width="10"/>
+  <rect x="340" y="128" width="490" height="260" rx="8" fill="none" stroke="#3e2517" stroke-width="3"/>
+  <rect x="326" y="386" width="518" height="16" rx="5" fill="#95a8b8" stroke="#3e2517" stroke-width="3"/>
+  
+  <g>
+    <rect x="395" y="52" width="380" height="52" rx="10" fill="#1c5368" stroke="#3e2517" stroke-width="3.5"/>
+    <rect x="401" y="58" width="368" height="40" rx="6" fill="none" stroke="#64d8e8" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="585" y="85" text-anchor="middle" font-family="Fredoka, 'Segoe UI', sans-serif" font-size="21" font-weight="700" fill="#fff8e2" letter-spacing="1.2">LAB ELEKTRONIKA &amp; IoT</text>
+  </g>
+
+  <!-- Kabinet Laci Komponen SMD kiri -->
+  <rect x="34" y="136" width="234" height="256" rx="10" fill="#46596b" stroke="#3e2517" stroke-width="3.5"/>
+  <rect x="48" y="152" width="46" height="32" rx="4" fill="#d9534f" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="60" y="159" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="64" y1="175" x2="78" y2="175" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="100" y="152" width="46" height="32" rx="4" fill="#f0ad4e" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="112" y="159" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="116" y1="175" x2="130" y2="175" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="152" y="152" width="46" height="32" rx="4" fill="#4b8ac7" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="164" y="159" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="168" y1="175" x2="182" y2="175" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="204" y="152" width="46" height="32" rx="4" fill="#3f9c7e" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="216" y="159" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="220" y1="175" x2="234" y2="175" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="48" y="190" width="46" height="32" rx="4" fill="#f0ad4e" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="60" y="197" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="64" y1="213" x2="78" y2="213" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="100" y="190" width="46" height="32" rx="4" fill="#4b8ac7" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="112" y="197" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="116" y1="213" x2="130" y2="213" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="152" y="190" width="46" height="32" rx="4" fill="#3f9c7e" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="164" y="197" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="168" y1="213" x2="182" y2="213" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="204" y="190" width="46" height="32" rx="4" fill="#d9534f" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="216" y="197" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="220" y1="213" x2="234" y2="213" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="48" y="228" width="46" height="32" rx="4" fill="#4b8ac7" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="60" y="235" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="64" y1="251" x2="78" y2="251" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="100" y="228" width="46" height="32" rx="4" fill="#3f9c7e" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="112" y="235" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="116" y1="251" x2="130" y2="251" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="152" y="228" width="46" height="32" rx="4" fill="#d9534f" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="164" y="235" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="168" y1="251" x2="182" y2="251" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="204" y="228" width="46" height="32" rx="4" fill="#f0ad4e" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="216" y="235" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="220" y1="251" x2="234" y2="251" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="48" y="266" width="46" height="32" rx="4" fill="#3f9c7e" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="60" y="273" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="64" y1="289" x2="78" y2="289" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="100" y="266" width="46" height="32" rx="4" fill="#d9534f" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="112" y="273" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="116" y1="289" x2="130" y2="289" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="152" y="266" width="46" height="32" rx="4" fill="#f0ad4e" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="164" y="273" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="168" y1="289" x2="182" y2="289" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="204" y="266" width="46" height="32" rx="4" fill="#4b8ac7" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="216" y="273" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="220" y1="289" x2="234" y2="289" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="48" y="304" width="46" height="32" rx="4" fill="#d9534f" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="60" y="311" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="64" y1="327" x2="78" y2="327" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="100" y="304" width="46" height="32" rx="4" fill="#f0ad4e" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="112" y="311" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="116" y1="327" x2="130" y2="327" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="152" y="304" width="46" height="32" rx="4" fill="#4b8ac7" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="164" y="311" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="168" y1="327" x2="182" y2="327" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="204" y="304" width="46" height="32" rx="4" fill="#3f9c7e" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="216" y="311" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="220" y1="327" x2="234" y2="327" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="48" y="342" width="46" height="32" rx="4" fill="#f0ad4e" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="60" y="349" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="64" y1="365" x2="78" y2="365" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="100" y="342" width="46" height="32" rx="4" fill="#4b8ac7" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="112" y="349" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="116" y1="365" x2="130" y2="365" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="152" y="342" width="46" height="32" rx="4" fill="#3f9c7e" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="164" y="349" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="168" y1="365" x2="182" y2="365" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/><rect x="204" y="342" width="46" height="32" rx="4" fill="#d9534f" stroke="#3e2517" stroke-width="2.2"/>
+                  <rect x="216" y="349" width="22" height="8" rx="2" fill="#fffdf6"/>
+                  <line x1="220" y1="365" x2="234" y2="365" stroke="#3e2517" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Poster Skematik Rangkaian & Mikrokontroler kanan -->
+  <g transform="translate(886,120)">
+    <rect width="346" height="228" rx="10" fill="#173a4c" stroke="#3e2517" stroke-width="4"/>
+    <rect x="12" y="12" width="322" height="204" rx="6" fill="none" stroke="#5cd6f0" stroke-width="1.8" stroke-dasharray="6 4"/>
+    <text x="173" y="38" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="16" font-weight="700" fill="#8be8ff">SKEMATIK SENSOR IoT · MCU</text>
+    <!-- Garis skematik menyala -->
+    <path d="M40 90 H110 L120 74 L132 106 L144 74 L156 106 L166 90 H218 V152 H292" fill="none" stroke="#66e8ff" stroke-width="3"/>
+    <rect x="200" y="64" width="66" height="54" rx="6" fill="#1f5870" stroke="#78f0c8" stroke-width="3"/>
+    <text x="233" y="96" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#c7fff0">ESP32</text>
+    <circle cx="88" cy="158" r="22" fill="none" stroke="#ffe17d" stroke-width="3"/>
+    <path d="M74 158 Q88 138 102 158 Q116 178 130 158" fill="none" stroke="#78f0c8" stroke-width="3"/>
+    <circle cx="292" cy="152" r="7" fill="#ff746c"/>
+    <circle cx="40" cy="90" r="6" fill="#ffe17d"/>
+  </g>
+  <!-- Rak gantung kabel jumper warna-warni -->
+  <g transform="translate(910,368)">
+    <rect width="300" height="14" rx="5" fill="#70543e" stroke="#3e2517" stroke-width="3"/>
+    <path d="M28 12 Q22 62 30 102" fill="none" stroke="#e5534b" stroke-width="5" stroke-linecap="round"/><path d="M68 12 Q62 62 70 102" fill="none" stroke="#f2ae30" stroke-width="5" stroke-linecap="round"/><path d="M108 12 Q102 62 110 102" fill="none" stroke="#38a87b" stroke-width="5" stroke-linecap="round"/><path d="M148 12 Q142 62 150 102" fill="none" stroke="#3a88c8" stroke-width="5" stroke-linecap="round"/><path d="M188 12 Q182 62 190 102" fill="none" stroke="#9b6bc7" stroke-width="5" stroke-linecap="round"/><path d="M228 12 Q222 62 230 102" fill="none" stroke="#f07c41" stroke-width="5" stroke-linecap="round"/><path d="M268 12 Q262 62 270 102" fill="none" stroke="#4bc5c5" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <!-- Meja Praktikum Elektronika Panjang dengan Alas Anti-Statis (ESD) Hijau -->
+  <g>
+    <rect x="64" y="466" width="1152" height="32" rx="6" fill="#d9c6a3" stroke="#3e2517" stroke-width="3.5"/>
+    <rect x="92" y="458" width="1096" height="16" rx="4" fill="#2d7a64" stroke="#3e2517" stroke-width="3"/>
+    <rect x="98" y="498" width="26" height="142" fill="#4f5f6d" stroke="#3e2517" stroke-width="3.5"/>
+    <rect x="1156" y="498" width="26" height="142" fill="#4f5f6d" stroke="#3e2517" stroke-width="3.5"/>
+    <rect x="124" y="518" width="1032" height="14" fill="#647787" stroke="#3e2517" stroke-width="2.5"/>
+
+    <!-- Osiloskop Dual-Channel Kiri -->
+    <g transform="translate(154,352)">
+      <rect width="208" height="114" rx="10" fill="#e8e4d8" stroke="#3e2517" stroke-width="3.5"/>
+      <rect x="14" y="14" width="126" height="84" rx="6" fill="#0d2b2e" stroke="#3e2517" stroke-width="3"/>
+      <!-- Grid & gelombang sinus menyala -->
+      <line x1="14" y1="56" x2="140" y2="56" stroke="#1f5e5a" stroke-width="1.5"/>
+      <line x1="77" y1="14" x2="77" y2="98" stroke="#1f5e5a" stroke-width="1.5"/>
+      <path d="M18 58 Q36 22 54 58 T90 58 T126 58 L136 46" fill="none" stroke="#4ff5b4" stroke-width="3.5"/>
+      <path d="M18 70 Q42 46 66 70 T114 70 T136 62" fill="none" stroke="#ffe169" stroke-width="2.5" opacity="0.9"/>
+      <!-- Kenop putar -->
+      <circle cx="164" cy="34" r="10" fill="#596c7d" stroke="#3e2517" stroke-width="2.5"/>
+      <circle cx="190" cy="34" r="8" fill="#596c7d" stroke="#3e2517" stroke-width="2.5"/>
+      <circle cx="164" cy="64" r="10" fill="#d98b34" stroke="#3e2517" stroke-width="2.5"/>
+      <circle cx="190" cy="64" r="8" fill="#3aa08e" stroke="#3e2517" stroke-width="2.5"/>
+      <rect x="152" y="84" width="44" height="12" rx="3" fill="#3a4a58"/>
+    </g>
+
+    <!-- Breadboard + PCB Hijau + LED + Kabel Jumper di Tengah -->
+    <g transform="translate(420,418)">
+      <rect width="160" height="44" rx="5" fill="#fffdf6" stroke="#3e2517" stroke-width="3"/>
+      <line x1="10" y1="10" x2="150" y2="10" stroke="#e05248" stroke-width="2.2"/>
+      <line x1="10" y1="34" x2="150" y2="34" stroke="#3a88c8" stroke-width="2.2"/>
+      <rect x="52" y="14" width="32" height="16" rx="2" fill="#2e3640"/>
+      <circle cx="30" cy="20" r="6" fill="#ff5a52" stroke="#3e2517" stroke-width="2"/>
+      <circle cx="108" cy="20" r="6" fill="#46e38f" stroke="#3e2517" stroke-width="2"/>
+      <circle cx="128" cy="20" r="6" fill="#4ecbff" stroke="#3e2517" stroke-width="2"/>
+      <path d="M30 16 Q50 -8 70 16" fill="none" stroke="#f5b83d" stroke-width="3"/>
+      <path d="M84 16 Q100 -4 108 16" fill="none" stroke="#e5534b" stroke-width="3"/>
+    </g>
+
+    <!-- Stasiun Solder + Pena Solder Berpijar + Gulungan Timah -->
+    <g transform="translate(650,382)">
+      <rect width="96" height="82" rx="8" fill="#4978a6" stroke="#3e2517" stroke-width="3.5"/>
+      <rect x="14" y="14" width="68" height="26" rx="4" fill="#182b3a" stroke="#3e2517" stroke-width="2.2"/>
+      <text x="48" y="33" text-anchor="middle" font-family="monospace" font-size="17" font-weight="700" fill="#ff7648">350°C</text>
+      <circle cx="48" cy="60" r="12" fill="#f2c357" stroke="#3e2517" stroke-width="2.5"/>
+      <!-- Dudukan & besi solder -->
+      <path d="M118 80 L158 32 L166 38 L128 84 Z" fill="#3a4552" stroke="#3e2517" stroke-width="2.8"/>
+      <circle cx="164" cy="32" r="7" fill="#ff9e3d" opacity="0.85"/>
+    </g>
+
+    <!-- Multimeter Kuning Digital Kanan -->
+    <g transform="translate(888,370)">
+      <rect width="84" height="94" rx="10" fill="#f4be3b" stroke="#3e2517" stroke-width="3.5"/>
+      <rect x="12" y="12" width="60" height="30" rx="4" fill="#c7deb4" stroke="#3e2517" stroke-width="2.5"/>
+      <text x="42" y="33" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#223626">5.02V</text>
+      <circle cx="42" cy="66" r="17" fill="#343d48" stroke="#3e2517" stroke-width="2.5"/>
+      <line x1="42" y1="66" x2="54" y2="56" stroke="#fffdf6" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+
+    <!-- Lampu Meja Praktikum -->
+    <path d="M1070 462 L1096 364 L1030 330" fill="none" stroke="#3c4957" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M1006 322 L1056 312 L1068 344 L1002 350 Z" fill="#e56256" stroke="#3e2517" stroke-width="3"/>
+    <polygon points="1004,350 1066,344 1098,460 950,460" fill="rgba(255,240,180,0.22)"/>
+  </g>
+  
+  <g transform="translate(1218,636) scale(0.85)">
+    <ellipse cx="0" cy="4" rx="34" ry="8" fill="rgba(62,37,23,0.22)"/>
+    <path d="M-8 -58 C-42 -84 -54 -128 -22 -140 C-2 -146 6 -112 -2 -62 Z" fill="#3f8256" stroke="#3e2517" stroke-width="3"/>
+    <path d="M8 -58 C46 -84 56 -124 26 -138 C6 -146 -4 -110 2 -62 Z" fill="#4f9965" stroke="#3e2517" stroke-width="3"/>
+    <path d="M0 -62 C-18 -114 -16 -160 4 -168 C24 -160 22 -114 4 -62 Z" fill="#5fb074" stroke="#3e2517" stroke-width="3"/>
+    <path d="M-12 -52 C-52 -66 -66 -94 -44 -108 C-26 -118 -14 -88 -8 -54 Z" fill="#37734c" stroke="#3e2517" stroke-width="3"/>
+    <path d="M12 -52 C52 -66 66 -94 44 -108 C26 -118 14 -88 8 -54 Z" fill="#468a5c" stroke="#3e2517" stroke-width="3"/>
+    <path d="M-30 -58 L30 -58 L22 0 L-22 0 Z" fill="#d98758" stroke="#3e2517" stroke-width="3.2"/>
+    <rect x="-35" y="-68" width="70" height="14" rx="5" fill="#e69a6a" stroke="#3e2517" stroke-width="3.2"/>
+  </g>
+  
+  <g pointer-events="none">
+    <polygon points="340,0 500,0 240,720 80,720" fill="rgba(255,250,224,0.16)"/>
+    <polygon points="620,0 780,0 520,720 360,720" fill="rgba(255,250,224,0.16)"/>
+    <rect x="0" y="0" width="1280" height="720" fill="rgba(255,244,210,0.03)"/>
+  </g></svg>

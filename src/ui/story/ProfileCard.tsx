@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getStudentBackground } from '../../data/studentBackgrounds';
 import { STRINGS } from '../../data/strings';
 import {
   IconJadwal,
@@ -132,34 +133,45 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
             aria-labelledby={`profile-tab-${tab}`}
             className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden break-words p-3.5"
           >
-            {tab === 'profil' && (
-              <>
-                <Field title={S.profileSectionBiodata}>
-                  {S.profileStyleLabel}: {profile.styleName}
-                </Field>
-                <Field title={S.profileSectionInterests}>
-                  {profile.interests.length > 0 ? (
-                    <ul className="mt-1 flex flex-wrap gap-1.5">
-                      {profile.interests.map((i) => (
-                        <li
-                          key={i}
-                          className="rounded-full border px-2.5 py-0.5 text-xs font-semibold"
-                          style={{
-                            borderColor: 'var(--vnp-border-strong)',
-                            background: '#f5ecdc',
-                            color: 'var(--vnp-ink)',
-                          }}
-                        >
-                          {i}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    S.profileNoInterests
-                  )}
-                </Field>
-              </>
-            )}
+            {tab === 'profil' && (() => {
+              const bg = getStudentBackground(profile.id);
+              return (
+                <>
+                  <Field title="Tipe & Karakter">
+                    <span className="inline-block rounded-full border border-[#3e2517]/40 bg-[#ffe9a6] px-2.5 py-0.5 font-['Fredoka'] text-xs font-bold text-[#3e2517]">
+                      ✦ {bg.typeTag}
+                    </span>
+                    <p className="mt-1.5 text-xs leading-relaxed text-[#5c3d26]">
+                      {bg.communicationStyle}
+                    </p>
+                  </Field>
+                  <Field title="Latar Belakang">
+                    <p className="text-xs font-semibold text-[#7a5234]">{bg.originAndCohort}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-[#3e2517]">{bg.background}</p>
+                  </Field>
+                  <Field title="Kesukaan & Minat">
+                    <p className="text-xs leading-relaxed text-[#3e2517]">{bg.likes}</p>
+                    {profile.interests.length > 0 && (
+                      <ul className="mt-2 flex flex-wrap gap-1.5">
+                        {profile.interests.map((i) => (
+                          <li
+                            key={i}
+                            className="rounded-full border px-2.5 py-0.5 text-xs font-semibold"
+                            style={{
+                              borderColor: 'var(--vnp-border-strong)',
+                              background: '#f5ecdc',
+                              color: 'var(--vnp-ink)',
+                            }}
+                          >
+                            {i}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </Field>
+                </>
+              );
+            })()}
             {tab === 'jadwal' && (
               <>
                 <Field title={S.profileSectionActivity}>{profile.currentActivity}</Field>

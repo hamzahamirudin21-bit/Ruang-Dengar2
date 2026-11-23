@@ -23,12 +23,34 @@ export function computeStoryQuality(graph: StoryGraph, state: StoryRunnerState):
   return clamp(Math.round(raw), 0, 100);
 }
 
+function countCompactFlags(flags: readonly string[]): { right: number; wrong: number } {
+  let right = 0;
+  let wrong = 0;
+  for (const f of flags) {
+    if (f.startsWith('tepat-t')) right += 1;
+    else if (f.startsWith('salah-t')) wrong += 1;
+  }
+  return { right, wrong };
+}
+
 function classify(
   graph: StoryGraph,
   state: StoryRunnerState,
   endedBy: StoryOutcome['endedBy'],
   quality: number,
 ): StoryOutcomeKind {
+  // Graf ringkas 2-pilihan (v2): hasil dihitung langsung dari jumlah respons tepat vs salah (7 giliran)
+  if (graph.version >= 2) {
+    const { right, wrong } = countCompactFlags(state.flags);
+    if (endedBy === 'keretakan') return 'menarik-diri-sementara';
+    if (endedBy === 'penutupan-pengguna') {
+      return right >= 3 ? 'kemajuan-kecil' : 'menarik-diri-sementara';
+    }
+    if (right >= 5 && wrong <= 2) return 'terbantu';
+    if (right >= 3) return 'kemajuan-kecil';
+    return 'menarik-diri-sementara';
+  }
+
   const { session } = state;
   const rules = graph.outcomeRules;
 
@@ -107,6 +129,21 @@ function buildReasons(
   quality: number,
   endedBy: StoryOutcome['endedBy'],
 ): string[] {
+  if (graph.version >= 2) {
+    const { right, wrong } = countCompactFlags(state.flags);
+    const total = right + wrong;
+    const reasons: string[] = [];
+    reasons.push(`Ketepatan respons pada sesi ini: ${right} tepat dan ${wrong} keliru dari ${total} langkah.`);
+    if (kind === 'terbantu') {
+      reasons.push('Pendekatanmu selaras dengan karakter & latar belakang mahasiswa sehingga energinya pulih stabil.');
+    } else if (kind === 'kemajuan-kecil') {
+      reasons.push('Beberapa pilihan masih kurang pas dengan karakter mahasiswa; cek sisi belakang kartu profilnya untuk sesi lanjutan.');
+    } else {
+      reasons.push('Terlalu banyak respons keliru membuat mahasiswa merasa tidak nyaman dan energinya terkuras.');
+    }
+    return reasons;
+  }
+
   const { session } = state;
   const rules = graph.outcomeRules;
   const reasons: string[] = [];

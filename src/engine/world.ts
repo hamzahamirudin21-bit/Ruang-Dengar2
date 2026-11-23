@@ -13,6 +13,7 @@ import {
   WorldState,
 } from '../types';
 import {
+  AgentTickControlOptions,
   assignNextActivityForAgent,
   moveAgentsAlongPaths,
   updateAgentsNeedsAndSocialTick,
@@ -93,8 +94,16 @@ export function setWorldDoorMode(
   };
 }
 
-function handleMorningReset(agents: StudentAgent[], rng: SeededRng): void {
+function handleMorningReset(
+  agents: StudentAgent[],
+  rng: SeededRng,
+  control?: AgentTickControlOptions
+): void {
   for (const agent of agents) {
+    if (control?.lostAgentIds?.has(agent.id)) {
+      agent.energy = 0;
+      continue;
+    }
     // Pulihkan energi setelah istirahat malam & segarkan sebagian beban tugas harian
     agent.energy = clamp01(Math.max(agent.energy, 0.72) + 0.14);
     agent.stress = clamp01(agent.stress * 0.72);
@@ -126,7 +135,8 @@ function advanceSingleFiveMinuteTick(
   map: LabMapData,
   grid: NavigationGrid,
   rng: SeededRng,
-  isNewDay: boolean
+  isNewDay: boolean,
+  control?: AgentTickControlOptions
 ): {
   activeEvents: LabEvent[];
   recentEvents: LabEvent[];
@@ -151,7 +161,7 @@ function advanceSingleFiveMinuteTick(
         ),
       ];
     }
-    handleMorningReset(agents, rng);
+    handleMorningReset(agents, rng, control);
   }
 
   const eventRes = stepLabEvents(
@@ -165,10 +175,13 @@ function advanceSingleFiveMinuteTick(
 
   const nextRecent = [...eventRes.newlyTriggered, ...recentEvents].slice(0, 18);
 
-  updateAgentsNeedsAndSocialTick(agents, eventRes.activeEvents, rng);
+  updateAgentsNeedsAndSocialTick(agents, eventRes.activeEvents, rng, control);
 
-  // Evaluasi aktivitas baru bagi mahasiswa yang durasi aktivitasnya habis atau idle menunggu
+  // Evaluasi aktivitas baru bagi mahasiswa aktif yang durasi aktivitasnya habis atau idle menunggu
   for (const agent of agents) {
+    if (control?.lostAgentIds?.has(agent.id) || control?.inSessionAgentIds?.has(agent.id)) {
+      continue;
+    }
     if (agent.status !== 'berpindah' && agent.activityDurationTicks <= 0) {
       assignNextActivityForAgent(
         agent,
@@ -200,7 +213,8 @@ export function advanceWorld(
   world: WorldState,
   realDeltaSeconds: number,
   map: LabMapData,
-  cachedGrid?: NavigationGrid
+  cachedGrid?: NavigationGrid,
+  control?: AgentTickControlOptions
 ): WorldState {
   if (world.clock.paused || !Number.isFinite(realDeltaSeconds) || realDeltaSeconds <= 0) {
     return world;
@@ -222,7 +236,7 @@ export function advanceWorld(
     affinities: { ...a.affinities },
   }));
 
-  moveAgentsAlongPaths(agents, simMinutesDelta, map);
+  moveAgentsAlongPaths(agents, simMinutesDelta, map, control);
 
   const prevKey = world.lastProcessedMinuteKey;
   const nextKey = getMinuteKey(nextClock.day, nextClock.minutesOfDay);
@@ -270,7 +284,8 @@ export function advanceWorld(
         map,
         grid,
         tickRng,
-        isNewDay
+        isNewDay,
+        control
       );
       activeEvents = tickResult.activeEvents;
       recentEvents = tickResult.recentEvents;

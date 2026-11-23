@@ -35,7 +35,12 @@ import {
   saveStorySlot,
 } from '../../utils/storyStorage';
 import { walkMode } from './storyUi';
-import { setWorldPaused } from '../../engine/world';
+import {
+  applyLiveChoiceEnergy,
+  LOST_ENERGY_EPSILON,
+  STORY_CORRECT_ENERGY_DELTA,
+  STORY_WRONG_ENERGY_DELTA,
+} from '../../engine/survivalMission';
 import {
   applyStoryOutcomeToAgents,
   placeAgentAtSeat,
@@ -55,6 +60,12 @@ export const AVATAR_TILES_PER_SECOND = 6;
 
 export type StoryArrivalView = Pick<StoryArrival, 'counselorLine' | 'student' | 'fromNodeId'>;
 
+export interface ChoiceFeedback {
+  kind: 'tepat' | 'salah';
+  deltaPct: number;
+  turn: number;
+}
+
 export interface UseStoryMissionOptions {
   worldRef: MutableRefObject<WorldState>;
   navGridRef: MutableRefObject<NavigationGrid>;
@@ -67,6 +78,10 @@ export interface UseStoryMissionOptions {
   reducedMotion: boolean;
   /** Menerima peta memori baru setelah finalizeCounselingSession. */
   onMemoryMapChange?: (next: Record<string, AgentMemoryRecord>) => void;
+  /** Himpunan mahasiswa yang sudah hilang (energi 0%) sehingga tidak dapat dihampiri lagi. */
+  lostAgentIds?: ReadonlySet<string>;
+  /** Dipanggil bila energi mahasiswa habis (0%) akibat kesalahan di tengah percakapan. */
+  onAgentLost?: (agentId: string) => void;
 }
 
 export interface UseStoryMission {
@@ -78,6 +93,10 @@ export interface UseStoryMission {
   agent: StudentAgent | null;
   storyState: StoryRunnerState | null;
   arrival: StoryArrivalView | null;
+  /** Umpan balik langsung pilihan terakhir (+12% tepat / -14% salah). */
+  lastChoiceFeedback: ChoiceFeedback | null;
+  /** Riwayat hasil tiap giliran ('tepat' | 'salah') pada sesi aktif. */
+  turnResults: readonly ('tepat' | 'salah')[];
   /** false saat StoryScreen disembunyikan selama Walk_Together. */
   storyVisible: boolean;
   /** Pesan status (role="status") untuk bilah info kanvas dan StoryScreen. */
@@ -107,6 +126,8 @@ export interface UseStoryMission {
   closeDebrief: () => void;
   /** Mulai sesi lanjutan (hanya untuk misi berstatus lanjutan). */
   startFollowUp: (agentId: string) => boolean;
+  /** Reset penuh avatar, cerita aktif, dan progres misi untuk permainan baru. */
+  resetAllMissions: () => void;
 }
 
 function createInitialAvatar(): AvatarState {
@@ -132,13 +153,13 @@ export function useStoryMission(options: UseStoryMissionOptions): UseStoryMissio
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null);
   const [storyState, setStoryState] = useState<StoryRunnerState | null>(null);
   const [arrival, setArrival] = useState<StoryArrivalView | null>(null);
+  const [lastChoiceFeedback, setLastChoiceFeedback] = useState<ChoiceFeedback | null>(null);
+  const [turnResults, setTurnResults] = useState<('tepat' | 'salah')[]>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [storyVisible, setStoryVisible] = useState(true);
   // Masukan awal sesi, disimpan ke Save_Slot agar Debrief dapat dibangun setelah Muat.
   const startInfoRef = useRef<{ memory: AgentMemoryRecord; exposure: number; seed: number; day: number } | null>(null);
 
-  // Status pause dunia sebelum avatar meninggalkan idle; dipulihkan saat kembali idle.
-  const pausedBeforeRef = useRef<boolean | null>(null);
   const [missions, setMissions] = useState<Record<string, MissionRecord>>(() => loadMissionRecords());
   const missionsRef = useRef<Record<string, MissionRecord>>(missions);
   const [debriefProps, setDebriefProps] = useState<DebriefProps | null>(null);
@@ -152,21 +173,9 @@ export function useStoryMission(options: UseStoryMissionOptions): UseStoryMissio
     setActiveAgentId(next.targetAgentId);
   }, []);
 
-  /** Pause dunia saat avatar tidak idle (D8). Idempoten. */
-  const pauseWorld = useCallback(() => {
-    if (pausedBeforeRef.current !== null) return;
-    const world = worldRef.current;
-    pausedBeforeRef.current = world.clock.paused;
-    syncWorld(setWorldPaused(world, true));
-  }, [worldRef, syncWorld]);
-
-  /** Pulihkan status pause sebelumnya. Idempoten. */
-  const restoreWorld = useCallback(() => {
-    if (pausedBeforeRef.current === null) return;
-    const wasPaused = pausedBeforeRef.current;
-    pausedBeforeRef.current = null;
-    syncWorld(setWorldPaused(worldRef.current, wasPaused));
-  }, [worldRef, syncWorld]);
+  // Waktu peta tetap berjalan saat menghampiri & mengobrol agar manajemen energi seluruh kelas hidup!
+  const pauseWorld = useCallback(() => undefined, []);
+  const restoreWorld = useCallback(() => undefined, []);
 
   const requestApproach = useCallback(
     (agentId: string): boolean => {
@@ -174,6 +183,10 @@ export function useStoryMission(options: UseStoryMissionOptions): UseStoryMissio
       if (current.mode !== 'idle') {
         // Klik saat berjalan ditolak (Requirement 2.5).
         setStatusMessage(STRINGS.story.approachBusyMessage);
+        return false;
+      }
+      if (optionsRef.current.lostAgentIds?.has(agentId)) {
+        setStatusMessage('Mahasiswa ini sudah kehabisan energi dan meninggalkan kelas.');
         return false;
       }
       const world = worldRef.current;
@@ -187,7 +200,9 @@ export function useStoryMission(options: UseStoryMissionOptions): UseStoryMissio
         navGridRef.current,
         current.tile,
         target.tilePosition,
-        world.agents.filter((a) => a.id !== agentId).map((a) => a.tilePosition)
+        world.agents
+          .filter((a) => a.id !== agentId && !optionsRef.current.lostAgentIds?.has(a.id))
+          .map((a) => a.tilePosition)
       );
       if (!plan) {
         setStatusMessage(STRINGS.story.unreachableMessage(target.name));
@@ -282,6 +297,8 @@ export function useStoryMission(options: UseStoryMissionOptions): UseStoryMissio
       setStoryVisible(true);
       setStoryState(started);
       setArrival(null);
+      setLastChoiceFeedback(null);
+      setTurnResults([]);
       setStatusMessage(STRINGS.story.arrivedAt(frozenAgent.name));
     },
     [commitAvatar, restoreWorld, updateMission]
@@ -367,22 +384,81 @@ export function useStoryMission(options: UseStoryMissionOptions): UseStoryMissio
       const storyGraph = STORY_GRAPHS[state.agentId];
       const target = worldRef.current.agents.find((a) => a.id === state.agentId);
       if (!storyGraph || !target) return;
+      const currentNode = storyGraph.nodes.find((n) => n.id === state.nodeId);
+      const chosenOption = currentNode?.choices.find((c) => c.id === choiceId);
       const result = runChooseStoryChoice(storyGraph, target, state, choiceId);
       if (!result.ok) {
         setStatusMessage(result.error.message);
         return;
       }
-      storyStateRef.current = result.state;
-      setStoryState(result.state);
+
+      let nextStoryState = result.state;
+
+      // Mode 2-pilihan ringkas (v2): setiap pilihan langsung menggerakkan energi mahasiswa (+12% tepat / -14% salah)!
+      if (storyGraph.version >= 2 && chosenOption) {
+        const isCorrect = chosenOption.best === true;
+        const nextEnergy = applyLiveChoiceEnergy(target.energy, isCorrect);
+        const deltaPct = Math.round(
+          (isCorrect ? STORY_CORRECT_ENERGY_DELTA : STORY_WRONG_ENERGY_DELTA) * 100
+        );
+        const worldNow = worldRef.current;
+        const updatedAgents = worldNow.agents.map((a) =>
+          a.id === target.id
+            ? {
+                ...a,
+                energy: nextEnergy,
+                stress: Math.max(
+                  0,
+                  Math.min(1, Number((a.stress + (isCorrect ? -0.05 : 0.08)).toFixed(3)))
+                ),
+              }
+            : a
+        );
+        syncWorld({ ...worldNow, agents: updatedAgents });
+        setLastChoiceFeedback({
+          kind: isCorrect ? 'tepat' : 'salah',
+          deltaPct,
+          turn: result.state.turn,
+        });
+        setTurnResults((prev) => [...prev, isCorrect ? 'tepat' : 'salah']);
+
+        // Jika pilihan salah menguras energi sampai 0%, mahasiswa langsung menarik diri & hilang!
+        if (!isCorrect && nextEnergy <= LOST_ENERGY_EPSILON) {
+          const baseOutcome =
+            result.state.outcome ?? runFinishStoryEarly(storyGraph, result.state).outcome!;
+          nextStoryState = {
+            ...result.state,
+            ended: true,
+            outcome: {
+              ...baseOutcome,
+              kind: 'menarik-diri-sementara',
+              missionComplete: false,
+              energyDelta: 0,
+              summaryTitle: 'Kehabisan Energi (0%)',
+              summaryBody: `${target.name} kehabisan energi karena respons yang kurang tepat dan memilih meninggalkan kelas.`,
+              reasons: [
+                'Beberapa pilihan respons membuat energi mahasiswa terus terkuras hingga 0%.',
+                'Pelajari latar belakang dan tipe karakter mahasiswa di balik kartu sebelum menjawab.',
+              ],
+            },
+          };
+          optionsRef.current.onAgentLost?.(target.id);
+        }
+      }
+
+      storyStateRef.current = nextStoryState;
+      setStoryState(nextStoryState);
       setArrival({
         counselorLine: result.arrival.counselorLine,
         student: result.arrival.student,
         fromNodeId: result.arrival.fromNodeId,
       });
       setStatusMessage(null);
-      if (result.arrival.sceneChange?.walkTogether) startWalkTogether(state.agentId);
+      if (!nextStoryState.ended && result.arrival.sceneChange?.walkTogether) {
+        startWalkTogether(state.agentId);
+      }
     },
-    [worldRef, startWalkTogether]
+    [worldRef, syncWorld, startWalkTogether]
   );
 
   const finishStoryEarly = useCallback(() => {
@@ -472,7 +548,21 @@ export function useStoryMission(options: UseStoryMissionOptions): UseStoryMissio
     opts.onMemoryMapChange?.(fin.nextMemoryMap);
 
     // (3) Terapkan hasil hanya ke agen sasaran.
-    const agents = applyStoryOutcomeToAgents(fin.nextAgents, state.agentId, outcome);
+    // Pada graf ringkas v2, energi sudah naik/turun langsung tiap giliran:
+    // bila terbantu, pastikan energi akhir minimal 85% agar stabil & aman; bila 0% (hilang), tetap 0.
+    const isCompact = (STORY_GRAPHS[state.agentId]?.version ?? 1) >= 2;
+    const outcomeForWorld = isCompact
+      ? {
+          ...outcome,
+          energyDelta:
+            outcome.kind === 'terbantu'
+              ? Math.max(0.15, 0.88 - agentBefore.energy)
+              : outcome.kind === 'kemajuan-kecil'
+                ? 0.08
+                : 0,
+        }
+      : outcome;
+    const agents = applyStoryOutcomeToAgents(fin.nextAgents, state.agentId, outcomeForWorld);
 
     // (4) Perbarui dan simpan MissionRecord.
     const prev = missionsRef.current[state.agentId];
@@ -515,6 +605,8 @@ export function useStoryMission(options: UseStoryMissionOptions): UseStoryMissio
     finalizedRef.current = false;
     setStoryState(null);
     setArrival(null);
+    setLastChoiceFeedback(null);
+    setTurnResults([]);
     setStoryVisible(true);
   }, [commitAvatar, restoreWorld]);
 
@@ -533,6 +625,25 @@ export function useStoryMission(options: UseStoryMissionOptions): UseStoryMissio
     },
     [requestApproach]
   );
+
+  const resetAllMissions = useCallback(() => {
+    debriefRecordRef.current = null;
+    setDebriefProps(null);
+    storyStateRef.current = null;
+    startInfoRef.current = null;
+    finalizedRef.current = false;
+    setStoryState(null);
+    setArrival(null);
+    setLastChoiceFeedback(null);
+    setTurnResults([]);
+    setStoryVisible(true);
+    setStatusMessage(null);
+    missionsRef.current = {};
+    setMissions({});
+    saveMissionRecords({});
+    commitAvatar(createInitialAvatar());
+  }, [commitAvatar]);
+
   const graph = storyState ? STORY_GRAPHS[storyState.agentId] ?? null : null;
   const agent = storyState
     ? worldRef.current.agents.find((a) => a.id === storyState.agentId) ?? null
@@ -546,6 +657,8 @@ export function useStoryMission(options: UseStoryMissionOptions): UseStoryMissio
     agent,
     storyState,
     arrival,
+    lastChoiceFeedback,
+    turnResults,
     storyVisible,
     statusMessage,
     requestApproach,
@@ -563,5 +676,6 @@ export function useStoryMission(options: UseStoryMissionOptions): UseStoryMissio
     finishAndReturnToLab,
     closeDebrief,
     startFollowUp,
+    resetAllMissions,
   };
 }
