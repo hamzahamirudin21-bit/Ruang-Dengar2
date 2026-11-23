@@ -125,7 +125,7 @@ export function StoryBackdrop({ setting, zoneId, variant, size, narrow, reducedM
           className="absolute inset-0"
           style={{
             transform: `translate3d(${dx.toFixed(2)}px, 0, 0) scale(${BACKDROP_SCALE})`,
-            filter: `blur(${BACKDROP_BLUR_PX}px)`,
+            filter: BACKDROP_BLUR_PX > 0 ? `blur(${BACKDROP_BLUR_PX}px)` : undefined,
           }}
         >
           <ArtLayer

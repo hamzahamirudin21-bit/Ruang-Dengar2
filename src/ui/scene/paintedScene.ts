@@ -20,24 +20,36 @@ export function onExternalSceneReady(listener: () => void): () => void {
 }
 
 /**
- * Mencoba memuat latar lukisan HD kustom di `public/assets/scenes/{id}-{variant}.png`.
+ * Memetakan setiap zona ke lukisan HD studio di `public/assets/scenes/`.
+ * Ruang tenang/privat -> `ruang-bk-{variant}.png`; seluruh zona laboratorium -> `lab-vokasi-{variant}.png`.
+ */
+function sceneFileFor(id: SceneArtId, variant: SceneVariant): string {
+  const base =
+    id === 'ruang-bk' || id === 'istirahat' || id === 'ruang-dosen'
+      ? 'ruang-bk'
+      : 'lab-vokasi'
+  return `/assets/scenes/${base}-${variant}.png`
+}
+
+/**
+ * Mencoba memuat latar lukisan HD kustom di `public/assets/scenes/`.
  * Jika belum ada, jatuh mulus ke pelukis Canvas 2D HD tanpa error.
  */
 function requestExternalScene(id: SceneArtId, variant: SceneVariant): HTMLImageElement | null {
-  const key = `${id}|${variant}`
-  const loaded = externalScenes.get(key)
+  const srcUrl = sceneFileFor(id, variant)
+  const loaded = externalScenes.get(srcUrl)
   if (loaded) return loaded
-  if (externalRequested.has(key) || typeof Image === 'undefined') return null
-  externalRequested.add(key)
+  if (externalRequested.has(srcUrl) || typeof Image === 'undefined') return null
+  externalRequested.add(srcUrl)
   const img = new Image()
   img.onload = () => {
-    externalScenes.set(key, img)
+    externalScenes.set(srcUrl, img)
     for (const fn of sceneListeners) {
       try { fn() } catch { /* abaikan */ }
     }
   }
   img.onerror = () => undefined
-  img.src = `/assets/scenes/${id}-${variant}.png`
+  img.src = srcUrl
   return null
 }
 

@@ -1,6 +1,6 @@
 /** Kedalaman adegan (murni): parallax mengambang dan debu. */
 
-export const BACKDROP_BLUR_PX = 1.2
+export const BACKDROP_BLUR_PX = 0
 export const PARALLAX_MAX_PX = 4
 export const PARALLAX_PERIOD_MS = 12000
 export const DUST_MAX = 12

@@ -96,64 +96,62 @@ export const RosterCard: React.FC<RosterCardProps> = ({ model, reducedMotion, wi
   return (
     <li
       aria-label={cardAltText(model.number, model.name)}
-      className="roster-card-chamfer group relative flex min-w-0 flex-col justify-between overflow-hidden bg-gradient-to-b from-[#bfe0fa] via-[#e5f1fa] to-[#f4e5c8]"
+      className="roster-card-chamfer group relative grid min-w-0 grid-cols-[52%_48%] overflow-hidden bg-gradient-to-br from-[#fffdf6] via-[#f8edd5] to-[#f0dec0]"
       style={{ width: width ?? '100%', height: h }}
     >
-      {/* Siluet cahaya matahari & garis grid blueprint halus di latar kartu */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_18%,rgba(255,250,224,0.82),transparent_58%)]"
-      />
-      {/* Potret anime penuh di latar kartu */}
-      <div className="pointer-events-none absolute inset-0 [&>canvas]:!h-full [&>canvas]:!w-full [&>canvas]:object-contain [&>canvas]:object-bottom [&>img]:!h-full [&>img]:!w-full">
-        <PixelPortrait
-          studentId={model.studentId}
-          name={model.name}
-          expression="netral"
-          scale={2}
-          fit="cover-head"
-          reducedMotion={reducedMotion}
+      {/* Kolom Kiri (52%): Potret Setengah Badan / Sedada Utuh Tanpa Tertutup Teks! */}
+      <div className="relative h-full overflow-hidden border-r-[2.5px] border-[#3e2517]/25 bg-gradient-to-b from-[#cbe6fb] via-[#eaf4f8] to-[#f7e5c6]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(255,253,238,0.85),transparent_65%)]"
         />
+        <span
+          className="absolute left-1.5 top-1.5 z-10 rounded-full border border-[#fffdf6]/40 bg-[#3e2517]/92 px-2 py-0.5 font-['Fredoka',sans-serif] text-[10px] font-bold leading-none text-[#fffdf6] tabular-nums shadow-xs"
+          aria-hidden="true"
+        >
+          #{model.number}
+        </span>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 top-1 flex items-end justify-center [&>canvas]:!h-full [&>canvas]:!w-full [&>canvas]:object-contain [&>canvas]:object-bottom [&>img]:!h-full [&>img]:!w-full">
+          <PixelPortrait
+            studentId={model.studentId}
+            name={model.name}
+            expression="netral"
+            scale={2}
+            fit="contain"
+            reducedMotion={reducedMotion}
+          />
+        </div>
       </div>
 
-      {/* Gradasi halus bawah agar lencana chibi & minat selalu tajam terbaca */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#0f1b33]/78 via-[#0f1b33]/28 to-transparent"
-      />
-
-      {/* Lencana nomor miring & nama asli sistem di kiri atas */}
-      <div className="relative z-10 flex items-start justify-between p-1.5">
-        <div className="flex max-w-[70%] flex-col gap-0.5">
-          <span className="dossier-index-tag w-fit tabular-nums">
-            #{model.number}
-          </span>
+      {/* Kolom Kanan (48%): Nama + Minat + Miniatur Chibi Simetris */}
+      <div className="relative z-10 flex min-w-0 flex-col justify-between p-2">
+        <div className="min-w-0">
           <span
             title={model.name}
-            className="inline-flex w-fit max-w-full truncate rounded-full border-2 border-[#3e2517] bg-[#fffdf5] px-2.5 py-0.5 font-['Fredoka',sans-serif] text-[0.76rem] font-bold leading-tight text-[#3e2517] shadow-[0_2px_0_#3e2517]"
+            className="block truncate font-['Fredoka',sans-serif] text-[0.88rem] font-bold leading-tight text-[#3e2517]"
           >
             {firstName}
           </span>
-        </div>
-      </div>
-
-      {/* Baris bawah: miniatur chibi kiri + kartu minat kanan */}
-      <div className="relative z-10 flex items-end justify-between gap-1.5 px-2 pb-1.5">
-        <div className="roster-chibi-hop shrink-0 -mb-0.5">
-          <SpriteCanvas studentId={model.studentId} />
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5 rounded-2xl border-2 border-[#3e2517] bg-[#fffdf5]/95 px-2 py-1 shadow-[0_2px_0_#3e2517]">
-          {interests.map((it) => (
-            <span
-              key={it.key}
-              className="inline-flex min-w-0 items-center gap-1 text-[0.64rem] font-bold leading-tight text-[#3e2517]"
-            >
-              <span className="shrink-0 text-[#2e8274]">
-                <InterestIcon id={it.iconId} />
+          <div className="mt-1.5 flex flex-col gap-1">
+            {interests.map((it) => (
+              <span
+                key={it.key}
+                className="inline-flex min-w-0 items-center gap-1 rounded-full border border-[#3e2517]/25 bg-[#fffdf7] px-2 py-0.5 text-[0.62rem] font-bold leading-tight text-[#3e2517]"
+              >
+                <span className="shrink-0 text-[#2e8274]">
+                  <InterestIcon id={it.iconId} />
+                </span>
+                <span className="truncate">{it.text}</span>
               </span>
-              <span className="truncate">{it.text}</span>
-            </span>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        {/* Miniatur Chibi di sudut kanan bawah */}
+        <div className="flex items-end justify-end pt-1">
+          <div className="roster-chibi-hop rounded-xl border border-[#3e2517]/20 bg-[#fff9eb]/90 px-1.5 py-0.5 shadow-[inset_0_-2px_0_#edd8b2]">
+            <SpriteCanvas studentId={model.studentId} />
+          </div>
         </div>
       </div>
     </li>

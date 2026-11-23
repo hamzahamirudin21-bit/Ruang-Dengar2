@@ -278,118 +278,127 @@ export function MissionPanel({
               key={agent.id}
               data-agent-id={agent.id}
               aria-current={isActive ? 'true' : undefined}
-              className={`dossier-card ${frameClass(isActive ? 'navy' : 'krem')} ${urgencyHighlight} flex items-start gap-2.5 p-2.5 text-sm`}
+              className={`dossier-card ${frameClass(isActive ? 'navy' : 'krem')} ${urgencyHighlight} flex flex-col gap-2.5 p-3 text-sm`}
             >
-              <div
-                className="relative h-[96px] w-[72px] shrink-0 self-start overflow-hidden rounded-2xl border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#d8ecfa] via-[#f0f5e8] to-[#f8e6c8] shadow-[0_3px_0_#3e2517]"
-                style={{ lineHeight: 0 }}
-              >
-                <span
-                  className="absolute left-1 top-1 z-10 rounded-full border border-[#fffdf6]/40 bg-[#3e2517]/92 px-1.5 py-0.5 font-['Fredoka'] text-[10px] font-bold leading-none text-[#fffdf6]"
-                  aria-hidden="true"
+              {/* Baris Atas Simetris: Potret setengah badan (kiri) sejajar penuh dengan identitas, energi & sinyal (kanan) */}
+              <div className="grid grid-cols-[76px_minmax(0,1fr)] items-center gap-3">
+                <div
+                  className="relative h-[98px] w-[76px] shrink-0 overflow-hidden rounded-2xl border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#d8ecfa] via-[#f0f5e8] to-[#f8e6c8] shadow-[0_3px_0_#3e2517]"
+                  style={{ lineHeight: 0 }}
                 >
-                  {indexTag}
-                </span>
-                <div className="h-full w-full [&>canvas]:!h-full [&>canvas]:!w-full [&>canvas]:object-contain [&>canvas]:object-bottom [&>img]:!h-full [&>img]:!w-full">
-                  <PixelPortrait
-                    studentId={agent.id}
-                    name={agent.name}
-                    expression={status === 'selesai' ? 'tersenyum' : 'netral'}
-                    scale={1}
-                    reducedMotion={reducedMotion}
-                    demographicLabel={agent.demographicLabel}
-                  />
-                </div>
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center justify-between gap-1.5">
-                  <span className="font-['Fredoka'] text-[0.95rem] font-bold tracking-tight">
-                    {agent.name}
+                  <span
+                    className="absolute left-1 top-1 z-10 rounded-full border border-[#fffdf6]/40 bg-[#3e2517]/92 px-1.5 py-0.5 font-['Fredoka'] text-[10px] font-bold leading-none text-[#fffdf6]"
+                    aria-hidden="true"
+                  >
+                    {indexTag}
                   </span>
-                  <GameBadge
-                    icon={statusIcon(status)}
-                    value={statusText}
-                    label={S.missionStatusLabel}
-                    tone={STATUS_TONE[status]}
-                  />
-                </div>
-
-                {/* Bilah Energi Langsung + Tren Sosial */}
-                <div className="mt-1.5 space-y-1">
-                  <div className="flex items-center justify-between gap-1 text-[11px] font-bold">
-                    <span
-                      className={
-                        wellbeing.tier === 'kritis'
-                          ? isActive
-                            ? 'text-[#ffd0cc]'
-                            : 'text-[#b9322c]'
-                          : wellbeing.tier === 'waspada'
-                            ? isActive
-                              ? 'text-[#ffe699]'
-                              : 'text-[#a35c0e]'
-                            : wellbeing.isCommunicating
-                              ? isActive
-                                ? 'text-[#b7f7df]'
-                                : 'text-[#207258]'
-                              : 'opacity-80'
-                      }
-                    >
-                      {wellbeing.trend === 'naik'
-                        ? '▲ '
-                        : wellbeing.trend === 'turun'
-                          ? '▼ '
-                          : '● '}
-                      {wellbeing.statusLabel}
-                    </span>
-                    <span className="font-mono-data">{wellbeing.energyPct}%</span>
-                  </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full border-2 border-[#3e2517] bg-[#3e2517]/20">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${
-                        wellbeing.tier === 'kritis'
-                          ? 'bg-[#e5534b]'
-                          : wellbeing.tier === 'waspada'
-                            ? 'bg-[#f2ae30]'
-                            : 'bg-[#36ab81]'
-                      }`}
-                      style={{ width: `${wellbeing.energyPct}%` }}
+                  <div className="h-full w-full [&>canvas]:!h-full [&>canvas]:!w-full [&>canvas]:object-contain [&>canvas]:object-bottom [&>img]:!h-full [&>img]:!w-full">
+                    <PixelPortrait
+                      studentId={agent.id}
+                      name={agent.name}
+                      expression={status === 'selesai' ? 'tersenyum' : 'netral'}
+                      scale={1}
+                      reducedMotion={reducedMotion}
+                      demographicLabel={agent.demographicLabel}
                     />
                   </div>
                 </div>
 
-                {/* Sinyal Perilaku Pemicu Rasa Penasaran atau Judul Kisah Terungkap */}
-                {status === 'selesai' ? (
-                  <p
-                    className={`mt-1.5 rounded-xl border border-[#3e2517]/20 px-2.5 py-1 text-[11px] font-bold ${
-                      isActive
-                        ? 'bg-[#ffe494]/20 text-[#ffe699]'
-                        : 'bg-[#fff2c6] text-[#6d420c]'
-                    }`}
-                  >
-                    ✦ Kisah terungkap: “{storySig.unlockedTitle}”
-                  </p>
-                ) : (
-                  <p
-                    className={`mt-1.5 text-[11px] italic leading-snug ${
-                      isActive ? 'text-[#e8fff7]' : 'text-[#66452d]'
-                    }`}
-                  >
-                    “{storySig.clue}”
-                  </p>
-                )}
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center justify-between gap-1.5">
+                    <span className="truncate font-['Fredoka'] text-[0.96rem] font-bold tracking-tight">
+                      {agent.name}
+                    </span>
+                    <GameBadge
+                      icon={statusIcon(status)}
+                      value={statusText}
+                      label={S.missionStatusLabel}
+                      tone={STATUS_TONE[status]}
+                    />
+                  </div>
 
-                <dl className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
-                  <dt className="font-semibold uppercase tracking-wider opacity-70">{S.roleLabel}</dt>
-                  <dd
-                    className={`rounded-full px-2 py-0.5 font-semibold ${
-                      isActive ? 'bg-white/15' : 'bg-[#3e2517]/10'
-                    }`}
-                  >
-                    {roleLabel}
-                  </dd>
+                  {/* Bilah Energi Langsung + Tren Sosial */}
+                  <div className="mt-1.5 space-y-1">
+                    <div className="flex items-center justify-between gap-1 text-[11px] font-bold">
+                      <span
+                        className={
+                          wellbeing.tier === 'kritis'
+                            ? isActive
+                              ? 'text-[#ffd0cc]'
+                              : 'text-[#b9322c]'
+                            : wellbeing.tier === 'waspada'
+                              ? isActive
+                                ? 'text-[#ffe699]'
+                                : 'text-[#a35c0e]'
+                              : wellbeing.isCommunicating
+                                ? isActive
+                                  ? 'text-[#b7f7df]'
+                                  : 'text-[#207258]'
+                                : 'opacity-80'
+                        }
+                      >
+                        {wellbeing.trend === 'naik'
+                          ? '▲ '
+                          : wellbeing.trend === 'turun'
+                            ? '▼ '
+                            : '● '}
+                        {wellbeing.statusLabel}
+                      </span>
+                      <span className="font-mono-data">{wellbeing.energyPct}%</span>
+                    </div>
+                    <div className="h-2.5 w-full overflow-hidden rounded-full border-2 border-[#3e2517] bg-[#3e2517]/20">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          wellbeing.tier === 'kritis'
+                            ? 'bg-[#e5534b]'
+                            : wellbeing.tier === 'waspada'
+                              ? 'bg-[#f2ae30]'
+                              : 'bg-[#36ab81]'
+                        }`}
+                        style={{ width: `${wellbeing.energyPct}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Sinyal Perilaku Pemicu Rasa Penasaran atau Judul Kisah Terungkap */}
+                  {status === 'selesai' ? (
+                    <p
+                      className={`mt-1.5 line-clamp-2 rounded-xl border border-[#3e2517]/20 px-2 py-1 text-[11px] font-bold ${
+                        isActive
+                          ? 'bg-[#ffe494]/20 text-[#ffe699]'
+                          : 'bg-[#fff2c6] text-[#6d420c]'
+                      }`}
+                    >
+                      ✦ “{storySig.unlockedTitle}”
+                    </p>
+                  ) : (
+                    <p
+                      className={`mt-1.5 line-clamp-2 text-[11px] italic leading-snug ${
+                        isActive ? 'text-[#e8fff7]' : 'text-[#66452d]'
+                      }`}
+                    >
+                      “{storySig.clue}”
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Baris Bawah Lebar Penuh & Simetris (nol ruang kosong di bawah potret!) */}
+              <div className="flex flex-col gap-2 border-t-2 border-dashed border-[#3e2517]/15 pt-2">
+                <dl className="flex flex-wrap items-center justify-between gap-1.5 text-[11px]">
+                  <div className="flex items-center gap-1.5">
+                    <dt className="font-semibold uppercase tracking-wider opacity-70">{S.roleLabel}</dt>
+                    <dd
+                      className={`rounded-full px-2.5 py-0.5 font-semibold ${
+                        isActive ? 'bg-white/15' : 'bg-[#3e2517]/10'
+                      }`}
+                    >
+                      {roleLabel}
+                    </dd>
+                  </div>
                   {isoPct >= 50 && (
                     <dd
-                      className={`rounded-full px-2 py-0.5 font-bold ${
+                      className={`rounded-full px-2.5 py-0.5 font-bold ${
                         isActive
                           ? 'bg-[#ffe494]/25 text-[#ffe699]'
                           : 'bg-[#fde5b8] text-[#7a4508]'
@@ -400,13 +409,14 @@ export function MissionPanel({
                   )}
                 </dl>
 
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className={`grid gap-2 ${status === 'lanjutan' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                   <GameButton
                     variant="primer"
                     size="sm"
                     aria-label={S.approachAria(agent.name)}
                     disabled={busy}
                     onClick={() => onApproach(agent.id)}
+                    className="w-full"
                   >
                     {S.approachBtn}
                   </GameButton>
@@ -417,6 +427,7 @@ export function MissionPanel({
                       aria-label={S.followUpAria(agent.name)}
                       disabled={busy}
                       onClick={() => onFollowUp(agent.id)}
+                      className="w-full"
                     >
                       {S.followUpBtn}
                     </GameButton>
