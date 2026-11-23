@@ -16,12 +16,12 @@ export interface RosterLayout {
 /** Tinggi header + footer + padding vertikal. */
 export const ROSTER_CHROME_HEIGHT = 168;
 
-const GAP = 12;
-const PAD_X = 24;
-const MIN_CARD_HEIGHT = 150;
+const GAP = 10;
+const PAD_X = 20;
+const MIN_CARD_HEIGHT = 144;
 const MAX_CARD_HEIGHT = 220;
-const MIN_CARD_WIDTH = 200;
-const COLUMN_CANDIDATES = [5, 4, 3, 2] as const;
+const MIN_CARD_WIDTH = 178;
+const COLUMN_CANDIDATES = [6, 5, 4, 3, 2] as const;
 
 function finiteOr(value: number, fallback: number): number {
   return Number.isFinite(value) ? value : fallback;

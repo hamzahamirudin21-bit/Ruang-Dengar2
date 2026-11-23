@@ -20,6 +20,8 @@ const ZONE_BACKDROP: Record<ZoneType, SceneBackdropId> = {
   istirahat: 'ruang-istirahat',
   'ruang-dosen': 'ruang-istirahat',
   konsultasi: 'ruang-istirahat',
+  'studio-desain': 'lab-pemrograman',
+  'pojok-baca': 'ruang-istirahat',
 }
 
 export function backdropForZone(zoneId: ZoneType): SceneBackdropId {

@@ -43,6 +43,8 @@ const ZONE_NODE_COLORS: Record<ZoneType, { fill: string; stroke: string; label: 
   istirahat: { fill: '#fce7f3', stroke: '#be185d', label: 'R. Istirahat' },
   'ruang-dosen': { fill: '#ede9fe', stroke: '#6d28d9', label: 'R. Dosen' },
   konsultasi: { fill: '#e2e8f0', stroke: '#334155', label: 'Konsultasi' },
+  'studio-desain': { fill: '#f3e8ff', stroke: '#7e22ce', label: 'Studio Desain' },
+  'pojok-baca': { fill: '#d1fae5', stroke: '#047857', label: 'Pojok Baca' },
 };
 
 function formatNodeStatusText(m: SociometryNodeMetrics): string {

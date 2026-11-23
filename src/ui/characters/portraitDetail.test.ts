@@ -21,7 +21,7 @@ const pick = <T>(rng: () => number, xs: readonly T[]): T => xs[Math.floor(rng() 
 // Feature: game-juice-upgrade, Property 10: Potret detail berukuran tetap dan deterministik
 // **Validates: Requirements 3.1, 3.4**
 test('Property 10: potret detail 160x192, deterministik, sel null atau #rrggbb', () => {
-  assert.equal(LOOK_IDS.length, 16)
+  assert.equal(LOOK_IDS.length, 19)
   const rng = mulberry32(1010)
   for (let i = 0; i < 100; i++) {
     const id: string = LOOK_IDS[i % LOOK_IDS.length]

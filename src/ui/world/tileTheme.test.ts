@@ -7,6 +7,7 @@ import { ZONE_THEMES, CORRIDOR_THEME, themeForZone, type TileTheme } from "./til
 const ALL_ZONES: ZoneType[] = [
   "cetak-3d", "pemrograman", "las", "elektronik-iot", "diskusi",
   "gudang-alat", "istirahat", "konsultasi", "ruang-dosen",
+  "studio-desain", "pojok-baca",
 ];
 const FLOORS = ["kayu", "keramik", "beton", "karpet", "koridor"];
 const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -43,12 +44,14 @@ test("pemetaan zona ke jenis lantai", () => {
     istirahat: "karpet",
     konsultasi: "kayu",
     "ruang-dosen": "kayu",
+    "studio-desain": "kayu",
+    "pojok-baca": "karpet",
   };
   for (const z of ALL_ZONES) assert.equal(themeForZone(z).floor, expected[z]);
 });
 
 test("setiap zona LAB_MAP punya tema", () => {
-  assert.equal(LAB_MAP.zones.length, 9);
+  assert.equal(LAB_MAP.zones.length, 11);
   for (const zone of LAB_MAP.zones) {
     assert.ok(ZONE_THEMES[zone.id], zone.id);
     assertValid(themeForZone(zone.id));

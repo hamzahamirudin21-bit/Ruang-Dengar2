@@ -46,6 +46,8 @@
   --zone-istirahat: #f6eff2;
   --zone-konsultasi: #e9f3f1;
   --zone-dosen: #efeff6;
+  --zone-desain: #f3ecfa;
+  --zone-baca: #e8f4ed;
 
   /* Skala font aksesibilitas */
   --font-scale: 1;
@@ -2601,4 +2603,377 @@ html[data-reduced-motion='true'] .vn-energy-delta-pop,
 html[data-reduced-motion='true'] .roster-flip-inner {
   animation: none !important;
   transition: none !important;
+}
+
+/* ===== Efek Ekspresi Emosional Hidup & Komunikasi 2-Arah (Seluruh 18 Mahasiswa + Ibu Dosen) ===== */
+.vn-expr-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.vn-em-warm-aura {
+  position: absolute;
+  left: 50%;
+  top: 24%;
+  width: 78%;
+  height: 46%;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 232, 148, 0.42) 0%, rgba(255, 200, 120, 0.14) 55%, transparent 74%);
+  z-index: -1;
+  animation: vn-aura-breathe 2.4s ease-in-out infinite;
+}
+
+.vn-em-blush-pair {
+  position: absolute;
+  left: 50%;
+  top: 26.5%;
+  width: 30%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  animation: vn-blush-pop 0.4s ease-out both;
+}
+.vn-em-blush {
+  width: 24px;
+  height: 11px;
+  border-radius: 999px;
+  background: radial-gradient(ellipse, rgba(242, 114, 134, 0.56) 0%, rgba(242, 114, 134, 0) 74%);
+  filter: blur(1.5px);
+}
+
+.vn-em-gloom-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.vn-em-gloom-veil {
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 4%;
+  height: 36%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at top, rgba(64, 96, 152, 0.32) 0%, transparent 72%);
+}
+.vn-em-gloom-svg {
+  position: absolute;
+  left: 50%;
+  top: -2%;
+  width: 96px;
+  height: 58px;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 3px 0 rgba(62, 37, 23, 0.25));
+  animation: vn-cloud-bob 2.2s ease-in-out infinite;
+}
+.vn-em-rain-drop {
+  animation: vn-rain-fall 1.1s ease-in-out infinite;
+}
+
+.vn-em-sweatdrop {
+  position: absolute;
+  top: 15%;
+  width: 26px;
+  height: 36px;
+  filter: drop-shadow(0 2px 0 rgba(62, 37, 23, 0.25));
+  animation: vn-sweat-slide 1.65s ease-in-out infinite;
+}
+.vn-em-pos-left { left: 16%; }
+.vn-em-pos-right { right: 16%; }
+
+.vn-em-shock {
+  position: absolute;
+  left: 50%;
+  top: 2%;
+  width: 132px;
+  height: 56px;
+  transform: translateX(-50%);
+  animation: vn-shock-pop 0.45s cubic-bezier(0.22, 1.4, 0.36, 1) both;
+}
+
+.vn-em-anger {
+  position: absolute;
+  right: 17%;
+  top: 14%;
+  width: 34px;
+  height: 34px;
+  animation: vn-anger-pulse 0.85s ease-in-out infinite;
+}
+
+.vn-em-thought {
+  position: absolute;
+  left: 16%;
+  top: 12%;
+  display: flex;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 2.2px solid #3e2517;
+  background: #fffdf6;
+  box-shadow: 0 3px 0 #3e2517;
+}
+.vn-em-thought-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #5b6d8a;
+  animation: vn-thought-bounce 1.2s ease-in-out infinite;
+}
+
+.vn-em-relief {
+  position: absolute;
+  left: 12%;
+  top: 16%;
+  width: 56px;
+  height: 36px;
+  animation: vn-relief-float 2.2s ease-in-out infinite;
+}
+
+.vn-em-fatigue {
+  position: absolute;
+  right: 15%;
+  top: 13%;
+  width: 38px;
+  height: 38px;
+  animation: vn-fatigue-spin 4.5s linear infinite;
+}
+
+.vn-em-question {
+  position: absolute;
+  left: 16%;
+  top: 11%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 2.4px solid #3e2517;
+  background: #fff3c4;
+  color: #8a4f16;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 3px 0 #3e2517;
+  animation: vn-cloud-bob 1.8s ease-in-out infinite;
+}
+
+.vn-em-delay-1 { animation-delay: 0.22s !important; }
+.vn-em-delay-2 { animation-delay: 0.44s !important; }
+.vn-em-delay-3 { animation-delay: 0.66s !important; }
+.vn-em-static { animation: none !important; }
+
+/* Lencana Isyarat Nonverbal Kompak di Bahu Bawah Karakter */
+.vn-mood-pill {
+  position: absolute;
+  left: 50%;
+  bottom: 0.85rem;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.72rem;
+  border-radius: 999px;
+  border: 2.2px solid #3e2517;
+  background: rgba(255, 253, 246, 0.94);
+  color: #3e2517;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 3px 0 #3e2517, 0 6px 14px rgba(42, 22, 11, 0.22);
+  transition: background-color 220ms ease, color 220ms ease, transform 220ms ease;
+}
+.vn-mood-pill[data-tone='senang'] {
+  background: linear-gradient(180deg, #fff6cf 0%, #ffe08a 100%);
+  color: #4a2a08;
+}
+.vn-mood-pill[data-tone='lega'] {
+  background: linear-gradient(180deg, #e5fbf2 0%, #c1f0dc 100%);
+  color: #165442;
+}
+.vn-mood-pill[data-tone='sedih'] {
+  background: linear-gradient(180deg, #e2ecfa 0%, #c6daf5 100%);
+  color: #243b66;
+}
+.vn-mood-pill[data-tone='cemas'] {
+  background: linear-gradient(180deg, #fff2d6 0%, #fde0a8 100%);
+  color: #784208;
+}
+.vn-mood-pill[data-tone='kesal'],
+.vn-mood-pill[data-tone='terkejut'] {
+  background: linear-gradient(180deg, #ffe3e0 0%, #ffc2bc 100%);
+  color: #7d1d18;
+}
+.vn-mood-pill[data-tone='lelah'] {
+  background: linear-gradient(180deg, #eee8fa 0%, #dcd0f2 100%);
+  color: #3f2b66;
+}
+.vn-mood-pill[data-tone='renung'] {
+  background: linear-gradient(180deg, #f3f0e8 0%, #e4dcc8 100%);
+  color: #4a3520;
+}
+
+/* Bahasa Tubuh Hidup pada Potret */
+.vn-pose-happy-hop {
+  animation: vn-happy-hop 0.62s cubic-bezier(0.22, 1.45, 0.36, 1) both;
+}
+.vn-pose-sad-slump {
+  animation: vn-sad-slump 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.vn-expr-warm {
+  animation: vn-expr-warm-sway 3.2s ease-in-out infinite;
+}
+.vn-expr-downcast {
+  animation: vn-expr-downcast-kf 0.55s ease-out both;
+}
+.vn-expr-anxious {
+  animation: vn-expr-anxious-kf 0.38s ease-in-out 2;
+}
+.vn-expr-shock {
+  animation: vn-expr-shock-kf 0.36s cubic-bezier(0.22, 1.5, 0.36, 1) both;
+}
+.vn-expr-tense {
+  animation: vn-expr-tense-kf 0.42s ease-out both;
+}
+.vn-expr-tired {
+  animation: vn-expr-tired-kf 3.6s ease-in-out infinite;
+}
+
+/* Gelombang Komunikasi 2-Arah (Ibu Dosen <-> Mahasiswa) */
+.vn-empathy-bridge {
+  position: absolute;
+  left: 26%;
+  right: 26%;
+  top: 42%;
+  z-index: 9;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  pointer-events: none;
+}
+.vn-bridge-particle {
+  font-size: 1.4rem;
+  filter: drop-shadow(0 2px 0 #3e2517);
+  animation: vn-empathy-sweep 1.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.vn-tension-bridge {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 9;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: vn-tension-fade 1.35s ease-out both;
+}
+.vn-bridge-tension-pill {
+  display: inline-block;
+  padding: 0.28rem 0.9rem;
+  border-radius: 999px;
+  border: 2px dashed #4d678f;
+  background: rgba(226, 236, 250, 0.92);
+  color: #243b66;
+  font-family: var(--font-display);
+  font-size: 0.74rem;
+  font-weight: 700;
+  box-shadow: 0 3px 10px rgba(36, 59, 102, 0.2);
+}
+
+@keyframes vn-aura-breathe {
+  0%, 100% { opacity: 0.72; transform: translate(-50%, -50%) scale(0.96); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
+}
+@keyframes vn-blush-pop {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.7); }
+  100% { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+@keyframes vn-cloud-bob {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-4px); }
+}
+@keyframes vn-rain-fall {
+  0% { opacity: 0.2; transform: translateY(-4px); }
+  50% { opacity: 0.95; transform: translateY(2px); }
+  100% { opacity: 0.15; transform: translateY(8px); }
+}
+@keyframes vn-sweat-slide {
+  0% { opacity: 0; transform: translateY(-6px) scale(0.85); }
+  25% { opacity: 1; transform: translateY(0) scale(1); }
+  80% { opacity: 0.95; transform: translateY(10px) scale(0.98); }
+  100% { opacity: 0; transform: translateY(15px) scale(0.9); }
+}
+@keyframes vn-shock-pop {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+  55% { opacity: 1; transform: translateX(-50%) scale(1.12); }
+  100% { opacity: 0.95; transform: translateX(-50%) scale(1); }
+}
+@keyframes vn-anger-pulse {
+  0%, 100% { transform: scale(0.92); opacity: 0.85; }
+  50% { transform: scale(1.14); opacity: 1; }
+}
+@keyframes vn-thought-bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.45; }
+  50% { transform: translateY(-4px); opacity: 1; }
+}
+@keyframes vn-relief-float {
+  0%, 100% { transform: translate(0, 0) scale(0.96); opacity: 0.78; }
+  50% { transform: translate(-6px, -6px) scale(1.04); opacity: 1; }
+}
+@keyframes vn-fatigue-spin {
+  from { transform: rotate(0deg); opacity: 0.82; }
+  to { transform: rotate(360deg); opacity: 0.82; }
+}
+@keyframes vn-happy-hop {
+  0% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-16px) scale(1.04); }
+  65% { transform: translateY(2px) scale(0.99); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes vn-sad-slump {
+  0% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(12px) scale(0.97) rotate(-1.6deg); }
+  100% { transform: translateY(6px) scale(0.985) rotate(-0.8deg); }
+}
+@keyframes vn-expr-warm-sway {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(0.7deg); }
+}
+@keyframes vn-expr-downcast-kf {
+  0% { transform: translateY(0) rotate(0deg); }
+  100% { transform: translateY(6px) rotate(-1.2deg); }
+}
+@keyframes vn-expr-anxious-kf {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+@keyframes vn-expr-shock-kf {
+  0% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(-12px) scale(1.035); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes vn-expr-tense-kf {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(-5px) rotate(-0.9deg); }
+  100% { transform: translateX(-2px) rotate(-0.4deg); }
+}
+@keyframes vn-expr-tired-kf {
+  0%, 100% { transform: translateY(2px); }
+  50% { transform: translateY(7px); }
+}
+@keyframes vn-empathy-sweep {
+  0% { opacity: 0; transform: translate(-42px, 12px) scale(0.6); }
+  35% { opacity: 1; transform: translate(0, -10px) scale(1.18); }
+  100% { opacity: 0; transform: translate(56px, -24px) scale(0.85); }
+}
+@keyframes vn-tension-fade {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.85); }
+  20% { opacity: 1; transform: translateX(-50%) scale(1); }
+  80% { opacity: 1; transform: translateX(-50%) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) scale(0.94); }
 }

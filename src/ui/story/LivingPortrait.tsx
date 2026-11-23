@@ -41,6 +41,8 @@ export interface LivingPortraitProps {
   facing?: PortraitFacing;
   /** True bila ukuran diatur oleh kontainer responsif (.vn-char). */
   fluid?: boolean;
+  /** Reaksi instan saat konselor memilih jawaban tepat (+12%) atau salah (-14%). */
+  reactionKind?: 'tepat' | 'salah' | null;
   className?: string;
 }
 
@@ -143,6 +145,7 @@ export function LivingPortrait({
   scale,
   facing = 'depan',
   fluid = false,
+  reactionKind = null,
   className,
 }: LivingPortraitProps) {
   const hookReduced = useReducedMotion();
@@ -193,10 +196,40 @@ export function LivingPortrait({
 
   if (assetSource.kind === 'aset') {
     const expr = assetSource.specificExpression ? null : transformForExpression(expression);
-    const speakPulse = !reduced && isSpeaker && isTyping ? Math.sin(timeMs * 0.022) * 1.6 : 0;
-    const totalBright = bright * (expr ? expr.brightness : 1);
-    const exprDy = expr && !reduced ? expr.dyPercent * 1.4 : 0;
-    const exprRot = expr && !reduced ? expr.rotateDeg * 0.55 : 0;
+    const speakPulse = !reduced && isSpeaker && isTyping ? Math.sin(timeMs * 0.022) * 1.9 : 0;
+    const isWarm =
+      reactionKind === 'tepat' || expression === 'tersenyum' || expression === 'lega';
+    const isDowncast =
+      reactionKind === 'salah' ||
+      expression === 'menunduk' ||
+      expression === 'menutup-diri' ||
+      expression === 'lelah';
+    const totalBright =
+      bright *
+      (expr ? expr.brightness : 1) *
+      (reactionKind === 'tepat' ? 1.06 : reactionKind === 'salah' ? 0.91 : 1);
+    const sat = reactionKind === 'tepat' ? 1.08 : isDowncast ? 0.86 : isWarm ? 1.04 : 1;
+    const exprDy = expr && !reduced ? expr.dyPercent * 1.45 : 0;
+    const exprRot = expr && !reduced ? expr.rotateDeg * 0.6 : 0;
+    const poseAnimClass = reduced
+      ? ''
+      : reactionKind === 'tepat'
+        ? 'vn-pose-happy-hop'
+        : reactionKind === 'salah'
+          ? 'vn-pose-sad-slump'
+          : expression === 'terkejut'
+            ? 'vn-expr-shock'
+            : expression === 'cemas'
+              ? 'vn-expr-anxious'
+              : expression === 'kesal'
+                ? 'vn-expr-tense'
+                : expression === 'lelah'
+                  ? 'vn-expr-tired'
+                  : expression === 'menunduk' || expression === 'menutup-diri'
+                    ? 'vn-expr-downcast'
+                    : isWarm
+                      ? 'vn-expr-warm'
+                      : '';
     const spriteStyle: CSSProperties = {
       display: fluid ? 'flex' : 'inline-block',
       alignItems: fluid ? 'flex-end' : undefined,
@@ -206,17 +239,18 @@ export function LivingPortrait({
       height: fluid ? '100%' : height,
       transformOrigin: 'bottom center',
       transform: `translateY(${pose.breathDy * (fluid ? 2.4 : s) + exprDy + speakPulse}px) rotate(${exprRot}deg) scale(${pose.scaleX * sizeScale}, ${pose.scaleY * sizeScale})`,
-      filter: `brightness(${totalBright})`,
+      filter: `brightness(${totalBright}) saturate(${sat})`,
       transition: reduced ? 'none' : 'filter 240ms ease, transform 220ms ease',
       willChange: reduced ? undefined : 'transform',
     };
 
     return (
       <div
-        className={className}
+        className={`${className ?? ''} ${poseAnimClass}`.trim()}
         style={spriteStyle}
         data-speaker={isSpeaker ? 'true' : undefined}
         data-expression={expression}
+        data-reaction={reactionKind ?? undefined}
       >
         <img
           src={assetSource.url}

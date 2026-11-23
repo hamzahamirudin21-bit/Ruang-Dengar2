@@ -109,6 +109,24 @@ export const STUDENT_STORY_SIGNALS: Readonly<Record<string, StudentStorySignal>>
     unlockedExcerpt:
       'Naufal kecewa karena idenya beberapa kali terlewat di rapat kelompok. Setelah gagasannya dihargai, semangatnya untuk kembali berdiskusi tumbuh lagi.',
   },
+  'mhs-16': {
+    clue: 'Berulang kali menghapus sketsa antarmuka di pen tablet Studio Desain sambil melirik layar koding teman...',
+    unlockedTitle: 'Makna di Balik Sketsa',
+    unlockedExcerpt:
+      'Farhan sempat meragukan peran desain visual di kampus vokasi. Setelah kontribusi ergonomi dan jelasnya antarmukanya diakui, kepercayaan dirinya kembali utuh.',
+  },
+  'mhs-17': {
+    clue: 'Duduk hening di sudut Pojok Baca menandai tiga buku referensi dengan pembatas warna-warni sangat rapi...',
+    unlockedTitle: 'Catatan Tenang Pojok Baca',
+    unlockedExcerpt:
+      'Sekar merasa paling tajam saat menyusun dokumentasi uji mutu di ruang hening. Ia menemukan cara membagikan temuannya lewat ringkasan tertulis yang membantu seluruh tim.',
+  },
+  'mhs-18': {
+    clue: 'Bolak-balik membawa rangka robotika antara Studio Desain dan Cetak 3D sambil menaikkan kacamata ke dahi...',
+    unlockedTitle: 'Beban Integrator Lintas-Lab',
+    unlockedExcerpt:
+      'Bagas selalu mengambil alih pekerjaan lintas stasiun agar proyek tim mulus. Percakapan setara membantunya berani berbagi tanggung jawab tanpa takut dianggap melemah.',
+  },
 };
 
 const FALLBACK_SIGNAL: StudentStorySignal = {

@@ -10,7 +10,7 @@ import type { SceneArtId, SceneVariant } from './sceneArt'
 
 const ZONES: ZoneType[] = [
   'cetak-3d', 'pemrograman', 'las', 'elektronik-iot', 'diskusi', 'gudang-alat',
-  'istirahat', 'konsultasi', 'ruang-dosen',
+  'istirahat', 'konsultasi', 'ruang-dosen', 'studio-desain', 'pojok-baca',
 ]
 const WORK_ZONE_ART: Partial<Record<ZoneType, SceneArtId>> = {
   'cetak-3d': 'cetak-3d',
@@ -20,6 +20,8 @@ const WORK_ZONE_ART: Partial<Record<ZoneType, SceneArtId>> = {
   diskusi: 'diskusi',
   'gudang-alat': 'gudang',
   istirahat: 'istirahat',
+  'studio-desain': 'studio-desain',
+  'pojok-baca': 'pojok-baca',
 }
 const VARIANTS: SceneVariant[] = ['pagi', 'sore']
 
@@ -38,7 +40,7 @@ test('Property 1: resolveSceneArt total dan benar untuk semua zona dan setting',
 // Feature: ui-visual-overhaul, Property 2: Latar adegan lengkap, deterministik, dan berbeda
 // **Validates: Requirements 1.5, 1.8, 1.9**
 test('Property 2: composeSceneArt lengkap, deterministik, dan unik antar id', () => {
-  assert.equal(SCENE_ART_IDS.length, 10)
+  assert.equal(SCENE_ART_IDS.length, 12)
   for (const variant of VARIANTS) {
     const seen = new Map<string, SceneArtId>()
     for (const id of SCENE_ART_IDS) {

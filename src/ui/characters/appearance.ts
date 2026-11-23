@@ -156,6 +156,30 @@ const ROWS: Readonly<Record<string, Row>> = {
     accessories: ['laptop-dipeluk', 'ransel'],
     sceneHint: 'ruang-istirahat',
   },
+  'mhs-16': {
+    styleName: 'Flanel Zamrud Studio',
+    body: { type: 'sedang', skinId: 'kulit-2' },
+    outfit: { top: 'kemeja', topColor: 'teal', topAccent: 'zaitun', bottom: 'celana', bottomColor: 'navy', shoe: 'sneakers', shoeColor: 'krem' },
+    hair: { kind: 'pendek', colorId: 'rambut-cokelat' },
+    accessories: ['pulpen', 'buku'],
+    sceneHint: 'lab-pemrograman',
+  },
+  'mhs-17': {
+    styleName: 'Mantel Sage & Syal Emas',
+    body: { type: 'ramping', skinId: 'kulit-1' },
+    outfit: { top: 'cardigan', topColor: 'teal', topAccent: 'mustard', bottom: 'rok', bottomColor: 'mustard', shoe: 'sepatu', shoeColor: 'maroon' },
+    hair: { kind: 'sedang', colorId: 'rambut-hitam' },
+    accessories: ['selempang', 'buku', 'kertas'],
+    sceneHint: 'ruang-istirahat',
+  },
+  'mhs-18': {
+    styleName: 'Jaket Kobalt & Goggles',
+    body: { type: 'tegap', skinId: 'kulit-3' },
+    outfit: { top: 'jaket', topColor: 'navy', topAccent: 'oranye', bottom: 'celana', bottomColor: 'navy', shoe: 'bot', shoeColor: 'navy' },
+    hair: { kind: 'pendek', colorId: 'rambut-hitam' },
+    accessories: ['kacamata', 'sarung-tangan'],
+    sceneHint: 'lab-cetak3d',
+  },
 }
 
 export const STUDENT_APPEARANCES: Readonly<Record<string, CharacterAppearance>> = Object.freeze(

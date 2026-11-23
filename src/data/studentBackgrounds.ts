@@ -169,6 +169,36 @@ export const STUDENT_BACKGROUNDS: Readonly<Record<string, StudentBackgroundInfo>
       'Punya banyak ide unik dan hemat bahan dari kebiasaannya mengutak-atik alat bekas di kampung halaman. Mulai menarik diri karena usulannya kerap dilewati saat rapat tim.',
     communicationStyle: 'Tunjukkan rasa ingin tahu tulus pada idenya sebelum membahas kendala teknis.',
   },
+  'mhs-16': {
+    studentId: 'mhs-16',
+    originAndCohort: 'Makassar · Angkatan 2025',
+    typeTag: 'Desainer UI/UX · Perfeksionis Visual',
+    typeTone: 'emerald',
+    likes: 'Menggambar sketsa antarmuka di Studio Desain, ilustrasi teknis, & tipografi rapi',
+    background:
+      'Perantau dari Makassar yang piawai menyulap data rumit jadi layar visual interaktif. Diam-diam khawatir karya desainnya dianggap “cuma hiasan” dibanding pengodean murni.',
+    communicationStyle: 'Akui nilai fungsi desainnya bagi pengguna; hindari menyepelekan peran visual di proyek teknik.',
+  },
+  'mhs-17': {
+    studentId: 'mhs-17',
+    originAndCohort: 'Solo · Angkatan 2026',
+    typeTag: 'Peneliti Dokumentasi · Tenang & Sistematis',
+    typeTone: 'indigo',
+    likes: 'Membaca buku referensi di Pojok Baca, menyusun laporan uji mutu, & teh hangat',
+    background:
+      'Mahasiswa baru yang lembut dan sangat rapi mencatat setiap hasil uji laboratorium. Lebih efektif belajar dengan riset tertulis sebelum bicara, namun kerap ragu saat rapat berlangsung terlalu cepat.',
+    communicationStyle: 'Beri ruang hening untuk merangkum gagasan; hargai ketelitian dokumentasinya.',
+  },
+  'mhs-18': {
+    studentId: 'mhs-18',
+    originAndCohort: 'Balikpapan · Angkatan 2024',
+    typeTag: 'Koordinator Robotika · Serba Bisa Lintas-Lab',
+    typeTone: 'amber',
+    likes: 'Merakit purwarupa robotika, memadukan 3D-elektronika, & mengutak-atik gawai di Studio Desain',
+    background:
+      'Senior tangkas yang selalu diandalkan menyambungkan proyek antar-stasiun lab. Karena terbiasa tampil kuat dan serba bisa, ia sulit mengakui saat bahunya sendiri sudah kelelahan.',
+    communicationStyle: 'Ajak bicara setara tanpa menggurui; bantu ia melihat bahwa mendelegasikan bukan tanda gagal.',
+  },
 };
 
 const FALLBACK_BACKGROUND: StudentBackgroundInfo = {

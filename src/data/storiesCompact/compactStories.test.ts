@@ -8,8 +8,8 @@ import { createTestAgent, createTestMemory } from '../../engine/story/testGraph'
 
 const FORBIDDEN_DIAGNOSIS = /\b(depresi|gangguan jiwa|skizofrenia|bipolar|adhd|autis|psikopat|stres berat|trauma berat)\b/i;
 
-test('semua 15 mahasiswa memiliki latar belakang kartu balik dan graf 7 giliran tepat 2 pilihan tanpa diagnosis', () => {
-  assert.equal(STUDENT_BLUEPRINTS.length, 15);
+test('semua 18 mahasiswa memiliki latar belakang kartu balik dan graf 7 giliran tepat 2 pilihan tanpa diagnosis', () => {
+  assert.equal(STUDENT_BLUEPRINTS.length, 18);
   for (const bp of STUDENT_BLUEPRINTS) {
     // Pastikan latar belakang sisi belakang kartu tersedia lengkap
     const bg = STUDENT_BACKGROUNDS[bp.id];

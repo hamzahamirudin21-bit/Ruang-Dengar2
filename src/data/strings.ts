@@ -20,12 +20,12 @@ export const STRINGS = {
   },
   roster: {
     title: 'RUANG DENGAR',
-    subtitle: 'Kenali 15 mahasiswa yang akan Anda dampingi.',
+    subtitle: 'Kenali 18 mahasiswa yang akan Anda dampingi.',
     continueButton: 'Lanjut',
     backButton: 'Kembali',
     settingsButton: 'Pengaturan',
     hint: 'Tekan Enter untuk lanjut, Escape untuk kembali.',
-    compactHint: 'Semua 15 mahasiswa tampak dalam satu layar. Perbesar jendela bila kartu terasa sempit.',
+    compactHint: 'Semua 18 mahasiswa tampak dalam satu layar. Perbesar jendela bila kartu terasa sempit.',
     interestNames: {
       cetak3d: 'Cetak 3D',
       pemrograman: 'Pemrograman',
@@ -80,7 +80,7 @@ export const STRINGS = {
     doorModeLabel: 'Pintu Konsultasi:',
     doorModeLab: 'Menghadap Lab',
     doorModeSide: 'Pintu Samping',
-    mapLegendTitle: 'Denah Laboratorium (40 × 24 petak)',
+    mapLegendTitle: 'Denah Laboratorium (52 × 24 petak)',
     selectedZonePrefix: 'Zona dipilih:',
     privacyLabel: 'Privasi',
     capacityLabel: 'Kapasitas',
@@ -211,7 +211,7 @@ export const STRINGS = {
     patternsTitle: 'Pola Perilaku Teramati (Fakta Murni)',
     noPatternsYet:
       'Data perilaku sedang dikumpulkan seiring berjalannya jam lab.',
-    heatmapTitle: 'Peta Panas Keberadaan (40 × 24)',
+    heatmapTitle: 'Peta Panas Keberadaan (52 × 24)',
     heatmapEmpty: 'Pilih satu mahasiswa dari daftar atau klik langsung di kanvas untuk melihat peta panas keberadaannya.',
     heatmapLegendLow: 'Jarang',
     heatmapLegendHigh: 'Sering',

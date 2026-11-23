@@ -16,8 +16,8 @@ import { getStoryGraph } from './index';
 const WALKS = 100;
 const KINDS = ['terbantu', 'kemajuan-kecil', 'menarik-diri-sementara'];
 
-test('jalan acak pada 15 graf berakhir dalam MAX_STORY_TURNS dengan state valid', () => {
-  assert.equal(STUDENT_BLUEPRINTS.length, 15);
+test('jalan acak pada 18 graf berakhir dalam MAX_STORY_TURNS dengan state valid', () => {
+  assert.equal(STUDENT_BLUEPRINTS.length, 18);
   let longest = 0;
   let forcedByLimit = 0;
   for (const bp of STUDENT_BLUEPRINTS) {

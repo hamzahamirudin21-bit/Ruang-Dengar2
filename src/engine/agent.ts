@@ -39,6 +39,7 @@ const WORK_ZONES: readonly ZoneType[] = [
   'pemrograman',
   'las',
   'elektronik-iot',
+  'studio-desain',
 ];
 
 function getInterestAndSkillForZone(
@@ -54,6 +55,16 @@ function getInterestAndSkillForZone(
       return { interest: agent.interests.pengelasan, skill: agent.skills.pengelasan };
     case 'elektronik-iot':
       return { interest: agent.interests.elektronika, skill: agent.skills.elektronika };
+    case 'studio-desain':
+      return {
+        interest: Math.max(agent.interests.pemrograman, agent.interests.cetak3d) * 0.65 + agent.personality.openness * 0.35,
+        skill: Math.max(agent.skills.pemrograman, agent.skills.cetak3d),
+      };
+    case 'pojok-baca':
+      return {
+        interest: agent.personality.openness * 0.55 + agent.personality.conscientiousness * 0.45,
+        skill: (agent.skills.pemrograman + agent.skills.elektronika) / 2,
+      };
     default:
       return { interest: 0.4, skill: 0.5 };
   }
@@ -75,6 +86,10 @@ function getWorkGoalForZone(agent: StudentAgent, zoneId: ZoneType): string {
       return agent.skills.elektronika > 0.7
         ? 'Menguji sinyal rangkaian dengan osiloskop'
         : 'Menyolder dan merakit modul sensor IoT';
+    case 'studio-desain':
+      return 'Merancang antarmuka dan sketsa purwarupa multimedia';
+    case 'pojok-baca':
+      return 'Membaca referensi modul dan menyusun catatan riset';
     case 'gudang-alat':
       return 'Mengambil alat ukur dan komponen cadangan';
     case 'diskusi':
@@ -262,7 +277,29 @@ export function scoreAgentActivityCandidates(
       continue;
     }
 
-    // 5. Ruang Dosen (konsultasi teknis singkat ketika beban tugas tinggi)
+    // 5. Pojok Baca & Riset (tenang, cocok untuk riset dokumentasi & memulihkan fokus)
+    if (zone.id === 'pojok-baca') {
+      let score =
+        0.24 +
+        agent.personality.openness * 0.24 +
+        agent.personality.conscientiousness * 0.22 +
+        agent.solitudePreference * 0.26 +
+        agent.taskLoad * 0.16 -
+        (agent.currentZoneId === 'pojok-baca' ? 0.2 : 0);
+      score -= crowdingPenalty + solitudeCrowdPenalty * 0.5;
+      score -= Math.min(0.24, frictionCount * 0.12);
+
+      candidates.push({
+        zoneId: 'pojok-baca',
+        targetStatus: 'bekerja',
+        goal: getWorkGoalForZone(agent, 'pojok-baca'),
+        score,
+        durationTicks: 3 + Math.round(agent.personality.conscientiousness * 3),
+      });
+      continue;
+    }
+
+    // 6. Ruang Dosen (konsultasi teknis singkat ketika beban tugas tinggi)
     if (zone.id === 'ruang-dosen') {
       let score =
         0.06 +

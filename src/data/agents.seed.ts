@@ -275,6 +275,53 @@ export const STUDENT_BLUEPRINTS: readonly StudentSeedBlueprint[] = [
     initialZoneId: 'cetak-3d',
     hiddenVars: { trustInCounselor: 0.32, disclosureReadiness: 0.25, socialComfort: 0.39, stigmaSensitivity: 0.76, ruptureLevel: 0, primaryConcernSummary: 'Kecewa karena idenya sering dilewati saat rapat kelompok' },
   },
+
+  // --- Kelompok 6: Tim Studio Desain, Pojok Baca & Robotika Lintas-Lab (3 mahasiswa baru: mhs-16 .. mhs-18) ---
+  {
+    id: 'mhs-16',
+    name: 'Farhan Pratama',
+    cohort: 2025,
+    demographicLabel: { genderLabel: 'Laki-laki', originLabel: 'Makassar', avatarHue: 162, hairStyle: 'pendek' },
+    uniquePotential: 'Teliti merancang ilustrasi antarmuka dan diagram modul yang mudah dipahami',
+    socialCircleHint: 'tim-firmware',
+    counselingDomain: 'belajar',
+    interests: { cetak3d: 0.72, pemrograman: 0.84, pengelasan: 0.18, elektronika: 0.48 },
+    skills: { cetak3d: 0.68, pemrograman: 0.78, pengelasan: 0.16, elektronika: 0.44, kolaborasi: 0.72 },
+    personality: { openness: 0.89, conscientiousness: 0.8, extraversion: 0.56, agreeableness: 0.76, stressSensitivity: 0.52 },
+    solitudePreference: 0.46,
+    initialZoneId: 'studio-desain',
+    hiddenVars: { trustInCounselor: 0.48, disclosureReadiness: 0.42, socialComfort: 0.64, stigmaSensitivity: 0.48, ruptureLevel: 0, primaryConcernSummary: 'Khawatir karya desain visualnya dianggap kurang teknis dibanding anak pengodean murni' },
+  },
+  {
+    id: 'mhs-17',
+    name: 'Sekar Wulandari',
+    cohort: 2026,
+    demographicLabel: { genderLabel: 'Perempuan', originLabel: 'Solo', avatarHue: 156, hairStyle: 'sedang' },
+    uniquePotential: 'Sistematis menyusun dokumentasi uji mutu dan catatan referensi praktikum',
+    socialCircleHint: 'mandiri-sehat',
+    counselingDomain: 'belajar',
+    interests: { cetak3d: 0.42, pemrograman: 0.66, pengelasan: 0.14, elektronika: 0.79 },
+    skills: { cetak3d: 0.4, pemrograman: 0.62, pengelasan: 0.15, elektronika: 0.75, kolaborasi: 0.64 },
+    personality: { openness: 0.84, conscientiousness: 0.88, extraversion: 0.32, agreeableness: 0.8, stressSensitivity: 0.34 },
+    solitudePreference: 0.76,
+    initialZoneId: 'pojok-baca',
+    hiddenVars: { trustInCounselor: 0.54, disclosureReadiness: 0.46, socialComfort: 0.68, stigmaSensitivity: 0.38, ruptureLevel: 0, primaryConcernSummary: 'Bimbang menyeimbangkan waktu riset tenang di Pojok Baca dengan ritme diskusi cepat tim' },
+  },
+  {
+    id: 'mhs-18',
+    name: 'Bagas Saputra',
+    cohort: 2024,
+    demographicLabel: { genderLabel: 'Laki-laki', originLabel: 'Balikpapan', avatarHue: 220, hairStyle: 'pendek' },
+    uniquePotential: 'Cekatan memadukan rangka mekanik, cetak 3D, dan kontrol robotika lintas stasiun',
+    socialCircleHint: 'tim-manufaktur',
+    counselingDomain: 'sosial',
+    interests: { cetak3d: 0.88, pemrograman: 0.69, pengelasan: 0.76, elektronika: 0.68 },
+    skills: { cetak3d: 0.84, pemrograman: 0.65, pengelasan: 0.72, elektronika: 0.66, kolaborasi: 0.78 },
+    personality: { openness: 0.79, conscientiousness: 0.82, extraversion: 0.64, agreeableness: 0.72, stressSensitivity: 0.48 },
+    solitudePreference: 0.36,
+    initialZoneId: 'studio-desain',
+    hiddenVars: { trustInCounselor: 0.46, disclosureReadiness: 0.38, socialComfort: 0.66, stigmaSensitivity: 0.52, ruptureLevel: 0, primaryConcernSummary: 'Sering mengambil alih integrasi proyek lintas-lab sehingga kelelahan menjaga ekspektasi tim' },
+  },
 ];
 
 export const STUDENT_COUNT = STUDENT_BLUEPRINTS.length;
@@ -384,6 +431,10 @@ function getDefaultGoalForZone(zoneId: ZoneType): string {
       return 'Memeriksa sambungan rangka dengan prosedur K3';
     case 'elektronik-iot':
       return 'Merangkai serta menyolder modul sensor IoT';
+    case 'studio-desain':
+      return 'Merancang sketsa antarmuka dan purwarupa multimedia';
+    case 'pojok-baca':
+      return 'Membaca referensi modul dan merangkum catatan riset';
     case 'diskusi':
       return 'Berdiskusi pembagian tugas proyek';
     case 'gudang-alat':

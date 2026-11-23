@@ -34,8 +34,8 @@ const ids = Object.keys(perSeed[0]);
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 const avgFor = (id: string) => mean(perSeed.map((r) => r[id]));
 
-test('15 mahasiswa punya peran; mhs-14 terisolasi-introver dan mhs-12 populer', () => {
-  assert.equal(STUDENT_BLUEPRINTS.length, 15);
+test('18 mahasiswa punya peran; mhs-14 terisolasi-introver dan mhs-12 populer', () => {
+  assert.equal(STUDENT_BLUEPRINTS.length, 18);
   for (const bp of STUDENT_BLUEPRINTS) {
     assert.ok(STORY_ROLES[bp.id], `${bp.id} tidak punya peran`);
   }

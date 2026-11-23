@@ -43,6 +43,10 @@ function sceneFileFor(id: SceneArtId, variant: SceneVariant): string {
       return `/assets/scenes/istirahat-${variant}.svg`
     case 'gudang':
       return `/assets/scenes/gudang-${variant}.svg`
+    case 'studio-desain':
+      return `/assets/scenes/studio-desain-${variant}.svg`
+    case 'pojok-baca':
+      return `/assets/scenes/pojok-baca-${variant}.svg`
   }
 }
 

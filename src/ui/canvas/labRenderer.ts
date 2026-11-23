@@ -359,9 +359,9 @@ function drawFlatBackdrop(
   ctx.fillStyle = palette.floor;
   ctx.fillRect(0, 0, map.width * t, map.height * t);
   ctx.fillStyle = palette.corridor;
-  ctx.fillRect(1 * t, 9 * t, 38 * t, 2 * t);
+  ctx.fillRect(1 * t, 9 * t, (map.width - 2) * t, 2 * t);
   ctx.fillRect(28 * t, 11 * t, 2 * t, 12 * t);
-  ctx.fillRect(28 * t, 16 * t, 11 * t, 2 * t);
+  ctx.fillRect(28 * t, 16 * t, 12 * t, 2 * t);
 
   for (const zone of map.zones) {
     ctx.fillStyle = palette.zoneColors[zone.id] ?? palette.floor;
@@ -534,13 +534,33 @@ export function renderLabCanvas(
   const worldH = map.height * t;
   const doorMode: ConsultationDoorMode = viewOptions.consultationDoorMode;
 
-  // 1. Latar luar denah
-  ctx.fillStyle = palette.voidBg;
+  // 1. Latar meja kampus hangat berbingkai halus (nol ruang abu-abu hampa di tepi peta!)
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, heightCss);
+  bgGrad.addColorStop(0, '#efe1c6');
+  bgGrad.addColorStop(1, '#e1cea8');
+  ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, widthCss, heightCss);
+
+  // Pola titik kertas gambar halus pada latar sekeliling gedung
+  ctx.fillStyle = 'rgba(62, 37, 23, 0.08)';
+  for (let gy = 10; gy < heightCss; gy += 18) {
+    for (let gx = 10; gx < widthCss; gx += 18) {
+      ctx.fillRect(gx, gy, 1.5, 1.5);
+    }
+  }
 
   ctx.save();
   ctx.translate(camera.offsetX, camera.offsetY);
   ctx.scale(camera.scale, camera.scale);
+
+  // Bayangan gedung lembut + bingkai luar espresso agar denah 11 ruangan tampak menyatu rapi
+  ctx.save();
+  ctx.fillStyle = 'rgba(62, 37, 23, 0.22)';
+  ctx.fillRect(6, 7, worldW, worldH);
+  ctx.strokeStyle = '#3e2517';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(-2, -2, worldW + 4, worldH + 4);
+  ctx.restore();
 
   // 2. Tilemap pixel art (lantai, dinding, pintu, dekor dinding); cadangan lantai datar
   const tilemap = getTilemapCanvas(map, doorMode);

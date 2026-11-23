@@ -225,6 +225,20 @@ const EXTRAS: Record<SceneArtId, Extra> = {
     label(c, 322, 110, 12, '#f2efe6')
     label(c, 322, 128, 12, '#f2efe6')
   },
+  'studio-desain': (c) => {
+    glint(c, 140, 28, 28, 0.35)
+    glint(c, 58, 116, 20, 0.3)
+    cup(c, 314, 146, '#a869c9')
+    books(c, 280, 96, ['#e56256', '#f5be42', '#3aa08e', '#5b72d6'])
+    box(c, 218, 148, 12, 5, '#ffe694')
+  },
+  'pojok-baca': (c) => {
+    glint(c, 146, 26, 28, 0.34)
+    books(c, 18, 66, ['#8a3e2e', '#2e5a8a', '#59a67a', '#e8c447', '#8a6bb8'])
+    books(c, 276, 66, ['#c9854a', '#4d8fc4', '#e5533d', '#3aa08e'])
+    cup(c, 232, 146, '#f2f2f2')
+    box(c, 204, 148, 14, 4, '#fff8e1')
+  },
 }
 
 /** Tambah kontur, tekstur, sorotan, dan benda kecil pada kisi 384×216. */

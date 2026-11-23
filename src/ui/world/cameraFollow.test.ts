@@ -10,6 +10,7 @@ import {
   coverFillScale,
   defaultScale,
   followCamera,
+  wholeMapCamera,
   zoomScale,
 } from './cameraFollow';
 
@@ -124,5 +125,20 @@ test('coverFillScale selalu memenuhi 100% lebar & tinggi panggung peta tanpa tep
     assert.ok(worldH * scale >= height, `tinggi kurang di ${width}x${height}`);
     const clamped = clampCamera({ scale, offsetX: 500, offsetY: 500 }, { width, height }, LAB_MAP);
     assert.ok(clamped.offsetX <= 0 && clamped.offsetY <= 0);
+  }
+});
+
+test('wholeMapCamera menampilkan seluruh 11 ruangan utuh di dalam 1 layar tanpa terpotong', () => {
+  for (const [width, height] of [
+    [900, 440],
+    [980, 480],
+    [1200, 580],
+    [1400, 680],
+  ]) {
+    const cam = wholeMapCamera({ width, height }, LAB_MAP);
+    assert.ok(cam.scale >= MIN_SCALE && cam.scale <= MAX_SCALE);
+    assert.ok(worldW * cam.scale <= width + 1, `lebar terpotong di ${width}x${height}`);
+    assert.ok(worldH * cam.scale <= height + 1, `tinggi terpotong di ${width}x${height}`);
+    assert.ok(cam.offsetX >= 0 && cam.offsetY >= 0);
   }
 });

@@ -28,6 +28,12 @@ test('interaksi sosial meningkatkan energi sementara keterisolasian menurunkan e
   b.status = 'mengobrol';
   a.energy = 0.5;
   b.energy = 0.5;
+  a.taskLoad = 0.8;
+  b.taskLoad = 0.8;
+  a.personality.extraversion = 0.85;
+  b.personality.extraversion = 0.85;
+  a.solitudePreference = 0.15;
+  b.solitudePreference = 0.15;
   a.affinities[b.id] = 0.9;
   b.affinities[a.id] = 0.9;
 
@@ -35,6 +41,7 @@ test('interaksi sosial meningkatkan energi sementara keterisolasian menurunkan e
   solo.position = { x: 35, y: 3 };
   solo.status = 'bekerja';
   solo.energy = 0.5;
+  solo.taskLoad = 0.8;
 
   // Jauhkan agen lain dari gudang-alat dan diskusi agar tidak mengganggu
   for (let i = 2; i < agents.length; i += 1) {

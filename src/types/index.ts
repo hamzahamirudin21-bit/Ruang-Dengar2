@@ -17,7 +17,9 @@ export type ZoneType =
   | 'gudang-alat'
   | 'istirahat'
   | 'konsultasi'
-  | 'ruang-dosen';
+  | 'ruang-dosen'
+  | 'studio-desain'
+  | 'pojok-baca';
 
 export type ZoneVisibility = 'terbuka' | 'semi-privat' | 'privat' | 'dapat-diatur';
 
@@ -48,7 +50,9 @@ export interface LabFurniture {
     | 'meja-konsultasi'
     | 'meja-dosen'
     | 'rak-buku'
-    | 'penanda-k3';
+    | 'penanda-k3'
+    | 'meja-desain'
+    | 'meja-baca';
   rect: GridRect;
   walkable: boolean;
   label?: string;

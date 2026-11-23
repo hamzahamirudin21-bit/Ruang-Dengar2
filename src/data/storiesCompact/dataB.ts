@@ -1131,4 +1131,487 @@ export const COMPACT_SCRIPTS_B: readonly CompactStudentScript[] = [
       menarikDiri: line('Ya sudah Bu, aku kerjakan eksperimenku sendiri saja di pojok...', 'menutup-diri', 'Naufal berjalan keluar dengan langkah lesu.'),
     },
   },
+
+  // 16 — Farhan Pratama (Makassar · Desainer UI/UX · Perfeksionis Visual · Khawatir desainnya dianggap "cuma hiasan")
+  {
+    studentId: 'mhs-16',
+    firstName: 'Farhan',
+    title: 'Cerita Farhan Pratama',
+    labSceneTitle: 'Studio Desain & Multimedia',
+    labSceneCaption: 'Farhan menghapus-ulang sketsa antarmuka di pen tabletnya sambil menatap deretan monitor desain.',
+    opening: line(
+      'Oh, siang Bu... maaf mejaku agak penuh sketsa. Aku lagi ulang bikin tampilan layar proyek untuk keempat kalinya hari ini.',
+      'lelah',
+      'Farhan memutar stylus di jarinya sambil menatap layar grafis yang penuh coretan.',
+    ),
+    t1: [
+      {
+        id: 't1-tepat', skillId: 'sapaan-hangat', best: true,
+        text: 'Siang juga Farhan, apa kabarmu hari ini? Tata letak sketsa antarmukamu di layar itu kelihatan bersih dan enak sekali dibaca!',
+        reply: line(
+          'Makasih Bu... jujur aku lagi agak capek, tapi dengar Ibu bilang enak dibaca tuh lumayan bikin napas lega. Tadi aku sempat mikir semua coretanku nggak berguna.',
+          'tersenyum',
+          'Farhan meletakkan stylus dan tersenyum tipis yang hangat.',
+        ),
+      },
+      {
+        id: 't1-salah', skillId: 'meremehkan', isMisstep: true,
+        text: 'Ngapain sih gambar-gambar tampilan terus di Studio Desain? Anak vokasi itu yang penting alatnya jalan, bukan hiasan layar!',
+        reply: line(
+          'Tuh kan, Bu... persis sama kayak komentar sebagian teman di lab sebelah. Padahal antarmuka yang jelas itu yang bikin alat bisa dipakai orang dengan aman.',
+          'kesal',
+          'Rahang Farhan mengeras dan ia langsung mematikan layar tabletnya.',
+        ),
+      },
+    ],
+    t2: [
+      {
+        id: 't2-tepat', skillId: 'sampaikan-pengamatan', best: true,
+        options: { observationTone: 'faktual' },
+        text: 'Aku perhatikan tadi kamu sudah menghapus versi sketsa yang sebenarnya rapi itu. Ada komentar atau hal tertentu yang bikin kamu jadi ragu sama karyamu sendiri?',
+        reply: line(
+          'Iya Bu... kemarin pas aku presentasi desain dashboard sensor, ada yang nyeletuk "bagus sih, tapi itu kan cuma kulit luar, koding di belakangnya yang kerja keras". Sejak itu aku kepikiran terus.',
+          'menunduk',
+          'Farhan menunduk memandangi papan palet warna di samping monitor.',
+        ),
+      },
+      {
+        id: 't2-salah', skillId: 'nasihat-dini', isMisstep: true,
+        text: 'Makanya kamu juga harus fokus ngoding berat dong, Farhan, jangan cuma mengandalkan gambar biar nggak diremehkan!',
+        reply: line(
+          'Aku juga ikut bantu kode frontend kok Bu... tapi kalau tiap kali desain dianggap nomor dua, capek juga rasanya.',
+          'waspada',
+          'Farhan melipat tangannya di depan meja dengan raut kecewa.',
+        ),
+      },
+    ],
+    t3: [
+      {
+        id: 't3-tepat', skillId: 'batas-kerahasiaan', best: true,
+        text: 'Kita istirahat sebentar dari layar monitor yuk—di Ruang Konsultasi kita bisa ngobrol tenang berdua tanpa terganggu suara studio.',
+        reply: line(
+          'Boleh banget Bu, mataku memang sudah pegal menatap layar dari pagi. Di Makassar dulu aku mulai belajar desain karena pengin bantu orang awam paham alat teknologi tanpa bingung, makanya nyesek kalau dibilang cuma hiasan.',
+          'lega',
+          'Farhan duduk santai di Ruang Konsultasi sambil menghela napas panjang.',
+        ),
+      },
+      {
+        id: 't3-salah', skillId: 'pertanyaan-tertutup', isMisstep: true,
+        text: 'Kamu nggak cuma lagi cari alasan buat menunda revisi desain proyek kan? Ayo ikut sebentar ke dalam.',
+        reply: line(
+          'Nggak ada niat menunda sama sekali Bu, justru aku sudah revisi empat kali sampai lelah sendiri... oke aku ikut duduk sebentar.',
+          'waspada',
+          'Farhan bangkit dengan langkah terasa berat.',
+        ),
+      },
+    ],
+    t4: [
+      {
+        id: 't4-tepat', skillId: 'afirmasi-kekuatan', best: true,
+        text: 'Merancang antarmuka yang mencegah pengguna salah tekan tombol itu bukan “cuma hiasan”, Farhan—itu bagian rekayasa keselamatan dan kemudahan pakai yang sangat penting!',
+        reply: line(
+          'Ya ampun Bu, kalimat itu persis banget sama yang selama ini ingin kujelaskan! Waktu sensor kelebihan arus misalnya, kalau peringatan di layarnya nggak jelas, operator bisa telat mematikan alat!',
+          'tertegun',
+          'Mata Farhan berbinar kembali karena nilai karyanya benar-benar dipahami.',
+        ),
+      },
+      {
+        id: 't4-salah', skillId: 'nasihat-dini', isMisstep: true,
+        text: 'Sudah lah, terima saja kenyataan bahwa di kampus teknik memang anak hardware dan koding yang paling dipuji.',
+        reply: line(
+          'Kalau memang begitu, buat apa ada Studio Desain di sini ya Bu... rasanya percuma aku kerja keras merapikan alur layar.',
+          'menutup-diri',
+          'Farhan bersandar ke belakang dengan ekspresi murung.',
+        ),
+      },
+    ],
+    t5: [
+      {
+        id: 't5-tepat', skillId: 'refleksi-perasaan', best: true,
+        options: { reflectionNuance: 'ragu-kurang-percaya' },
+        text: 'Jadi rasa ragumu kemarin muncul bukan karena desainmu kurang matang, melainkan karena ingin kontribusi fungsionalmu di proyek tim diakui setara dengan bagian kode?',
+        reply: line(
+          'Tepat sekali, Bu! Aku jadi sadar kalau selama ini aku cuma pamerin warna dan bentuknya pas rapat, belum pernah tunjukin uji coba langsung betapa jauh lebih cepatnya orang mengoperasikan alat pakai alur desainku.',
+          'tersenyum',
+          'Farhan mengangguk antusias sambil mengetuk ringan lututnya.',
+        ),
+      },
+      {
+        id: 't5-salah', skillId: 'interogasi', isMisstep: true,
+        text: 'Kenapa sih kamu gampang banget goyah cuma gara-gara satu komentar teman? Berarti kamu sendiri nggak yakin sama sketsamu ya?',
+        reply: line(
+          'Aku yakin sama desainku kok Bu, cuma kalau tiap hari mendengar sindiran yang sama ya lama-lama capek hati juga...',
+          'kesal',
+          'Farhan mengerutkan kening dengan tatapan tidak nyaman.',
+        ),
+      },
+    ],
+    t6: [
+      {
+        id: 't6-tepat', skillId: 'pertanyaan-terbuka', best: true,
+        text: 'Menunjukkan bukti uji kemudahan pakai itu cara paling elegan buat membungkam keraguan, Farhan! Langkah kecil apa yang mau kamu coba saat balik ke Studio Desain nanti?',
+        reply: line(
+          'Aku mau hentikan revisi berlebihan hari ini, simpan versi terbaiknya, lalu ajak satu teman dari tim firmware mencoba simulasi layar peringatan darurat biar mereka lihat langsung fungsinya!',
+          'tersenyum',
+          'Farhan tersenyum lebar dan tampak sangat mantap.',
+        ),
+      },
+      {
+        id: 't6-salah', skillId: 'nasihat-dini', isMisstep: true,
+        text: 'Mulai besok kamu pindah saja ke meja pengelasan dulu biar semua teman melihat kamu juga bisa kerja fisik berat.',
+        reply: line(
+          'Tapi keahlian utamaku memang di antarmuka dan multimedia, Bu... kalau pindah begitu proyek tim malah kehilangan yang pegang tampilan.',
+          'cemas',
+          'Farhan menggeleng bingung.',
+        ),
+      },
+    ],
+    t7: [
+      {
+        id: 't7-tepat', skillId: 'parafrase-ringkasan', best: true,
+        text: 'Menyimpan versi terbaik dan mengajak uji coba langsung itu cerdas banget, Farhan! Teknologi hebat selalu butuh desainer antarmuka yang peka sepertimu.',
+        reply: line(
+          'Makasih banyak Bu! Kepalaku langsung plong dan semangat ngelanjutin desain di Studio Desain balik penuh lagi!',
+          'lega',
+          'Farhan berdiri tegak dengan senyum cerah penuh percaya diri.',
+        ),
+      },
+      {
+        id: 't7-salah', skillId: 'meremehkan', isMisstep: true,
+        text: 'Oke selesai ya, ingat nanti gambarnya jangan terlalu lama biar tidak ketinggalan tim.',
+        reply: line(
+          'Iya Bu... permisi.',
+          'menunduk',
+          'Farhan melangkah keluar dengan semangat yang kembali meredup.',
+        ),
+      },
+    ],
+    endings: {
+      terbantu: line('Makasih banyak Bu! Aku siap tunjukkan demo uji kemudahan pakai desain antarmukaku ke tim!', 'lega', 'Farhan kembali ke Studio Desain dengan langkah penuh semangat.'),
+      kemajuanKecil: line('Makasih ya Bu sudah dengar, aku rapikan dulu satu versi desain yang paling stabil.', 'netral', 'Farhan mengangguk sopan.'),
+      menarikDiri: line('Ya sudah Bu, aku lanjut revisi sendiri dulu di studio...', 'menutup-diri', 'Farhan keluar dengan wajah lesu.'),
+    },
+  },
+
+  // 17 — Sekar Wulandari (Solo · Peneliti Dokumentasi · Tenang & Sistematis · Ragu saat ritme diskusi terlalu cepat)
+  {
+    studentId: 'mhs-17',
+    firstName: 'Sekar',
+    title: 'Cerita Sekar Wulandari',
+    labSceneTitle: 'Pojok Baca & Riset',
+    labSceneCaption: 'Sekar duduk rapi di Pojok Baca dengan tiga buku referensi bertanda pembatas warna-warni dan catatan uji mutu.',
+    opening: line(
+      'Selamat siang, Bu... aku baru selesai merangkum lembar uji mutu dari tiga buku referensi di Pojok Baca ini.',
+      'netral',
+      'Sekar merapikan pembatas bukunya dengan lembut dan menyapa ramah.',
+    ),
+    t1: [
+      {
+        id: 't1-tepat', skillId: 'sapaan-hangat', best: true,
+        text: 'Siang Sekar, apa kabarmu hari ini? Rapi sekali catatan riset dan pembatas warna di bukumu—pasti sangat membantu buat pengecekan mutu praktikum!',
+        reply: line(
+          'Baik Bu, terima kasih... aku memang paling nyaman menyusun semuanya sistematis di ruang tenang seperti Pojok Baca ini.',
+          'tersenyum',
+          'Sekar tersenyum teduh sambil menutup salah satu buku referensinya pelan.',
+        ),
+      },
+      {
+        id: 't1-salah', skillId: 'meremehkan', isMisstep: true,
+        text: 'Sekar, kenapa sih selalu sembunyi baca buku di pojok? Mahasiswa vokasi itu harus banyak praktik ramai-ramai, bukan jadi kutu buku!',
+        reply: line(
+          'Oh... maaf Bu, aku bukan menghindar praktik kok. Aku sedang mencocokkan standar keamanan rangkaian supaya alat tim nanti nggak rusak saat diuji.',
+          'terkejut',
+          'Sekar langsung merapatkan syal dan catatannya dengan raut agak canggung.',
+        ),
+      },
+    ],
+    t2: [
+      {
+        id: 't2-tepat', skillId: 'sampaikan-pengamatan', best: true,
+        options: { observationTone: 'faktual' },
+        text: 'Aku lihat rangkuman uji mutumu sudah sangat lengkap, tapi tadi kamu sempat bolak-balik melihat jam seperti ragu mau menyerahkannya ke kelompok?',
+        reply: line(
+          'Iya Bu, peka sekali... tadi pas aku mau sampaikan temuan batas tegangan dari buku ini, diskusi mereka berjalan cepat sekali. Aku jadi ragu menyela karena takut memperlambat mereka.',
+          'cemas',
+          'Sekar menunjuk tabel kecil yang sudah ditandai stabilo emas di bukunya.',
+        ),
+      },
+      {
+        id: 't2-salah', skillId: 'pertanyaan-tertutup', isMisstep: true,
+        text: 'Kalau memang ada kesalahan tegangan kenapa tadi kamu diam saja? Kalau alatnya rusak gara-gara kamu tidak teriak, gimana?',
+        reply: line(
+          'Aku nggak bermaksud membiarkan alatnya rusak Bu... aku cuma belum sempat dapat celah bicara di tengah suasana ramai tadi.',
+          'menunduk',
+          'Wajah Sekar tampak tertekan dan merasa disalahkan.',
+        ),
+      },
+    ],
+    t3: [
+      {
+        id: 't3-tepat', skillId: 'batas-kerahasiaan', best: true,
+        text: 'Di sini masih ada beberapa orang lalu-lalang—kita duduk sebentar di Ruang Konsultasi yuk biar kamu bisa cerita dengan tenang tanpa tergesa-gesa.',
+        reply: line(
+          'Terima kasih banyak Bu, suasananya teduh sekali di sini. Dari Solo dulu aku terbiasa mengecek buku dan data sampai yakin dulu sebelum bicara, jadi kadang kaget kalau rapat di kampus ritmenya serba buru-buru.',
+          'lega',
+          'Sekar duduk dengan postur tenang di Ruang Konsultasi.',
+        ),
+      },
+      {
+        id: 't3-salah', skillId: 'nasihat-dini', isMisstep: true,
+        text: 'Ayo kita bawa bukumu langsung ke tengah ruang praktikum sekarang juga biar kamu latihan bicara cepat di depan semua anak!',
+        reply: line(
+          'Duh jangan mendadak di tengah keramaian Bu, aku malah jadi gugup dan lupa poin pentingnya... boleh kita ngobrol tenang berdua dulu?',
+          'cemas',
+          'Sekar memeluk buku catatannya erat dengan raut gelisah.',
+        ),
+      },
+    ],
+    t4: [
+      {
+        id: 't4-tepat', skillId: 'validasi-normalisasi', best: true,
+        text: 'Kebiasaan mengecek standar referensi sebelum bertindak itu kualitas peneliti mutu yang mahal banget, Sekar. Ritme tenangmu bukan kelemahan, justru pengaman tim dari kesalahan fatal!',
+        reply: line(
+          'Alhamdulillah... lega banget mendengarnya, Bu. Kadang sebagai mahasiswa baru 2026 aku sempat merasa minder karena teman lain langsung rakit cepat sementara aku masih sibuk baca buku panduan.',
+          'tertegun',
+          'Tatapan Sekar melembut dan bahunya terlihat jauh lebih rileks.',
+        ),
+      },
+      {
+        id: 't4-salah', skillId: 'nasihat-dini', isMisstep: true,
+        text: 'Sebagai mahasiswa baru kamu memang harus membuang kebiasaan baca buku pelan-pelan itu dan ikut gaya cepat teman-temanmu.',
+        reply: line(
+          'Kalau aku asal ikut cepat tanpa mengecek standar mutunya, justru takutnya banyak kesalahan kecil yang terlewat, Bu...',
+          'menutup-diri',
+          'Sekar menunduk pelan memandangi jemarinya.',
+        ),
+      },
+    ],
+    t5: [
+      {
+        id: 't5-tepat', skillId: 'refleksi-perasaan', best: true,
+        options: { reflectionNuance: 'ragu-kurang-percaya' },
+        text: 'Jadi kamu tetap ingin menjaga ketelitian risetmu di Pojok Baca, hanya butuh jembatan cara komunikasi yang pas supaya temuan pentingmu sampai ke tim tanpa harus beradu suara?',
+        reply: line(
+          'Benar sekali, Bu! Kalau aku susun jadi daftar periksa 5 poin singkat dan kutaruh di meja praktikum sebelum mereka menyalakan daya, semua orang bisa langsung baca jelas tanpa perlu rapat berisik!',
+          'tersenyum',
+          'Senyum Sekar berkembang cerah mendengar idenya sendiri.',
+        ),
+      },
+      {
+        id: 't5-salah', skillId: 'interogasi', isMisstep: true,
+        text: 'Sebenarnya kamu memang nggak suka kerja sama dengan kelompokmu ya makanya lebih betah di Pojok Baca?',
+        reply: line(
+          'Aku suka kok membantu kelompokku, Bu... justru karena peduli makanya aku rela membaca tiga buku referensi biar proyek kami aman.',
+          'kesal',
+          'Sekar tampak sedih karena niat baiknya disalahartikan.',
+        ),
+      },
+    ],
+    t6: [
+      {
+        id: 't6-tepat', skillId: 'afirmasi-kekuatan', best: true,
+        text: 'Daftar periksa 5 poin uji mutu itu luar biasa praktis, Sekar! Langkah kecil pertama apa yang mau kamu lakukan setelah dari sini?',
+        reply: line(
+          'Aku mau tulis 5 poin pengecekan tegangan dengan stabilo rapi di satu kartu, lalu kutitipkan sambil ngobrol santai 2 menit ke koordinator tim sebelum uji rangkaian dimulai!',
+          'tersenyum',
+          'Sekar membuka halaman kosong buku catatannya dengan penuh semangat.',
+        ),
+      },
+      {
+        id: 't6-salah', skillId: 'nasihat-dini', isMisstep: true,
+        text: 'Besok kamu tutup dulu semua bukumu dan jangan ke Pojok Baca lagi sampai akhir minggu ini.',
+        reply: line(
+          'Padahal Pojok Baca itu tempat paling nyaman buatku fokus dan mengisi ulang energi, Bu...',
+          'lelah',
+          'Sekar menggeleng pelan dengan ekspresi murung.',
+        ),
+      },
+    ],
+    t7: [
+      {
+        id: 't7-tepat', skillId: 'parafrase-ringkasan', best: true,
+        text: 'Kartu 5 poin uji mutu + obrolan 2 menit yang tenang—elegan dan sangat sesuai dengan kekuatanmu, Sekar! Teruskan ketelitian hebatmu di Pojok Baca ya.',
+        reply: line(
+          'Terima kasih banyak Bu! Rasanya tenang, dihargai, dan energiku penuh kembali buat membantu tim dengan caraku sendiri.',
+          'lega',
+          'Sekar berdiri dengan senyum teduh yang berseri.',
+        ),
+      },
+      {
+        id: 't7-salah', skillId: 'meremehkan', isMisstep: true,
+        text: 'Sudah ya, lain kali jangan terlalu kaku dan lamban seperti tadi.',
+        reply: line(
+          'Baik Bu... permisi.',
+          'menunduk',
+          'Sekar melangkah keluar perlahan dengan bahu turun.',
+        ),
+      },
+    ],
+    endings: {
+      terbantu: line('Terima kasih Bu! Aku siap bawa kartu 5 poin uji mutu buat membantu tim praktikum dengan tenang.', 'lega', 'Sekar kembali ke Pojok Baca dengan senyum hangat.'),
+      kemajuanKecil: line('Makasih ya Bu, aku coba rapikan catatan ringkasanku dulu pelan-pelan.', 'netral', 'Sekar mengangguk sopan.'),
+      menarikDiri: line('Maaf Bu, aku kembali membaca sendiri di Pojok Baca dulu ya...', 'menutup-diri', 'Sekar pergi dengan wajah kembali tertutup.'),
+    },
+  },
+
+  // 18 — Bagas Saputra (Balikpapan · Koordinator Robotika Lintas-Lab · Kelelahan menanggung proyek sendirian)
+  {
+    studentId: 'mhs-18',
+    firstName: 'Bagas',
+    title: 'Cerita Bagas Saputra',
+    labSceneTitle: 'Studio Desain & Multimedia',
+    labSceneCaption: 'Bagas baru saja membawa rangka robotika dari Cetak 3D ke Studio Desain sambil menyeka keringat dan menaikkan goggles ke dahi.',
+    opening: line(
+      'Eh, siang Bu! Aman kok, aku cuma lagi ngecek kecocokan dudukan motor dari Cetak 3D sama skema antarmuka di sini.',
+      'lelah',
+      'Bagas menaikkan goggles di dahinya sambil berusaha terlihat santai meski napasnya agak pendek.',
+    ),
+    t1: [
+      {
+        id: 't1-tepat', skillId: 'sapaan-hangat', best: true,
+        text: 'Siang Bagas, apa kabarmu hari ini? Hebat sekali kamu bisa menghubungkan tiga stasiun sekaligus, tapi kelihatannya dari pagi belum sempat duduk istirahat ya?',
+        reply: line(
+          'Hehe ketahuan juga sama Ibu... iya nih, dari jam 8 tadi aku muter dari bengkel las, Cetak 3D, sampai Studio Desain. Punggung rasanya lumayan pegal.',
+          'lelah',
+          'Bagas mengendurkan bahunya dan menyandarkan rangka robotika ke meja.',
+        ),
+      },
+      {
+        id: 't1-salah', skillId: 'meremehkan', isMisstep: true,
+        text: 'Ngapain sih mondar-mandir bawa rangka terus kayak kurang kerjaan? Bukannya anak semester atas harusnya sudah pintar mengatur waktu?',
+        reply: line(
+          'Aku mondar-mandir karena nyambungin modul antar-stasiun yang belum sinkron, Bu! Bukan kurang kerjaan!',
+          'kesal',
+          'Kening Bagas berkerut tajam dan ia langsung menggenggam rangka robotikanya lebih erat.',
+        ),
+      },
+    ],
+    t2: [
+      {
+        id: 't2-tepat', skillId: 'sampaikan-pengamatan', best: true,
+        options: { observationTone: 'faktual' },
+        text: 'Kamu jadi andalan banyak stasiun sekaligus—mulai rangka, cetak 3D, sampai koordinasi. Bagian mana yang belakangan paling menyedot tenagamu?',
+        reply: line(
+          'Jujur ya Bu, tiap kali ada sambungan antar-tim yang macet, mereka langsung teriak "panggil Bagas saja". Awalnya aku senang dipercaya, tapi lama-lama semuanya numpuk di pundakku sendiri.',
+          'cemas',
+          'Bagas menatap baut dan rangka di meja dengan raut letih.',
+        ),
+      },
+      {
+        id: 't2-salah', skillId: 'nasihat-dini', isMisstep: true,
+        text: 'Ya salahmu sendiri sok jadi pahlawan serba bisa di semua ruangan. Kalau capek ya tanggung sendiri akibatnya!',
+        reply: line(
+          'Aku nggak pernah niat sok jadi pahlawan kok Bu... aku cuma nggak mau proyek lintas-lab angkatan kita gagal di tengah jalan.',
+          'kesal',
+          'Bagas memalingkan wajahnya dengan raut kecewa.',
+        ),
+      },
+    ],
+    t3: [
+      {
+        id: 't3-tepat', skillId: 'batas-kerahasiaan', best: true,
+        text: 'Taruh dulu rangkanya sebentar di sini, yuk kita duduk 5 menit di Ruang Konsultasi biar kamu nggak dipanggil-panggil lagi sambil kita obrolin santai.',
+        reply: line(
+          'Wah, kebetulan banget Bu—sebentar saja bebas dari teriakan "Gas, tolong cek ini!" rasanya surga banget! Di Balikpapan dulu aku memang anak sulung yang selalu diberesin semua urusan rumah, jadi kebawa sampai kampus.',
+          'lega',
+          'Bagas duduk bersandar di kursi Ruang Konsultasi dengan napas panjang yang lega.',
+        ),
+      },
+      {
+        id: 't3-salah', skillId: 'pertanyaan-tertutup', isMisstep: true,
+        text: 'Proyek robotikanya nggak bakal telat gara-gara kamu capek kan? Ayo ikut ke dalam jelaskan progresnya.',
+        reply: line(
+          'Baru duduk sebentar sudah ditagih progres lagi... ya sudahlah Bu, kita bahas di dalam.',
+          'lelah',
+          'Bagas berjalan ke Ruang Konsultasi dengan bahu makin berat.',
+        ),
+      },
+    ],
+    t4: [
+      {
+        id: 't4-tepat', skillId: 'afirmasi-kekuatan', best: true,
+        text: 'Kemampuanmu membaca gambaran besar lintas stasiun itu langka banget, Bagas! Justru seorang koordinator hebat itu bukan yang mengerjakan semua baut sendirian, melainkan yang berani mempercayakan bagian ke rekan setimnya.',
+        reply: line(
+          'Kena banget, Bu... selama ini aku takut kalau kulepas ke junior atau teman lain nanti hasilnya meleset, malah aku harus bongkar ulang. Tapi ternyata kalau semuanya kupegang sendiri, aku yang habis bensin duluan!',
+          'tertegun',
+          'Bagas mengangguk pelan, matanya terbuka lebar memahami pola dirinya.',
+        ),
+      },
+      {
+        id: 't4-salah', skillId: 'nasihat-dini', isMisstep: true,
+        text: 'Kalau memang jadi koordinator ya wajar harus kerja paling capek, Bagas—jangan mengeluh sebelum lomba selesai.',
+        reply: line(
+          'Aku nggak ngeluh buat kabur dari tanggung jawab kok Bu... cuma badanku juga punya batas.',
+          'menutup-diri',
+          'Bagas terdiam dan menatap lantai dengan wajah datar.',
+        ),
+      },
+    ],
+    t5: [
+      {
+        id: 't5-tepat', skillId: 'refleksi-perasaan', best: true,
+        options: { reflectionNuance: 'lelah-kewalahan' },
+        text: 'Di balik sosokmu yang selalu siap bantu semua orang, sebenarnya kamu takut mengecewakan ekspektasi tim sekaligus khawatir kalau melepas tugas berarti dianggap melemah ya?',
+        reply: line(
+          'Persis seratus persen, Bu! Aku takut kalau bilang "tolong kamu yang pegang bagian ini ya", mereka mikir aku lepas tangan. Padahal kalau kuajari caranya sekali, ke depan mereka jadi ikut jago dan aku bisa bernapas!',
+          'tersenyum',
+          'Senyum santai dan lega akhirnya muncul di wajah Bagas.',
+        ),
+      },
+      {
+        id: 't5-salah', skillId: 'interogasi', isMisstep: true,
+        text: 'Sebenarnya kamu nggak percaya sama kemampuan teman-teman sekelasmu ya sampai semua harus kamu cek sendiri?',
+        reply: line(
+          'Bukan nggak percaya Bu, cuma jadwalnya mepet banget... rasanya nggak enak banget dituduh meremehkan teman sendiri.',
+          'kesal',
+          'Bagas kembali menegangkan bahunya.',
+        ),
+      },
+    ],
+    t6: [
+      {
+        id: 't6-tepat', skillId: 'pertanyaan-terbuka', best: true,
+        text: 'Membagi peran sambil mengajari mereka sekali itu kepemimpinan sejati, Bagas! Bagian kecil mana yang paling aman kamu serahkan ke teman minggu ini?',
+        reply: line(
+          'Uji cetak dudukan 3D mau kuserahkan penuh ke Hendra & Naufal, dan pengecekan kabel antarmuka kukoordinasikan lewat Farhan—sementara aku fokus di integrasi inti saja!',
+          'tersenyum',
+          'Bagas tersenyum mantap sambil mengepalkan tangan ringan penuh energi.',
+        ),
+      },
+      {
+        id: 't6-salah', skillId: 'nasihat-dini', isMisstep: true,
+        text: 'Lepas saja jabatan koordinatormu hari ini juga biar nggak pusing lagi.',
+        reply: line(
+          'Wah jangan dilepas total juga Bu, aku sayang banget sama proyek robotika ini—cuma perlu bagi beban saja biar sehat.',
+          'waspada',
+          'Bagas menggeleng cepat.',
+        ),
+      },
+    ],
+    t7: [
+      {
+        id: 't7-tepat', skillId: 'parafrase-ringkasan', best: true,
+        text: 'Pembagian peran ke Hendra, Naufal, dan Farhan itu keren banget—tim makin kompak dan energimu terjaga buat integrasi inti! Semangat terus ya, Bagas.',
+        reply: line(
+          'Siap Bu! Makasih banyak sudah ngajak aku berhenti sejenak dan mikir jernih. Energiku langsung penuh lagi nih!',
+          'lega',
+          'Bagas berdiri gagah dengan senyum cerah dan menurunkan goggles-nya santai.',
+        ),
+      },
+      {
+        id: 't7-salah', skillId: 'meremehkan', isMisstep: true,
+        text: 'Ya sudah balik sana, jangan sampai proyek robotika kita kalah gara-gara kamu kecapekan.',
+        reply: line(
+          'Oke Bu, aku balik ke studio dulu.',
+          'lelah',
+          'Bagas melangkah keluar dengan bahu kembali tampak berat.',
+        ),
+      },
+    ],
+    endings: {
+      terbantu: line('Makasih banyak Bu! Aku siap bagi peran dengan tim dan fokus ke integrasi inti tanpa menguras tenaga sendiri!', 'lega', 'Bagas kembali ke Studio Desain dengan senyum penuh percaya diri.'),
+      kemajuanKecil: line('Makasih ya Bu, aku coba atur ulang pembagian tugasku bareng anak-anak.', 'netral', 'Bagas mengangguk sopan.'),
+      menarikDiri: line('Ya sudah Bu, biar aku bereskan dulu rangkanya sendiri...', 'menutup-diri', 'Bagas keluar ruangan dengan wajah letih.'),
+    },
+  },
 ];

@@ -9,18 +9,20 @@ import {
   pickRandomWalkablePoint,
 } from './pathfinding';
 
-test('semua 9 zona dan slot berdiri dapat dicapai oleh A* tanpa menabrak dinding pada kedua mode pintu', () => {
+test('semua 11 zona dan slot berdiri dapat dicapai oleh A* tanpa menabrak dinding pada kedua mode pintu', () => {
   const modes = ['lab', 'samping'] as const;
   const startPoints = [
     { x: 15, y: 9 }, // koridor utara
     { x: 3, y: 15 }, // pemrograman
     { x: 35, y: 5 }, // gudang alat
     { x: 34, y: 20 }, // ruang dosen
+    { x: 45, y: 5 }, // studio desain
+    { x: 45, y: 18 }, // pojok baca
   ];
 
   for (const mode of modes) {
     const grid = buildNavigationGrid(LAB_MAP, mode);
-    assert.equal(LAB_MAP.zones.length, 9);
+    assert.equal(LAB_MAP.zones.length, 11);
 
     for (const start of startPoints) {
       assert.equal(

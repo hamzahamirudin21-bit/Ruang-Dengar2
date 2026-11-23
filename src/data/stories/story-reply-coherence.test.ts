@@ -61,8 +61,8 @@ describe('isBugCondition (graf buatan)', () => {
 });
 
 describe('Property 1: setiap pilihan berkondisi bug punya reaction khusus (konten asli)', () => {
-  it('memuat 15 graf', () => {
-    assert.equal(GRAPHS.length, 15);
+  it('memuat 18 graf', () => {
+    assert.equal(GRAPHS.length, 18);
   });
 
   it('tiap pilihan berkondisi bug punya reaction.text dan reaction.cue tidak kosong', () => {

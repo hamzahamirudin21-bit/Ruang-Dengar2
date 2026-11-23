@@ -526,6 +526,63 @@ function paintLecturerDesk(w: number, h: number): FurnitureSprite {
   return sprite(c, extra)
 }
 
+function paintDesignDesk(w: number, h: number): FurnitureSprite {
+  const extra = 10
+  const { c, W, y0 } = make(w, h, extra)
+  c.shadow(1, W - 2)
+  c.box(0, y0 + 1, W, 12, { top: '#efe2f7', front: '#7c6499', topH: 7 })
+  for (let x = 14; x < W; x += 14) c.rect(x - 1, y0 + 9, 1, 3, shade('#7c6499', -0.35))
+  for (let i = 0; i < w; i++) {
+    const x = i * 14
+    // Monitor kalibrasi warna dengan palet cerah
+    c.rect(x + 2, y0 - 8, 10, 9, OUT)
+    c.rect(x + 3, y0 - 7, 8, 6, '#fdfbf7')
+    c.rect(x + 4, y0 - 6, 3, 2, '#e56256')
+    c.rect(x + 7, y0 - 6, 3, 2, '#f5be42')
+    c.rect(x + 4, y0 - 4, 6, 2, '#35a08d')
+    c.rect(x + 3, y0 - 1, 8, 1, '#4a3f66')
+    c.rect(x + 6, y0 + 1, 2, 2, '#4a3f66')
+    // Pen-display tablet gambar & stylus
+    c.rect(x + 3, y0 + 4, 8, 4, OUT)
+    c.rect(x + 4, y0 + 5, 6, 2, '#2d2842')
+    c.px(x + 6, y0 + 5, '#ffd875')
+    c.px(x + 12, y0 + 5, '#e56256')
+  }
+  return sprite(c, extra)
+}
+
+function paintReadingTable(w: number, h: number): FurnitureSprite {
+  const extra = 8
+  const { c, W, H, y0 } = make(w, h, extra)
+  c.shadow(2, W - 3)
+  const n = Math.max(2, Math.floor(W / 24))
+  const chairX = (i: number) => Math.round(((i + 0.5) * W) / n - 6)
+  for (let i = 0; i < n; i++) {
+    c.box(chairX(i), 2, 12, 10, { top: '#589e82', front: '#356b56', topH: 3, round: true })
+  }
+  for (let i = 0; i < n; i++) {
+    const x = chairX(i)
+    c.rect(x, H - 8, 12, 7, OUT)
+    c.rect(x + 1, H - 7, 10, 4, '#589e82')
+    c.rect(x + 1, H - 3, 10, 1, '#356b56')
+  }
+  c.box(2, y0 + 3, W - 4, 20, { top: '#c9975b', front: '#7c5328', topH: 15 })
+  // Lampu meja pustaka klasik hijau-kuningan
+  c.rect(Math.floor(W / 2) - 4, y0 + 5, 8, 4, OUT)
+  c.rect(Math.floor(W / 2) - 3, y0 + 6, 6, 2, '#2e8274')
+  c.rect(Math.floor(W / 2) - 2, y0 + 9, 4, 2, '#f5be42')
+  // Buku terbuka kiri & kanan
+  c.rect(8, y0 + 10, 10, 6, OUT)
+  c.rect(9, y0 + 11, 4, 4, '#fffdf6')
+  c.rect(13, y0 + 11, 4, 4, '#f7ebd2')
+  if (W >= 42) {
+    c.rect(W - 19, y0 + 10, 10, 6, OUT)
+    c.rect(W - 18, y0 + 11, 4, 4, '#fffdf6')
+    c.rect(W - 14, y0 + 11, 4, 4, '#f7ebd2')
+  }
+  return sprite(c, extra)
+}
+
 export const FURNITURE_PAINTERS: Readonly<Record<FurnitureKind, (w: number, h: number) => FurnitureSprite>> = {
   'printer-3d': paintPrinter,
   'meja-komputer': paintDeskPc,
@@ -540,6 +597,8 @@ export const FURNITURE_PAINTERS: Readonly<Record<FurnitureKind, (w: number, h: n
   'meja-dosen': paintLecturerDesk,
   'rak-buku': (w, h) => paintShelf(w, h, 'buku'),
   'penanda-k3': paintK3Marker,
+  'meja-desain': paintDesignDesk,
+  'meja-baca': paintReadingTable,
 }
 
 /** Menggambar perabot; deterministik. Lebar grid = rect.w × 14. */

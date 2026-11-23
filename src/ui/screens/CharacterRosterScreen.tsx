@@ -112,7 +112,7 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
             </h1>
             <span aria-hidden="true" className="hidden h-4 w-0.5 bg-[#ffe694]/45 md:block" />
             <p className="hidden truncate text-sm text-[#fff3dc] md:block">
-              Kenali 15 mahasiswa — klik kartu mana saja untuk membalik &amp; membaca latar belakangnya!
+              Kenali {models.length} mahasiswa — klik kartu mana saja untuk membalik &amp; membaca latar belakangnya!
             </p>
           </div>
           <div className="flex items-center gap-2">

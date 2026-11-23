@@ -12,8 +12,8 @@ import {
 } from './storySignals';
 import type { MissionRecord } from './story/saveSlot';
 
-test('seluruh 15 mahasiswa memiliki sinyal perilaku unik dan kisah terbuka yang lengkap', () => {
-  assert.equal(STUDENT_BLUEPRINTS.length, 15);
+test('seluruh 18 mahasiswa memiliki sinyal perilaku unik dan kisah terbuka yang lengkap', () => {
+  assert.equal(STUDENT_BLUEPRINTS.length, 18);
   const seenClues = new Set<string>();
   for (const bp of STUDENT_BLUEPRINTS) {
     const sig = STUDENT_STORY_SIGNALS[bp.id];
@@ -52,5 +52,5 @@ test('computeShiftReport mendeteksi target shift 3 kisah dan menyusun teks bagik
   assert.equal(after.shiftCompleted, true);
   assert.equal(after.unlockedCount, 3);
   assert.equal(after.archetype.title, 'Penjaga Ruang Aman');
-  assert.ok(after.shareText.includes('3/15'));
+  assert.ok(after.shareText.includes('3/18'));
 });

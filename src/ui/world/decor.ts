@@ -46,6 +46,8 @@ const WALL_PLAN: Readonly<Record<ZoneType, readonly DecorKind[]>> = {
   istirahat: ['poster', 'jam'],
   konsultasi: ['poster'],
   'ruang-dosen': ['jam'],
+  'studio-desain': ['poster', 'papan-tulis'],
+  'pojok-baca': ['jam', 'poster'],
 };
 const CORRIDOR_WALL_PLAN: readonly DecorKind[] = ['papan-pengumuman', 'jam'];
 
@@ -55,6 +57,8 @@ const FLOOR_PLAN: Readonly<Partial<Record<ZoneType, readonly DecorKind[]>>> = {
   diskusi: ['tanaman'],
   konsultasi: ['tanaman'],
   'ruang-dosen': ['tanaman', 'lampu-lantai'],
+  'studio-desain': ['tanaman'],
+  'pojok-baca': ['tanaman', 'lampu-lantai'],
 };
 
 export function buildDecor(map: LabMapData, grid: TileGrid): readonly DecorItem[] {

@@ -10,9 +10,9 @@ import type { StoryGraph, StoryLine } from '../../engine/story/storyTypes';
 
 const graphs = listStoryGraphs();
 
-test('terdapat 15 graf, satu per blueprint', () => {
-  assert.equal(graphs.length, 15);
-  assert.equal(Object.keys(STORY_GRAPHS).length, 15);
+test('terdapat 18 graf, satu per blueprint', () => {
+  assert.equal(graphs.length, 18);
+  assert.equal(Object.keys(STORY_GRAPHS).length, 18);
   STUDENT_BLUEPRINTS.forEach((bp, i) => assert.equal(graphs[i].studentId, bp.id));
 });
 

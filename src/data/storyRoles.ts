@@ -30,7 +30,7 @@ export const STORY_ROLE_DEFS: Record<StoryRoleId, StoryRoleDef> = {
   'mandiri-sehat': { label: 'Mandiri dan sehat', sociometryBias: 0, hasMission: false },
   'tegas-kritis': { label: 'Tegas dan kritis', sociometryBias: -0.02, hasMission: true },
   terabaikan: { label: 'Terabaikan', sociometryBias: -0.02, hasMission: true },
-  'terisolasi-introver': { label: 'Terisolasi dan introver', sociometryBias: 0.23, hasMission: true },
+  'terisolasi-introver': { label: 'Terisolasi dan introver', sociometryBias: 0.2, hasMission: true },
 };
 
 export const STORY_ROLES: Record<string, StoryRoleId> = {
@@ -49,6 +49,9 @@ export const STORY_ROLES: Record<string, StoryRoleId> = {
   'mhs-13': 'penghubung',
   'mhs-14': 'terisolasi-introver',
   'mhs-15': 'terabaikan',
+  'mhs-16': 'andal-tekun',
+  'mhs-17': 'mandiri-sehat',
+  'mhs-18': 'penghubung',
 };
 
 /** Bias sosiometri untuk id mahasiswa; 0 bila id tidak punya peran. */

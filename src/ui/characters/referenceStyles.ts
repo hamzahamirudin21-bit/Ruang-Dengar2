@@ -396,6 +396,66 @@ export const REFERENCE_PROFILES: Readonly<Record<string, ReferenceCharacterProfi
     neckItem: 'none',
     bag: 'backpack',
   },
+
+  // mhs-16: Farhan Pratama (Flanel Kotak Zamrud Studio Desain + Kaus Hitam + Rambut Bergelombang Cokelat)
+  'mhs-16': {
+    id: 'mhs-16',
+    feminine: false,
+    skinBase: '#f5d2b8', skinShade: '#d8aa8a', skinLight: '#ffecdd',
+    hairBase: '#4b362b', hairShade: '#2e1f18', hairLight: '#7a5d4e',
+    hairStyle: 'fluffy-short',
+    irisTop: '#2e241d', irisBottom: '#6f5a46',
+    blushColor: '#e48278',
+    outfit: 'flannel-green',
+    topBase: '#1f7a68', topShade: '#145246', topLight: '#3aa08d',
+    innerColor: '#242830', accentColor: '#183f4d',
+    bottomColor: '#2c3d47', bottomShade: '#1d2930', shoeColor: '#4c4640',
+    isSkirt: false,
+    glasses: 'none',
+    headgear: 'none',
+    neckItem: 'none',
+    bag: 'none',
+  },
+
+  // mhs-17: Sekar Wulandari (Mantel Sage-Teal Pojok Baca + Syal Rajut Mustard Emas + Rambut Hitam Panjang)
+  'mhs-17': {
+    id: 'mhs-17',
+    feminine: true,
+    skinBase: '#fbe0ce', skinShade: '#e3baa0', skinLight: '#fff2e8',
+    hairBase: '#1d222e', hairShade: '#11141c', hairLight: '#424c63',
+    hairStyle: 'long-headband',
+    irisTop: '#2a2636', irisBottom: '#5c5473',
+    blushColor: '#f08e96',
+    outfit: 'soft-academia',
+    topBase: '#4da38b', topShade: '#327563', topLight: '#75c4ae',
+    innerColor: '#f7f1e6', accentColor: '#c99732',
+    bottomColor: '#9c782c', bottomShade: '#6e521b', shoeColor: '#3a3430',
+    isSkirt: true,
+    glasses: 'none',
+    headgear: 'none',
+    neckItem: 'scarf-maroon',
+    bag: 'crossbody',
+  },
+
+  // mhs-18: Bagas Saputra (Jaket Kobalt-Indigo Robotika + Kemeja Terakota + Goggles Dahi Amber)
+  'mhs-18': {
+    id: 'mhs-18',
+    feminine: false,
+    skinBase: '#f3ccb0', skinShade: '#d4a383', skinLight: '#fde6d4',
+    hairBase: '#1e222b', hairShade: '#11141a', hairLight: '#474f63',
+    hairStyle: 'messy-short',
+    irisTop: '#33221a', irisBottom: '#7d543c',
+    blushColor: '#de7e76',
+    outfit: 'lab-coat',
+    topBase: '#2b4f8c', topShade: '#1b3563', topLight: '#4a73b8',
+    innerColor: '#d96432', accentColor: '#c99238',
+    bottomColor: '#252d3d', bottomShade: '#171c26', shoeColor: '#2d3442',
+    isSkirt: false,
+    glasses: 'goggles-forehead',
+    headgear: 'none',
+    neckItem: 'none',
+    bag: 'none',
+  },
 }
 
 export function getReferenceProfile(id: string): ReferenceCharacterProfile {

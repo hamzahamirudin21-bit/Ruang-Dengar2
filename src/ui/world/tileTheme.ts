@@ -98,6 +98,24 @@ export const ZONE_THEMES: Readonly<Record<ZoneType, TileTheme>> = {
     wallFace: '#4a3a5c',
     wallCap: '#7a6890',
   },
+  // Kayu pastel lilac-kreatif untuk Studio Desain & Multimedia
+  'studio-desain': {
+    floor: 'kayu',
+    base: '#d7c5e6',
+    alt: '#c7b2da',
+    accent: '#977db3',
+    wallFace: '#5d477a',
+    wallCap: '#9a82b8',
+  },
+  // Karpet hijau sage tenang untuk Pojok Baca & Riset
+  'pojok-baca': {
+    floor: 'karpet',
+    base: '#7ea892',
+    alt: '#6f9983',
+    accent: '#4d7360',
+    wallFace: '#3b5e4d',
+    wallCap: '#6f9c86',
+  },
 };
 
 /** Koridor: keramik krem. */

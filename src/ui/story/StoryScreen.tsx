@@ -19,6 +19,7 @@ import { ProfileCard } from './ProfileCard';
 import { RoomDecorOverlay } from './RoomDecorOverlay';
 import { StoryHistoryPanel } from './StoryHistoryPanel';
 import { EmoteBubble } from './EmoteBubble';
+import { ExpressionOverlay } from './ExpressionOverlay';
 import { StoryBackdrop } from './SceneBackdrop';
 import { StoryPortrait } from './StoryPortrait';
 import { speakerSideOf } from './bubbleLayout';
@@ -583,7 +584,7 @@ export function StoryScreen({
     onEndSession();
   };
 
-  // Animasi reaksi singkat saat memilih respons (+12% kilau bintang tepat / -14% getar lembut salah)
+  // Animasi reaksi emosional saat memilih respons (+12% senang/lega / -14% sedih/kecewa + gelombang komunikasi)
   const [reactionFx, setReactionFx] = useState<{ kind: 'tepat' | 'salah'; key: number } | null>(null);
   const lastFeedbackTurnRef = useRef<number | null>(null);
   useEffect(() => {
@@ -594,15 +595,14 @@ export function StoryScreen({
     }
     if (lastFeedbackTurnRef.current === lastChoiceFeedback.turn) return;
     lastFeedbackTurnRef.current = lastChoiceFeedback.turn;
-    if (reducedMotion) return;
     const fxKey = Date.now();
     setReactionFx({ kind: lastChoiceFeedback.kind, key: fxKey });
     const timer = window.setTimeout(
       () => setReactionFx((cur) => (cur?.key === fxKey ? null : cur)),
-      lastChoiceFeedback.kind === 'tepat' ? 1150 : 420,
+      1550,
     );
     return () => window.clearTimeout(timer);
-  }, [lastChoiceFeedback, reducedMotion]);
+  }, [lastChoiceFeedback]);
 
   const isWarmRoom =
     scene?.setting === 'ruang-konsultasi' ||
@@ -663,11 +663,37 @@ export function StoryScreen({
         reducedMotion={reducedMotion}
       />
 
-      {/* 2. Dua karakter simetris berdiri penuh di tepi kiri & kanan (tidak pernah terhalang dialog maupun pilihan!) */}
+      {/* 2. Dua karakter simetris berdiri penuh di tepi kiri & kanan + efek ekspresi & komunikasi 2-arah! */}
       <div className="vn-cast">
+        {/* Jembatan komunikasi visual 2-arah antara Ibu Dosen dan Mahasiswa saat memilih respons */}
+        {reactionFx && !reducedMotion && (
+          <div
+            key={`bridge-${reactionFx.key}`}
+            aria-hidden="true"
+            className={reactionFx.kind === 'tepat' ? 'vn-empathy-bridge' : 'vn-tension-bridge'}
+          >
+            {reactionFx.kind === 'tepat' ? (
+              <>
+                <span className="vn-bridge-particle">💛</span>
+                <span className="vn-bridge-particle vn-em-delay-1">✦</span>
+                <span className="vn-bridge-particle vn-em-delay-2">✨</span>
+              </>
+            ) : (
+              <span className="vn-bridge-tension-pill">··· suasana terasa canggung ···</span>
+            )}
+          </div>
+        )}
+
         <div
           className={`vn-char vn-char--left ${counselorSpeaking ? 'vn-char--active' : 'vn-char--idle'}`}
         >
+          <ExpressionOverlay
+            role="dosen"
+            expression={dosenExpression}
+            reactionKind={reactionFx?.kind ?? null}
+            isSpeaker={counselorSpeaking}
+            reducedMotion={reducedMotion}
+          />
           <StoryPortrait
             role="dosen"
             expression={dosenExpression}
@@ -677,6 +703,7 @@ export function StoryScreen({
             msSinceSpeakerChange={counselorSpeaking ? msSinceSpeakerChange : Number.POSITIVE_INFINITY}
             facing="kanan"
             fluid
+            reactionKind={reactionFx?.kind ?? null}
             scale={4}
           />
         </div>
@@ -687,16 +714,23 @@ export function StoryScreen({
           <div className="absolute left-1/2 top-2 z-10 -translate-x-1/2">
             <EmoteBubble emote={emoteState.id} triggerKey={emoteState.key} reducedMotion={reducedMotion} />
           </div>
+          <ExpressionOverlay
+            role="mahasiswa"
+            expression={expression}
+            reactionKind={reactionFx?.kind ?? null}
+            isSpeaker={studentSpeaking}
+            reducedMotion={reducedMotion}
+          />
           {/* Kilau bintang ceria mengelilingi mahasiswa saat konselor memilih jawaban tepat (+12%) */}
           {reactionFx?.kind === 'tepat' && !reducedMotion && (
             <div key={reactionFx.key} aria-hidden="true" className="vn-sparkle-burst">
               {[
                 { left: '16%', top: '20%', ch: '✦', delay: '0ms' },
-                { left: '80%', top: '16%', ch: '★', delay: '80ms' },
+                { left: '80%', top: '16%', ch: '💛', delay: '80ms' },
                 { left: '10%', top: '44%', ch: '✨', delay: '140ms' },
                 { left: '86%', top: '40%', ch: '✦', delay: '110ms' },
                 { left: '48%', top: '8%', ch: '★', delay: '40ms' },
-                { left: '66%', top: '28%', ch: '✦', delay: '180ms' },
+                { left: '66%', top: '28%', ch: '✨', delay: '180ms' },
               ].map((sp, idx) => (
                 <span
                   key={idx}
@@ -720,6 +754,7 @@ export function StoryScreen({
             msSinceSpeakerChange={studentSpeaking ? msSinceSpeakerChange : Number.POSITIVE_INFINITY}
             facing="kiri"
             fluid
+            reactionKind={reactionFx?.kind ?? null}
             scale={4}
           />
         </div>

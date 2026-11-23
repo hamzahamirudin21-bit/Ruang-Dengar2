@@ -6,10 +6,11 @@ export interface Viewport {
   height: number;
 }
 
-export const MIN_SCALE = 0.5;
+export const MIN_SCALE = 0.35;
 export const MAX_SCALE = 3.2;
 
 const FIT_PADDING = 28;
+const WHOLE_MAP_INSET = 6;
 
 function finiteOr(value: number, fallback: number): number {
   return Number.isFinite(value) ? value : fallback;
@@ -24,6 +25,22 @@ function safeViewport(viewport: Viewport): Viewport {
 
 function clampScale(scale: number): number {
   return Math.min(MAX_SCALE, Math.max(MIN_SCALE, finiteOr(scale, MIN_SCALE)));
+}
+
+/** Skala muat penuh seluruh ruangan dalam 1 layar tanpa perlu menggeser/zoom. */
+export function wholeMapCamera(viewport: Viewport, map: LabMapData): CameraTransform {
+  const vp = safeViewport(viewport);
+  const worldW = Math.max(1, map.width * map.tileSizePx);
+  const worldH = Math.max(1, map.height * map.tileSizePx);
+  const availW = Math.max(120, vp.width - WHOLE_MAP_INSET * 2);
+  const availH = Math.max(100, vp.height - WHOLE_MAP_INSET * 2);
+  const fit = Math.min(availW / worldW, availH / worldH);
+  const scale = clampScale(fit);
+  return {
+    scale,
+    offsetX: (vp.width - worldW * scale) / 2,
+    offsetY: (vp.height - worldH * scale) / 2,
+  };
 }
 
 /** Skala penuh tanpa ruang kosong: peta selalu mengisi 100% lebar & tinggi viewport kanvas. */

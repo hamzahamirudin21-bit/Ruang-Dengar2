@@ -80,6 +80,21 @@
       "portrait": "mhs-15-portrait.png",
       "sprite": "mhs-15-sprite.png",
       "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-16": {
+      "portrait": "mhs-16-portrait.png",
+      "sprite": "mhs-16-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-17": {
+      "portrait": "mhs-17-portrait.png",
+      "sprite": "mhs-17-sprite.png",
+      "cell": { "w": 96, "h": 144 }
+    },
+    "mhs-18": {
+      "portrait": "mhs-18-portrait.png",
+      "sprite": "mhs-18-sprite.png",
+      "cell": { "w": 96, "h": 144 }
     }
   }
 }

@@ -164,11 +164,11 @@ test('Property 3: Repair_Hub tetap dapat pulih (simpul acak)', () => {
   }
 });
 
-// Pemindaian 15 graf: Property 1 dan 3 pada data cerita nyata.
+// Pemindaian 18 graf: Property 1 dan 3 pada data cerita nyata.
 // **Validates: Requirements 3.1, 3.2, 3.5**
-test('pemindaian 15 graf: setiap simpul berpilihan menampilkan 3 pilihan yang sah', () => {
+test('pemindaian 18 graf: setiap simpul berpilihan menampilkan 3 pilihan yang sah', () => {
   const graphs = listStoryGraphs();
-  assert.equal(graphs.length, 15);
+  assert.equal(graphs.length, 18);
   const rnd = mulberry32(4242);
   let repairHubs = 0;
   for (const g of graphs) {

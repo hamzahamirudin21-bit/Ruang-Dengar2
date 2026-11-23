@@ -1,15 +1,15 @@
 import { ConsultationDoorMode, LabMapData } from '../types';
 
 export const LAB_MAP: LabMapData = {
-  width: 40,
+  width: 52,
   height: 24,
   tileSizePx: 28,
   walls: [
-    // Dinding keliling luar (40 x 24)
-    { x: 0, y: 0, w: 40, h: 1 },
-    { x: 0, y: 23, w: 40, h: 1 },
+    // Dinding keliling luar (52 x 24 — proporsi lebar horizontal agar seluruh 11 ruangan tampil dalam satu layar!)
+    { x: 0, y: 0, w: 52, h: 1 },
+    { x: 0, y: 23, w: 52, h: 1 },
     { x: 0, y: 1, w: 1, h: 22 },
-    { x: 39, y: 1, w: 1, h: 22 },
+    { x: 51, y: 1, w: 1, h: 22 },
 
     // Sekat Stasiun Las (x=1..9, y=1..7) dengan pintu bawah di x=5..6, y=8
     { x: 10, y: 1, w: 1, h: 8 },
@@ -27,6 +27,11 @@ export const LAB_MAP: LabMapData = {
     { x: 32, y: 8, w: 2, h: 1 },
     { x: 36, y: 8, w: 3, h: 1 },
 
+    // Dinding pemisah sayap timur (x=39) dengan lorong terbuka di y=9..10 dan y=16..17
+    { x: 39, y: 1, w: 1, h: 8 },
+    { x: 39, y: 11, w: 1, h: 5 },
+    { x: 39, y: 18, w: 1, h: 5 },
+
     // Dinding Ruang Konsultasi Praktikum (lantai dalam x=31..38, y=12..14)
     // Dinding utara & segmen barat/selatan tetap; pintu dikontrol lewat doors[]
     { x: 30, y: 11, w: 9, h: 1 }, // utara
@@ -39,6 +44,14 @@ export const LAB_MAP: LabMapData = {
     { x: 30, y: 18, w: 3, h: 1 },
     { x: 35, y: 18, w: 4, h: 1 },
     { x: 30, y: 19, w: 1, h: 4 },
+
+    // Dinding Studio Desain & Multimedia (lantai dalam x=40..50, y=1..7) dengan bukaan x=43..45, y=8
+    { x: 40, y: 8, w: 3, h: 1 },
+    { x: 46, y: 8, w: 5, h: 1 },
+
+    // Dinding Pojok Baca & Riset (lantai dalam x=40..50, y=12..22) dengan bukaan utara x=43..45, y=11 & lorong barat y=16..17
+    { x: 40, y: 11, w: 3, h: 1 },
+    { x: 46, y: 11, w: 5, h: 1 },
   ],
   lowDividers: [
     // Pembatas rendah antara Stasiun Pemrograman (y=11..16) dan Ruang Istirahat (y=18..22)
@@ -136,6 +149,16 @@ export const LAB_MAP: LabMapData = {
     // Ruang Dosen
     { id: 'dosen-1', kind: 'meja-dosen', rect: { x: 35, y: 21, w: 3, h: 1 }, walkable: false, label: 'Meja Dosen' },
     { id: 'dosen-2', kind: 'rak-buku', rect: { x: 31, y: 21, w: 1, h: 2 }, walkable: false, label: 'Arsip' },
+
+    // Studio Desain & Multimedia (meja pen-display & kalibrasi warna)
+    { id: 'desain-1', kind: 'meja-desain', rect: { x: 41, y: 2, w: 4, h: 1 }, walkable: false, label: 'Meja Desain A' },
+    { id: 'desain-2', kind: 'meja-desain', rect: { x: 46, y: 2, w: 4, h: 1 }, walkable: false, label: 'Meja Desain B' },
+
+    // Pojok Baca & Riset (rak literatur, meja baca tenang, sofa sudut)
+    { id: 'baca-rak-1', kind: 'rak-buku', rect: { x: 49, y: 13, w: 1, h: 4 }, walkable: false, label: 'Rak Riset' },
+    { id: 'baca-rak-2', kind: 'rak-buku', rect: { x: 49, y: 18, w: 1, h: 4 }, walkable: false, label: 'Rak Jurnal' },
+    { id: 'baca-meja-1', kind: 'meja-baca', rect: { x: 42, y: 15, w: 4, h: 2 }, walkable: false, label: 'Meja Baca' },
+    { id: 'baca-sofa-1', kind: 'sofa', rect: { x: 42, y: 21, w: 4, h: 1 }, walkable: false, label: 'Sudut Tenang' },
   ],
   zones: [
     {
@@ -340,6 +363,55 @@ export const LAB_MAP: LabMapData = {
       visibility: 'privat',
       privacy: 0.9,
       colorVar: '--zone-dosen',
+    },
+    {
+      id: 'studio-desain',
+      type: 'studio-desain',
+      label: 'Studio Desain dan Multimedia',
+      shortLabel: 'Studio Desain',
+      description: 'Ruang kreatif perancangan UI/UX, ilustrasi teknis, papan storyboard, dan multimedia proyek vokasi.',
+      bounds: { x: 40, y: 1, w: 11, h: 7 },
+      capacity: 5,
+      standingSlots: [
+        { x: 42, y: 4 },
+        { x: 44, y: 4 },
+        { x: 47, y: 4 },
+        { x: 49, y: 4 },
+        { x: 45, y: 6 },
+      ],
+      entrances: [
+        { x: 43, y: 8 },
+        { x: 44, y: 8 },
+        { x: 45, y: 8 },
+      ],
+      visibility: 'terbuka',
+      privacy: 0.25,
+      colorVar: '--zone-desain',
+    },
+    {
+      id: 'pojok-baca',
+      type: 'pojok-baca',
+      label: 'Pojok Baca dan Riset',
+      shortLabel: 'Pojok Baca',
+      description: 'Sudut baca tenang dengan rak literatur teknik, meja riset, dan pencahayaan hangat untuk belajar fokus.',
+      bounds: { x: 40, y: 12, w: 11, h: 11 },
+      capacity: 6,
+      standingSlots: [
+        { x: 42, y: 13 },
+        { x: 45, y: 13 },
+        { x: 42, y: 18 },
+        { x: 45, y: 18 },
+        { x: 47, y: 16 },
+        { x: 47, y: 20 },
+      ],
+      entrances: [
+        { x: 43, y: 11 },
+        { x: 44, y: 11 },
+        { x: 39, y: 16 },
+      ],
+      visibility: 'semi-privat',
+      privacy: 0.6,
+      colorVar: '--zone-baca',
     },
   ],
 };

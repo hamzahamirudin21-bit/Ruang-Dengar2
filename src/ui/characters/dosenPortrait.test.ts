@@ -19,7 +19,7 @@ const has = (g: PixelGrid, color: string) => g.cells.some((c) => c?.toLowerCase(
 test('Property 24: potret Dosen lengkap, berciri, deterministik, dan khas', () => {
   assert.equal(EXPRESSIONS.length, 11)
   const students = Object.values(STUDENT_APPEARANCES)
-  assert.equal(students.length, 15)
+  assert.equal(students.length, 18)
   const blazer = IDENTITY_COLORS[DOSEN_LOOK.blazer.color].base
   const seen = new Map<string, StoryExpression>()
   const rng = mulberry32(2404)

@@ -19,6 +19,7 @@ import { paintSceneDetail, upscaleCanvas } from './sceneDetail'
 export type SceneArtId =
   | 'lab-umum' | 'cetak-3d' | 'elektronik' | 'pemrograman' | 'las'
   | 'gudang' | 'diskusi' | 'istirahat' | 'ruang-bk' | 'ruang-dosen'
+  | 'studio-desain' | 'pojok-baca'
 
 export type SceneVariant = Variant
 
@@ -31,6 +32,7 @@ export const SCENE_H = SCENE_LOGICAL_H * SCENE_SCALE
 export const SCENE_ART_IDS: readonly SceneArtId[] = [
   'lab-umum', 'cetak-3d', 'elektronik', 'pemrograman', 'las',
   'gudang', 'diskusi', 'istirahat', 'ruang-bk', 'ruang-dosen',
+  'studio-desain', 'pojok-baca',
 ]
 
 const ZONE_TO_ART: Partial<Record<ZoneType, SceneArtId>> = {
@@ -41,6 +43,8 @@ const ZONE_TO_ART: Partial<Record<ZoneType, SceneArtId>> = {
   'gudang-alat': 'gudang',
   diskusi: 'diskusi',
   istirahat: 'istirahat',
+  'studio-desain': 'studio-desain',
+  'pojok-baca': 'pojok-baca',
 }
 
 export function resolveSceneArt(input: {
@@ -690,6 +694,60 @@ function sceneRuangDosen(c: Canvas, v: Variant): void {
   vignette(c, 0.3)
 }
 
+function sceneStudioDesain(c: Canvas, v: Variant): void {
+  drawWall(c, '#efe6fa', '#d8caee', '#8c72ad')
+  rect(c, 0, 50, SCENE_LOGICAL_W, 17, '#c7b5e3')
+  hline(c, 0, 50, SCENE_LOGICAL_W, '#f8f2ff')
+  drawFloor(c, 'kayu', '#c8a87e', 19)
+  paintWindow(c, 66, 10, 60, 34, { variant: v, view: 'pohon', cols: 3, rows: 2, seed: 25 })
+  // papan palet warna & moodboard desain di kiri
+  box(c, 8, 12, 48, 34, '#fffaf0')
+  const swatches = ['#e56256', '#f5be42', '#3aa08e', '#5b72d6', '#a869c9', '#f08a24']
+  for (let i = 0; i < swatches.length; i++) {
+    box(c, 12 + (i % 3) * 14, 16 + Math.floor(i / 3) * 13, 11, 10, swatches[i] as string)
+  }
+  paintShelf(c, 136, 10, 48, 56, { seed: 29, rows: 4, tone: 'kayu' })
+  for (const x of [48, 142]) paintPendantLamp(c, x, 0, 11, '#8c72ad', '#fff2c2')
+  // meja gambar & monitor grafis lebar
+  paintDesk(c, 12, 78, 152, { legs: 20, wood: '#e6d4b5' })
+  paintMonitor(c, 26, 54, 34, 21, { kind: 'cad', seed: 11, glow: '#b894ff' })
+  paintMonitor(c, 70, 56, 30, 19, { kind: 'grafik', seed: 14, glow: '#5bf0c4' })
+  // pen tablet & stylus
+  box(c, 110, 72, 24, 5, '#2b3240')
+  rect(c, 114, 73, 16, 3, '#4c5770')
+  line(c, 138, 72, 146, 75, '#e8c447')
+  paintChair(c, 52, 86, '#7e63a8', 'belakang')
+  paintChair(c, 106, 86, '#3aa08e', 'belakang')
+  paintPlant(c, 178, 104, 2, 11)
+  lightBeam(c, 70, 122, '#fff4dc', 0.14, 16)
+  vignette(c, 0.24)
+}
+
+function scenePojokBaca(c: Canvas, v: Variant): void {
+  drawWall(c, '#dceee2', '#bfd8c8', '#5e7e6c')
+  rect(c, 0, 46, SCENE_LOGICAL_W, 21, '#8ead9a')
+  hline(c, 0, 46, SCENE_LOGICAL_W, '#eef8f1')
+  drawFloor(c, 'karpet', '#688c79', 23)
+  paintWindow(c, 68, 10, 56, 32, { variant: v, view: 'pohon', cols: 3, rows: 2, seed: 31 })
+  // dua rak buku tinggi di kiri dan kanan
+  paintShelf(c, 6, 8, 52, 60, { seed: 33, rows: 5, tone: 'kayu' })
+  paintShelf(c, 134, 8, 52, 60, { seed: 37, rows: 5, tone: 'kayu' })
+  paintClock(c, 96, 16)
+  // karpet baca hangat & meja riset kayu
+  paintRug(c, 96, 94, 68, 12, '#c89b62', '#f2e0b4')
+  paintSofa(c, 26, 68, 44, '#c9854a', 2)
+  paintDesk(c, 82, 78, 66, { legs: 18, wood: '#c99c68' })
+  paintLaptop(c, 90, 77, 'kode', 19)
+  // lampu baca meja bernuansa kuning hangat
+  line(c, 136, 77, 134, 65, '#3b2a20')
+  rect(c, 129, 61, 10, 4, '#f2c864')
+  glow(c, 134, 68, 28, '#ffe29c', 0.48)
+  paintChair(c, 102, 86, '#3e6e5c', 'depan')
+  paintPlant(c, 168, 102, 2, 13)
+  lightBeam(c, 72, 120, '#fff5d6', 0.14, 18)
+  vignette(c, 0.24)
+}
+
 const SCENES: Record<SceneArtId, (c: Canvas, v: Variant) => void> = {
   'lab-umum': sceneLabUmum,
   'cetak-3d': sceneCetak3d,
@@ -701,6 +759,8 @@ const SCENES: Record<SceneArtId, (c: Canvas, v: Variant) => void> = {
   istirahat: sceneIstirahat,
   'ruang-bk': sceneRuangBk,
   'ruang-dosen': sceneRuangDosen,
+  'studio-desain': sceneStudioDesain,
+  'pojok-baca': scenePojokBaca,
 }
 
 export function composeSceneArt(id: SceneArtId, variant: SceneVariant): PixelGrid {

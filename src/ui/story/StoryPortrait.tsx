@@ -33,6 +33,8 @@ export interface StoryPortraitProps {
   facing?: PortraitFacing;
   /** True bila ukuran mengikuti kontainer responsif (.vn-char). */
   fluid?: boolean;
+  /** Reaksi cepat terhadap pilihan konselor (+12% tepat / -14% salah). */
+  reactionKind?: 'tepat' | 'salah' | null;
   className?: string;
 }
 
@@ -63,6 +65,7 @@ export function StoryPortrait({
   msSinceSpeakerChange = Number.POSITIVE_INFINITY,
   facing,
   fluid = false,
+  reactionKind = null,
   className,
 }: StoryPortraitProps) {
   const portrait = useMemo(
@@ -107,6 +110,7 @@ export function StoryPortrait({
           scale={scale}
           facing={resolvedFacing}
           fluid={fluid}
+          reactionKind={reactionKind}
           className={className}
         />
       </div>

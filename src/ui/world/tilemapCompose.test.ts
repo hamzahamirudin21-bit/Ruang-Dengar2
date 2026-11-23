@@ -9,12 +9,12 @@ const MODES: ConsultationDoorMode[] = ["lab", "samping"];
 // **Validates: Requirements 6.8, 6.9**
 // Feature: ui-visual-overhaul, Property 12: Tilemap lengkap dan deterministik
 for (const mode of MODES) {
-  test(`Property 12: komposisi mode ${mode} berukuran 560x336, lengkap, deterministik`, () => {
+  test(`Property 12: komposisi mode ${mode} berukuran 728x336, lengkap, deterministik`, () => {
     const a = composeTilemapGrid(LAB_MAP, mode);
     const b = composeTilemapGrid(LAB_MAP, mode);
-    assert.equal(a.width, 560);
+    assert.equal(a.width, 728);
     assert.equal(a.height, 336);
-    assert.equal(a.cells.length, 560 * 336);
+    assert.equal(a.cells.length, 728 * 336);
     for (let i = 0; i < a.cells.length; i++) {
       assert.ok(typeof a.cells[i] === "string" && a.cells[i] !== null, `sel null di ${i}`);
     }

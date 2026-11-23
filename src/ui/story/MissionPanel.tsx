@@ -273,7 +273,7 @@ export function MissionPanel({
                     : 'bg-white/10 text-[#fff4de] hover:bg-white/20'
                 }`}
               >
-                #01–#15
+                #01–#{String(agents.length).padStart(2, '0')}
               </button>
             </div>
           </div>
@@ -308,12 +308,12 @@ export function MissionPanel({
               data-agent-id={agent.id}
               data-lost={isLost ? 'true' : 'false'}
               aria-current={isActive ? 'true' : undefined}
-              className={`dossier-card ${frameClass(isActive ? 'navy' : 'krem')} ${urgencyHighlight} flex flex-col gap-2.5 p-3 text-sm`}
+              className={`dossier-card ${frameClass(isActive ? 'navy' : 'krem')} ${urgencyHighlight} flex flex-col gap-2 p-2.5 text-sm`}
             >
               {/* Baris Atas Simetris: Potret setengah badan (kiri) sejajar penuh dengan identitas, energi & sinyal (kanan) */}
-              <div className="grid grid-cols-[76px_minmax(0,1fr)] items-center gap-3">
+              <div className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-2.5">
                 <div
-                  className="relative h-[98px] w-[76px] shrink-0 overflow-hidden rounded-2xl border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#d8ecfa] via-[#f0f5e8] to-[#f8e6c8] shadow-[0_3px_0_#3e2517]"
+                  className="relative h-[86px] w-[64px] shrink-0 overflow-hidden rounded-2xl border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#d8ecfa] via-[#f0f5e8] to-[#f8e6c8] shadow-[0_3px_0_#3e2517]"
                   style={{ lineHeight: 0 }}
                 >
                   <span

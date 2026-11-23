@@ -244,6 +244,8 @@ const ZONE_CLUSTER_ANGLE: Record<ZoneType, number> = {
   'gudang-alat': 5.6,
   'ruang-dosen': 0.55,
   konsultasi: 2.7,
+  'studio-desain': 1.65,
+  'pojok-baca': 4.5,
 };
 
 /**

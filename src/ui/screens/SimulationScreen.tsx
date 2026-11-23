@@ -63,11 +63,10 @@ import {
   renderLabCanvas,
   screenToTile,
 } from '../canvas/labRenderer';
-import { clampCamera, coverFillScale, followCamera } from '../world/cameraFollow';
+import { wholeMapCamera } from '../world/cameraFollow';
 import {
   IconBintang,
   IconEnergi,
-  IconIkuti,
   IconJam,
   IconJeda,
   IconKalender,
@@ -327,33 +326,13 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const cameraRef = useRef<CameraTransform>({ offsetX: 16, offsetY: 16, scale: 1 });
-  const stageSizeRef = useRef<{ width: number; height: number }>({ width: 900, height: 600 });
-  const userMovedCameraRef = useRef<boolean>(false);
-  const [followAvatar, setFollowAvatar] = useState<boolean>(true);
-  const followRef = useRef<boolean>(true);
-  const cameraInitedRef = useRef<boolean>(false);
-  const avatarWorldPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const cameraRef = useRef<CameraTransform>({ offsetX: 8, offsetY: 8, scale: 0.7 });
+  const stageSizeRef = useRef<{ width: number; height: number }>({ width: 960, height: 480 });
   const needsRedrawRef = useRef<boolean>(true);
   const lastDrawTimeRef = useRef<number>(0);
   const clickRippleRef = useRef<ClickRippleState | null>(null);
   const timeSecRef = useRef<number>(0);
-
-  const dragRef = useRef<{
-    dragging: boolean;
-    moved: boolean;
-    startX: number;
-    startY: number;
-    origOffsetX: number;
-    origOffsetY: number;
-  }>({
-    dragging: false,
-    moved: false,
-    startX: 0,
-    startY: 0,
-    origOffsetX: 0,
-    origOffsetY: 0,
-  });
+  const pointerDownRef = useRef<boolean>(false);
 
   const viewOptionsRef = useRef<CanvasViewOptions>(viewOptions);
   const hoveredZoneRef = useRef<ZoneType | null>(hoveredZoneId);
@@ -474,12 +453,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     setViewOptions((prev) => ({ ...prev, ...patch }));
   }, []);
 
-  const setFollow = useCallback((on: boolean) => {
-    followRef.current = on;
-    setFollowAvatar(on);
-    needsRedrawRef.current = true;
-  }, []);
-
   const handleRunPathTest = useCallback(() => {
     testRunCountRef.current += 1;
     const rng = mulberry32(seed + testRunCountRef.current * 97);
@@ -556,36 +529,8 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       stageSizeRef.current = { width, height };
 
       const vp = { width, height };
-      const av = storyRef.current?.avatarRef.current.position;
-      if (av) {
-        avatarWorldPosRef.current = {
-          x: (av.x + 0.5) * LAB_MAP.tileSizePx,
-          y: (av.y + 0.5) * LAB_MAP.tileSizePx,
-        };
-      }
-      const scale = coverFillScale(vp, LAB_MAP);
-      if (!cameraInitedRef.current) {
-        cameraInitedRef.current = true;
-        cameraRef.current = followCamera(
-          { offsetX: 0, offsetY: 0, scale },
-          avatarWorldPosRef.current,
-          vp,
-          LAB_MAP,
-          0,
-          true
-        );
-      } else if (followRef.current) {
-        cameraRef.current = followCamera(
-          { ...cameraRef.current, scale },
-          avatarWorldPosRef.current,
-          vp,
-          LAB_MAP,
-          0,
-          true
-        );
-      } else {
-        cameraRef.current = clampCamera({ ...cameraRef.current, scale }, vp, LAB_MAP);
-      }
+      // Kunci kamera agar seluruh 11 ruangan terlihat utuh sekaligus dalam 1 layar (nol geser / nol zoom!)
+      cameraRef.current = wholeMapCamera(vp, LAB_MAP);
       needsRedrawRef.current = true;
     };
 
@@ -684,35 +629,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         }
         if (storyMarkerIdsRef.current.length > 0 && !reducedMotionRef.current) {
           walkingDirty = true; // penanda misi naik turun halus
-        }
-      }
-
-      // 1c. Kamera mengikuti avatar Dosen BK
-      if (storyApi) {
-        const av = storyApi.avatarRef.current.position;
-        const target = {
-          x: (av.x + 0.5) * LAB_MAP.tileSizePx,
-          y: (av.y + 0.5) * LAB_MAP.tileSizePx,
-        };
-        avatarWorldPosRef.current = target;
-        if (followRef.current && !dragRef.current.dragging) {
-          const cam = cameraRef.current;
-          const next = followCamera(
-            cam,
-            target,
-            stageSizeRef.current,
-            LAB_MAP,
-            dt,
-            reducedMotionRef.current
-          );
-          if (
-            Math.abs(next.offsetX - cam.offsetX) > 0.01 ||
-            Math.abs(next.offsetY - cam.offsetY) > 0.01 ||
-            next.scale !== cam.scale
-          ) {
-            cameraRef.current = next;
-            needsRedrawRef.current = true;
-          }
         }
       }
 
@@ -823,41 +739,12 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
 
   const handleCanvasPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (e.button !== 0) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    dragRef.current = {
-      dragging: true,
-      moved: false,
-      startX: e.clientX,
-      startY: e.clientY,
-      origOffsetX: cameraRef.current.offsetX,
-      origOffsetY: cameraRef.current.offsetY,
-    };
+    pointerDownRef.current = true;
   };
 
   const handleCanvasPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
-    if (dragRef.current.dragging) {
-      const dx = e.clientX - dragRef.current.startX;
-      const dy = e.clientY - dragRef.current.startY;
-      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
-        dragRef.current.moved = true;
-        userMovedCameraRef.current = true;
-        if (followRef.current) setFollow(false);
-      }
-      cameraRef.current = clampCamera(
-        {
-          ...cameraRef.current,
-          offsetX: dragRef.current.origOffsetX + dx,
-          offsetY: dragRef.current.origOffsetY + dy,
-        },
-        stageSizeRef.current,
-        LAB_MAP
-      );
-      needsRedrawRef.current = true;
-      return;
-    }
 
     const rect = canvas.getBoundingClientRect();
     const hitAgent = findAgentAtScreenPoint(
@@ -888,11 +775,10 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   };
 
   const handleCanvasPointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!dragRef.current.dragging) return;
-    const wasMoved = dragRef.current.moved;
-    dragRef.current.dragging = false;
+    if (!pointerDownRef.current) return;
+    pointerDownRef.current = false;
 
-    if (!wasMoved && canvasRef.current) {
+    if (canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect();
       const cam = cameraRef.current;
       clickRippleRef.current = {
@@ -928,29 +814,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       const zone = findZoneAtTile(LAB_MAP, tile.x, tile.y);
       setSelectedZoneId(zone ? zone.id : null);
     }
-  };
-
-  const handleCanvasKeyDown = (e: React.KeyboardEvent<HTMLCanvasElement>) => {
-    const step = 28;
-    if (e.key.startsWith('Arrow') && followRef.current) setFollow(false);
-    let dx = 0;
-    let dy = 0;
-    if (e.key === 'ArrowLeft') dx = step;
-    else if (e.key === 'ArrowRight') dx = -step;
-    else if (e.key === 'ArrowUp') dy = step;
-    else if (e.key === 'ArrowDown') dy = -step;
-    else return;
-    e.preventDefault();
-    cameraRef.current = clampCamera(
-      {
-        ...cameraRef.current,
-        offsetX: cameraRef.current.offsetX + dx,
-        offsetY: cameraRef.current.offsetY + dy,
-      },
-      stageSizeRef.current,
-      LAB_MAP
-    );
-    needsRedrawRef.current = true;
   };
 
   const selectedZone = useMemo(
@@ -1466,30 +1329,16 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           </GameButton>
         </div>
       </GameFrame>
-      {/* Ruang kerja utama: kiri 68% Papan Peta Lab 2D + kanan 32% Panel Konselor — bingkai & header sejajar 100%! */}
-      <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row lg:items-stretch">
-        {/* Kolom kiri: Papan Peta Lab 2D Berbingkai Tinta Tangan Cozy */}
+      {/* Ruang kerja utama: kiri 73-74% Papan Peta 11 Ruangan Utuh + kanan 26-27% Panel Konselor ramping! */}
+      <div className="flex min-h-0 flex-1 flex-col gap-2.5 lg:flex-row lg:items-stretch">
+        {/* Kolom kiri: Papan Peta Lab 2D Horizontal (seluruh 11 ruangan tampak dalam 1 layar tanpa geser!) */}
         <section
           aria-label={STRINGS.canvasToolbar.mapLegendTitle}
-          className="flex flex-col overflow-hidden rounded-[26px] border-[3.5px] border-[#3e2517] bg-[#fffdf5] shadow-[0_7px_0_#3e2517,0_14px_28px_rgba(62,37,23,0.18)] lg:min-h-0 lg:w-[68%] lg:flex-1"
+          className="flex flex-col overflow-hidden rounded-[26px] border-[3.5px] border-[#3e2517] bg-[#fffdf5] shadow-[0_7px_0_#3e2517,0_14px_28px_rgba(62,37,23,0.18)] lg:min-h-0 lg:w-[73%] lg:flex-1 xl:w-[74%]"
         >
-          {/* Bilah kontrol peta (tanpa zoom — peta selalu penuh rapi tanpa tepi kosong!) */}
+          {/* Bilah kontrol peta (seluruh 11 ruangan tampil penuh dalam 1 layar, nol geser & nol zoom!) */}
           <div className="flex min-h-[54px] shrink-0 flex-wrap items-center justify-between gap-2 border-b-[3px] border-[#3e2517] bg-gradient-to-b from-[#a76940] to-[#874f2d] px-3.5 py-2 text-[#fffdf6]">
             <div className="flex flex-wrap items-center gap-2">
-              <GameButton
-                variant="sekunder"
-                size="sm"
-                aria-pressed={followAvatar}
-                bounce
-                onClick={() => { playSfx('klik'); setFollow(!followAvatar); }}
-                icon={<IconIkuti className="h-4 w-4" />}
-                className="whitespace-nowrap text-xs"
-              >
-                {followAvatar
-                  ? STRINGS.canvasToolbar.followAvatarOn
-                  : STRINGS.canvasToolbar.followAvatar}
-              </GameButton>
-
               <GameButton
                 variant="bulat-ikon"
                 aria-pressed={viewOptions.showZoneLabels}
@@ -1518,8 +1367,8 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                 <IconGrid className="h-5 w-5" />
               </GameButton>
 
-              <span className="hidden items-center gap-1 rounded-full border border-[#fffdf6]/25 bg-[#3e2517]/35 px-2.5 py-1 font-['Fredoka'] text-[11px] font-semibold text-[#fff3d6] xl:inline-flex">
-                🗺️ Peta Penuh · Geser untuk menjelajah
+              <span className="inline-flex items-center gap-1 rounded-full border border-[#fffdf6]/30 bg-[#3e2517]/40 px-3 py-1 font-['Fredoka'] text-[11px] font-semibold text-[#fff3d6]">
+                🗺️ Seluruh {LAB_MAP.zones.length} Ruangan · Klik mahasiswa untuk menghampiri
               </span>
             </div>
 
@@ -1569,9 +1418,12 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               onPointerDown={handleCanvasPointerDown}
               onPointerMove={handleCanvasPointerMove}
               onPointerUp={handleCanvasPointerUp}
-              onPointerCancel={handleCanvasPointerUp}
-              onKeyDown={handleCanvasKeyDown}
-              className="absolute inset-0 block h-full w-full cursor-grab active:cursor-grabbing"
+              onPointerCancel={() => {
+                pointerDownRef.current = false;
+              }}
+              className={`absolute inset-0 block h-full w-full ${
+                hoveredAgentId || hoveredZoneId ? 'cursor-pointer' : 'cursor-default'
+              }`}
             />
             {/* Lencana atmosfer waktu & status berjalan melayang non-intrusif */}
             <div
@@ -1864,13 +1716,13 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           </div>
         </section>
 
-        {/* Kolom kanan: Panel Konselor dengan bingkai, sudut & tinggi header kayu SEJAJAR 100% dengan Papan Peta kiri! */}
+        {/* Kolom kanan: Panel Konselor ramping (26-27%) agar peta 11 ruangan di kiri lebar horizontal! */}
         <GameFrame
           as="aside"
           variant="krem"
           animateIn
           aria-label="Panel Konselor"
-          className="relative flex min-h-0 w-full flex-col overflow-hidden !rounded-[26px] !border-[3.5px] !border-[#3e2517] !shadow-[0_7px_0_#3e2517,0_14px_28px_rgba(62,37,23,0.18)] lg:w-[32%]"
+          className="relative flex min-h-0 w-full flex-col overflow-hidden !rounded-[26px] !border-[3.5px] !border-[#3e2517] !shadow-[0_7px_0_#3e2517,0_14px_28px_rgba(62,37,23,0.18)] lg:w-[27%] xl:w-[26%]"
         >
           {/* Header kayu hangat min-h-[54px] — sejajar presisi dengan Bilah Kontrol Peta di kiri! */}
           <div className="flex min-h-[54px] shrink-0 items-center justify-center border-b-[3px] border-[#3e2517] bg-gradient-to-b from-[#a76940] to-[#874f2d] px-3 py-1.5">
@@ -1881,7 +1733,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           <div
             role="tablist"
             aria-label="Menu Panel Konselor"
-            className="grid shrink-0 grid-cols-4 items-end gap-1 border-b-[3px] border-[#3e2517] bg-[#f4e4c5] px-2 pt-2 [&>button]:min-w-0 [&>button]:justify-center [&>button]:!px-1.5 [&>button]:!text-[0.72rem]"
+            className="grid shrink-0 grid-cols-4 items-end gap-1 border-b-[3px] border-[#3e2517] bg-[#f4e4c5] px-1.5 pt-2 [&>button]:min-w-0 [&>button]:justify-center [&>button]:!px-1 [&>button]:!text-[0.66rem]"
           >
             {STRINGS.tabs.list.map((tab) => {
               const TabIcon = TAB_ICON_COMPONENTS[tab.id];
@@ -1892,7 +1744,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                   controls={`panel-${tab.id}`}
                   selected={activeTab === tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  icon={<TabIcon className="h-4 w-4" />}
+                  icon={<TabIcon className="h-3.5 w-3.5 shrink-0" />}
                 >
                   {STRINGS.gameTabs[tab.id]}
                 </GameTab>
@@ -1904,7 +1756,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
             id={`panel-${activeTab}`}
             role="tabpanel"
             aria-labelledby={`tab-${activeTab}`}
-            className="flex-1 overflow-y-auto p-3"
+            className="flex-1 overflow-y-auto p-2.5"
           >
             {activeTab === 'pengamatan' ? (
               <ObservationPanel

@@ -21,8 +21,11 @@ import { STORY_MHS_13 } from './mhs-13';
 import { STORY_MHS_15 } from './mhs-15';
 import { STORY_MHS_12 } from './mhs-12';
 import { STORY_MHS_14 } from './mhs-14';
+import { STORY_MHS_16 } from './mhs-16';
+import { STORY_MHS_17 } from './mhs-17';
+import { STORY_MHS_18 } from './mhs-18';
 
-/** Graf cerita penuh per studentId (pilot: mhs-14 dan mhs-12). */
+/** Graf cerita penuh per studentId (seluruh 18 mahasiswa). */
 export const AUTHORED_STORIES: Record<string, StoryGraph> = {
   'mhs-01': STORY_MHS_01,
   'mhs-02': STORY_MHS_02,
@@ -39,6 +42,9 @@ export const AUTHORED_STORIES: Record<string, StoryGraph> = {
   'mhs-15': STORY_MHS_15,
   'mhs-14': STORY_MHS_14,
   'mhs-12': STORY_MHS_12,
+  'mhs-16': STORY_MHS_16,
+  'mhs-17': STORY_MHS_17,
+  'mhs-18': STORY_MHS_18,
 };
 
 const cache = new Map<string, StoryGraph>();
