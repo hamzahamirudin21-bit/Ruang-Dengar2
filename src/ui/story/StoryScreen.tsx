@@ -616,6 +616,17 @@ export function StoryScreen({
     startZoneId === 'istirahat' ||
     startZoneId === 'konsultasi';
 
+  // Hitung beruntun respons empatik tepat (combo streak) dari riwayat giliran aktif
+  const empathyStreak = useMemo(() => {
+    if (!turnResults || turnResults.length === 0) return 0;
+    let count = 0;
+    for (let i = turnResults.length - 1; i >= 0; i -= 1) {
+      if (turnResults[i] === 'tepat') count += 1;
+      else break;
+    }
+    return count;
+  }, [turnResults]);
+
   return (
     <div
       ref={rootRef}
@@ -916,6 +927,22 @@ export function StoryScreen({
             </div>
           )}
 
+          {empathyStreak >= 2 && !state.ended && (
+            <div
+              key={`streak-${empathyStreak}`}
+              role="status"
+              data-testid="vn-empathy-streak"
+              className="vn-streak-badge"
+            >
+              <span>
+                {empathyStreak >= 5
+                  ? `💛 Koneksi Penuh ×${empathyStreak}!`
+                  : empathyStreak >= 3
+                    ? `🔥 Selaras ×${empathyStreak}`
+                    : `✨ Empati Beruntun ×${empathyStreak}`}
+              </span>
+            </div>
+          )}
           {otherCriticalAgent && (
             <div
               role="status"

@@ -153,6 +153,7 @@ interface SimulationScreenProps {
   reducedMotion: boolean;
   audioEnabled?: boolean;
   onToggleAudio?: () => void;
+  onOpenTheory?: () => void;
   onChangeSeed: (nextSeed: number) => void;
   onOpenSettings: () => void;
   onBackToStart: () => void;
@@ -164,6 +165,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   reducedMotion,
   audioEnabled = false,
   onToggleAudio,
+  onOpenTheory,
   onChangeSeed,
   onOpenSettings,
   onBackToStart,
@@ -210,6 +212,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   const [shiftReportOpen, setShiftReportOpen] = useState<boolean>(false);
   const [decorShopOpen, setDecorShopOpen] = useState<boolean>(false);
   const [roomDecor, setRoomDecor] = useState<RoomDecorState>(() => loadRoomDecorState());
+  const equippedDecorRef = useRef<readonly RoomDecorId[]>(roomDecor.equippedIds);
   const shiftCelebratedRef = useRef<boolean | null>(null);
 
   // Algoritma ketahanan energi: mahasiswa 0% -> hilang; 3 hilang -> Game Over (kalah)
@@ -275,6 +278,8 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
 
   useEffect(() => {
     saveRoomDecorState(roomDecor);
+    equippedDecorRef.current = roomDecor.equippedIds;
+    needsRedrawRef.current = true;
   }, [roomDecor]);
 
   useEffect(() => {
@@ -685,6 +690,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               timeSeconds: nowSec,
               reducedMotion: reducedMotionRef.current,
               clickRipple: clickRippleRef.current,
+              equippedDecor: equippedDecorRef.current,
               story: storyApi
                 ? {
                     avatar: storyApi.avatarRef.current,
@@ -1118,6 +1124,16 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   );
 
   const activeStudentsCount = Math.max(0, worldSummary.totalAgents - lostStudentIds.length);
+  const hasUrgentStudent = useMemo(
+    () =>
+      agentsSnapshot.some(
+        (a) =>
+          !lostStudentSet.has(a.id) &&
+          story.missions[a.id]?.status !== 'selesai' &&
+          a.energy < 0.25
+      ),
+    [agentsSnapshot, lostStudentSet, story.missions]
+  );
   const skyEmoji = clock.minutesOfDay < 660 ? '🌅' : clock.minutesOfDay >= 870 ? '🌇' : '☀️';
   const showFirstTimePrompt =
     !briefingOpen &&
@@ -1129,6 +1145,10 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#7fb479]">
+      {/* Vinyet darurat lembut di tepi layar bila ada mahasiswa di bawah 25% energi */}
+      {hasUrgentStudent && !story.storyVisible && (
+        <div aria-hidden="true" className="hud-urgency-vignette" />
+      )}
       {/* =====================================================================
           1. DUNIA KAMPUS HIDUP 100% FULL-SCREEN (11 RUANGAN + TAMAN KAMPUS HD)
          ===================================================================== */}
@@ -1903,6 +1923,18 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                       >
                         🪴 Hias Ruang · ⭐ {availableStars}
                       </GameButton>
+                      {onOpenTheory && (
+                        <GameButton
+                          variant="sekunder"
+                          size="sm"
+                          onClick={() => {
+                            playSfx('klik');
+                            onOpenTheory();
+                          }}
+                        >
+                          📚 Landasan Psikologi
+                        </GameButton>
+                      )}
                     </div>
                   </div>
 

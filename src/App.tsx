@@ -4,6 +4,7 @@ import { createInitialClock } from './engine/clock';
 import { AppScreen, AppSettings } from './types';
 import { playSfx, setSfxEnabled } from './ui/motion/sfx';
 import { SettingsModal } from './ui/components/SettingsModal';
+import { TheoryLibraryModal } from './ui/components/TheoryLibraryModal';
 import { CharacterRosterScreen } from './ui/screens/CharacterRosterScreen';
 import { SimulationScreen } from './ui/screens/SimulationScreen';
 import { StartScreen } from './ui/screens/StartScreen';
@@ -27,6 +28,7 @@ export default function App() {
     shouldAutostart() ? 'simulation' : 'start'
   );
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  const [theoryOpen, setTheoryOpen] = useState<boolean>(false);
   const [transitioning, setTransitioning] = useState<boolean>(false);
   const transitionTimerRef = useRef<number | null>(null);
 
@@ -117,9 +119,10 @@ export default function App() {
 
       {screen === 'start' ? (
         <StartScreen
-          isSettingsOpen={settingsOpen}
+          isSettingsOpen={settingsOpen || theoryOpen}
           audioEnabled={settings.soundEnabled === true}
           onToggleAudio={handleToggleAudio}
+          onOpenTheory={() => setTheoryOpen(true)}
           onStart={() => navigateScreen('roster')}
           onOpenSettings={() => setSettingsOpen(true)}
         />
@@ -139,6 +142,7 @@ export default function App() {
           reducedMotion={settings.reducedMotion}
           audioEnabled={settings.soundEnabled === true}
           onToggleAudio={handleToggleAudio}
+          onOpenTheory={() => setTheoryOpen(true)}
           onChangeSeed={handleChangeSeedFromDev}
           onOpenSettings={() => setSettingsOpen(true)}
           onBackToStart={() => navigateScreen('start')}
@@ -156,6 +160,11 @@ export default function App() {
         settings={settings}
         onSave={handleSaveSettings}
         onClose={() => setSettingsOpen(false)}
+      />
+
+      <TheoryLibraryModal
+        isOpen={theoryOpen}
+        onClose={() => setTheoryOpen(false)}
       />
     </div>
   );

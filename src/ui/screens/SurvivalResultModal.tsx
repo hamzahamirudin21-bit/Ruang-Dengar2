@@ -14,25 +14,25 @@ export interface SurvivalResultModalProps {
 
 const ENDING_COPY = {
   sempurna: {
-    badge: '🏆 ENDING TERBAIK · 15/15 BERTAHAN',
+    badge: (total: number) => `🏆 ENDING TERBAIK · ${total}/${total} BERTAHAN`,
     title: 'Tak Satu Pun Tertinggal!',
     body: 'Luar biasa! Kamu berhasil menjaga energi seluruh mahasiswa dan mendampingi setiap kisah mereka tanpa satu pun yang menghilang dari kelas.',
     headerBg: 'linear-gradient(135deg, #2e8274 0%, #1d5d52 100%)',
   },
   baik: {
-    badge: '🌟 ENDING BAIK · PENJAGA RUANG DENGAR',
+    badge: () => '🌟 ENDING BAIK · PENJAGA RUANG DENGAR',
     title: 'Sebagian Besar Terselamatkan!',
     body: 'Kamu tanggap menjaga ritme kelas dan mendampingi hampir seluruh mahasiswa hingga pulih. Satu kursi yang sempat kosong menjadi pengingat berharga untuk sesi berikutnya.',
     headerBg: 'linear-gradient(135deg, #2f7d6e 0%, #245b68 100%)',
   },
   bertahan: {
-    badge: '🌤️ ENDING BERTAHAN',
+    badge: () => '🌤️ ENDING BERTAHAN',
     title: 'Bertahan di Tengah Badai',
     body: 'Seluruh mahasiswa yang tersisa berhasil kamu stabilkan. Dua mahasiswa sempat kehabisan energi sebelum terdampingi — coba kenali latar belakang mereka di balik kartu untuk hasil sempurna!',
     headerBg: 'linear-gradient(135deg, #c9862d 0%, #995d14 100%)',
   },
   gagal: {
-    badge: '💔 3 MAHASISWA HILANG · PERMAINAN BERAKHIR',
+    badge: () => '💔 3 MAHASISWA HILANG · PERMAINAN BERAKHIR',
     title: 'Ruang Lab Mulai Sepi...',
     body: 'Tiga mahasiswa kehabisan energi hingga meninggalkan kelas sebelum sempat pulih. Amati tanda energi menurun lebih awal dan kenali latar belakang tiap mahasiswa agar pilihan jawabanmu makin tepat!',
     headerBg: 'linear-gradient(135deg, #c9473e 0%, #8e2822 100%)',
@@ -63,7 +63,7 @@ export const SurvivalResultModal: React.FC<SurvivalResultModalProps> = ({
           style={{ background: copy.headerBg }}
         >
           <p className="font-['Fredoka'] text-xs font-bold uppercase tracking-wider text-[#ffe799]">
-            {copy.badge}
+            {copy.badge(summary.totalStudents)}
           </p>
           <h2
             id="survival-result-title"

@@ -15,6 +15,7 @@ interface StartScreenProps {
   isSettingsOpen: boolean;
   audioEnabled?: boolean;
   onToggleAudio?: () => void;
+  onOpenTheory?: () => void;
   onStart: () => void;
   onOpenSettings: () => void;
 }
@@ -53,6 +54,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({
   isSettingsOpen,
   audioEnabled = false,
   onToggleAudio,
+  onOpenTheory,
   onStart,
   onOpenSettings,
 }) => {
@@ -167,22 +169,40 @@ export const StartScreen: React.FC<StartScreenProps> = ({
       <div className="title-shade" aria-hidden="true" />
       <div className="title-border" aria-hidden="true" />
 
-      {/* Tombol cepat Musik Kampus Cozy di kanan atas Layar Judul */}
-      {onToggleAudio && (
-        <button
-          type="button"
-          onClick={onToggleAudio}
-          aria-pressed={audioEnabled}
-          aria-label={audioEnabled ? 'Matikan musik kampus & suara' : 'Nyalakan musik kampus & suara'}
-          className={`absolute right-6 top-6 z-20 inline-flex cursor-pointer items-center gap-1.5 rounded-full border-[2.5px] border-[#3e2517] px-3.5 py-1.5 font-['Fredoka'] text-xs font-bold shadow-[0_4px_0_#3e2517] transition hover:-translate-y-0.5 ${
-            audioEnabled
-              ? 'bg-gradient-to-b from-[#ffe694] to-[#f2b53b] text-[#3e2517]'
-              : 'bg-[#fffdf6]/92 text-[#3e2517] hover:bg-[#fff4d4]'
-          }`}
-        >
-          <span aria-hidden="true">{audioEnabled ? '🔊' : '🔇'}</span>
-          <span>{audioEnabled ? 'Musik Aktif' : 'Nyalakan Musik'}</span>
-        </button>
+      {/* Bilah cepat Pustaka Landasan Teori & Musik Kampus di kanan atas Layar Judul */}
+      {(onOpenTheory || onToggleAudio) && (
+        <div className="absolute right-6 top-6 z-20 flex flex-wrap items-center justify-end gap-2">
+          {onOpenTheory && (
+            <button
+              type="button"
+              onClick={() => {
+                playSfx('klik');
+                onOpenTheory();
+              }}
+              data-testid="open-theory-library-btn"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#3ba08e] to-[#267567] px-3.5 py-1.5 font-['Fredoka'] text-xs font-bold text-[#fffdf6] shadow-[0_4px_0_#3e2517] transition hover:-translate-y-0.5 hover:brightness-105"
+            >
+              <span aria-hidden="true">📚</span>
+              <span>Landasan Psikologi</span>
+            </button>
+          )}
+          {onToggleAudio && (
+            <button
+              type="button"
+              onClick={onToggleAudio}
+              aria-pressed={audioEnabled}
+              aria-label={audioEnabled ? 'Matikan musik kampus & suara' : 'Nyalakan musik kampus & suara'}
+              className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border-[2.5px] border-[#3e2517] px-3.5 py-1.5 font-['Fredoka'] text-xs font-bold shadow-[0_4px_0_#3e2517] transition hover:-translate-y-0.5 ${
+                audioEnabled
+                  ? 'bg-gradient-to-b from-[#ffe694] to-[#f2b53b] text-[#3e2517]'
+                  : 'bg-[#fffdf6]/92 text-[#3e2517] hover:bg-[#fff4d4]'
+              }`}
+            >
+              <span aria-hidden="true">{audioEnabled ? '🔊' : '🔇'}</span>
+              <span>{audioEnabled ? 'Musik Aktif' : 'Nyalakan Musik'}</span>
+            </button>
+          )}
+        </div>
       )}
 
       <div className="title-stage">

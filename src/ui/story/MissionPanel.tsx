@@ -86,6 +86,7 @@ export function MissionPanel({
   const busy = avatarMode !== 'idle';
   const reducedMotion = useReducedMotion();
   const [sortMode, setSortMode] = useState<'urgensi' | 'daftar'>('urgensi');
+  const [filterMode, setFilterMode] = useState<'semua' | 'prioritas' | 'belum' | 'selesai'>('semua');
   const lostCount = lostAgentIds?.size ?? 0;
 
   const doneCount = Object.values(missions).filter((m) => m.status === 'selesai').length;
@@ -117,10 +118,17 @@ export function MissionPanel({
     return map;
   }, [agents]);
 
-  const orderedAgents = useMemo(
-    () => (sortMode === 'urgensi' ? sortAgentsByUrgency(agents, missions, lostAgentIds) : [...agents]),
-    [agents, missions, sortMode, lostAgentIds],
-  );
+  const orderedAgents = useMemo(() => {
+    const base =
+      sortMode === 'urgensi' ? sortAgentsByUrgency(agents, missions, lostAgentIds) : [...agents];
+    if (filterMode === 'semua') return base;
+    return base.filter((a) => {
+      const status = missions[a.id]?.status ?? 'belum';
+      if (filterMode === 'selesai') return status === 'selesai';
+      if (filterMode === 'belum') return status !== 'selesai' && !lostAgentIds?.has(a.id);
+      return !lostAgentIds?.has(a.id) && status !== 'selesai' && a.energy < 0.6;
+    });
+  }, [agents, missions, sortMode, filterMode, lostAgentIds]);
 
   const shiftReached = summary.missionsCompleted >= SHIFT_TARGET_STORIES;
   const shiftProgressPct = Math.min(
@@ -250,13 +258,13 @@ export function MissionPanel({
             )}
           </div>
 
-          <div className="mt-2 flex items-center justify-between gap-1.5 border-t border-white/10 pt-2">
-            <span className="text-[10px] font-semibold text-[#f3dfc0]">Urutkan daftar:</span>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-1.5 border-t border-white/10 pt-2">
+            <span className="text-[10px] font-semibold text-[#f3dfc0]">Urutkan:</span>
             <div className="inline-flex items-center gap-1 font-['Fredoka'] text-[10px] font-bold">
               <button
                 type="button"
                 onClick={() => setSortMode('urgensi')}
-                className={`rounded-full border border-[#3e2517] px-2.5 py-0.5 transition ${
+                className={`cursor-pointer rounded-full border border-[#3e2517] px-2.5 py-0.5 transition ${
                   sortMode === 'urgensi'
                     ? 'bg-[#ffe494] text-[#3e2517]'
                     : 'bg-white/10 text-[#fff4de] hover:bg-white/20'
@@ -267,7 +275,7 @@ export function MissionPanel({
               <button
                 type="button"
                 onClick={() => setSortMode('daftar')}
-                className={`rounded-full border border-[#3e2517] px-2.5 py-0.5 transition ${
+                className={`cursor-pointer rounded-full border border-[#3e2517] px-2.5 py-0.5 transition ${
                   sortMode === 'daftar'
                     ? 'bg-[#ffe494] text-[#3e2517]'
                     : 'bg-white/10 text-[#fff4de] hover:bg-white/20'
@@ -277,8 +285,43 @@ export function MissionPanel({
               </button>
             </div>
           </div>
+
+          <div
+            className="mt-1.5 flex flex-wrap items-center gap-1 font-['Fredoka'] text-[10px] font-bold"
+            role="group"
+            aria-label="Saring daftar misi"
+          >
+            {(
+              [
+                { id: 'semua', label: 'Semua' },
+                { id: 'prioritas', label: '⚠ Kritis/Waspada' },
+                { id: 'belum', label: 'Belum Selesai' },
+                { id: 'selesai', label: '✦ Selesai' },
+              ] as const
+            ).map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                aria-pressed={filterMode === f.id}
+                onClick={() => setFilterMode(f.id)}
+                className={`cursor-pointer rounded-full border border-[#3e2517] px-2 py-0.5 transition ${
+                  filterMode === f.id
+                    ? 'bg-[#3aa08e] text-[#fffdf6]'
+                    : 'bg-white/10 text-[#f8e7c9] hover:bg-white/20'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
+
+      {orderedAgents.length === 0 && (
+        <div className="rounded-2xl border-2 border-dashed border-[#3e2517]/30 bg-[#fffaf0] p-4 text-center text-xs text-[#6b482e]">
+          Tidak ada mahasiswa pada filter ini.
+        </div>
+      )}
 
       <ul className="flex flex-col gap-2.5" aria-label={S.missionPanelTitle}>
         {orderedAgents.map((agent) => {

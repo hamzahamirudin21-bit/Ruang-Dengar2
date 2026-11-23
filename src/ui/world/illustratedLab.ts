@@ -8,6 +8,7 @@
  * - Plakat nama ruangan bersih berikon & font Fredoka tajam (nol teks piksel buram!)
  */
 import type { ConsultationDoorMode, LabFurniture, LabMapData, LabZone, ZoneType } from '../../types';
+import type { RoomDecorId } from '../../engine/roomDecor';
 
 const INK = '#3e2517';
 const CACHE_SCALE = 2; // Render latar gedung statis di 2x HD untuk ketajaman Retina
@@ -66,13 +67,26 @@ export function drawOutdoorCampusCourtyard(
   camera: { offsetX: number; offsetY: number; scale: number },
   map: LabMapData,
   timeSeconds: number,
-  reducedMotion: boolean
+  reducedMotion: boolean,
+  clockMinutesOfDay = 540
 ): void {
-  // Gradien rumput taman kampus hangat sunlit
+  // Gradien rumput taman kampus yang ikut menyesuaikan cahaya Pagi / Siang / Sore
+  const isAfternoon = clockMinutesOfDay >= 870;
+  const isMorning = clockMinutesOfDay < 660;
   const lawn = ctx.createLinearGradient(0, 0, 0, heightCss);
-  lawn.addColorStop(0, '#96c77c');
-  lawn.addColorStop(0.5, '#86ba6d');
-  lawn.addColorStop(1, '#75a95e');
+  if (isAfternoon) {
+    lawn.addColorStop(0, '#a6bf6d');
+    lawn.addColorStop(0.5, '#91ad5f');
+    lawn.addColorStop(1, '#799952');
+  } else if (isMorning) {
+    lawn.addColorStop(0, '#99cd80');
+    lawn.addColorStop(0.5, '#87bd70');
+    lawn.addColorStop(1, '#75ac60');
+  } else {
+    lawn.addColorStop(0, '#96c77c');
+    lawn.addColorStop(0.5, '#86ba6d');
+    lawn.addColorStop(1, '#75a95e');
+  }
   ctx.fillStyle = lawn;
   ctx.fillRect(0, 0, widthCss, heightCss);
 
@@ -1037,5 +1051,261 @@ export function drawIllustratedZoneLabel(
 
   ctx.fillStyle = selected ? '#fffdf6' : INK;
   ctx.fillText(label, cx, cy + 0.5, pw - 8);
+  ctx.restore();
+}
+
+// ---------------------------------------------------------------------------
+// 5. Hiasan Ruang BK Hidup di Peta 2D (muncul nyata saat dibeli & dipasang!)
+// ---------------------------------------------------------------------------
+
+export function drawEquippedBkDecorOnMap(
+  ctx: CanvasRenderingContext2D,
+  map: LabMapData,
+  equippedDecor: readonly RoomDecorId[] | undefined,
+  timeSeconds: number,
+  reducedMotion: boolean
+): void {
+  if (!equippedDecor || equippedDecor.length === 0) return;
+  const zone = map.zones.find((z) => z.id === 'konsultasi');
+  if (!zone) return;
+  const t = map.tileSizePx;
+  const zx = zone.bounds.x * t;
+  const zy = zone.bounds.y * t;
+  const zw = zone.bounds.w * t;
+  const zh = zone.bounds.h * t;
+  const has = (id: RoomDecorId) => equippedDecor.includes(id);
+
+  ctx.save();
+
+  // 1. Lampu Senja: pendar cahaya amber hangat melingkupi Ruang Konsultasi + kap lampu kuningan
+  if (has('lampu-senja')) {
+    const lx = zx + zw - 22;
+    const ly = zy + 20;
+    const pulse = reducedMotion ? 1 : 0.92 + 0.08 * Math.sin(timeSeconds * 2.4);
+    const glow = ctx.createRadialGradient(lx, ly, 4, lx, ly, 92 * pulse);
+    glow.addColorStop(0, 'rgba(255, 224, 130, 0.42)');
+    glow.addColorStop(0.55, 'rgba(255, 198, 108, 0.16)');
+    glow.addColorStop(1, 'rgba(255, 198, 108, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(zx + 2, zy + 2, zw - 4, zh - 4);
+
+    // Kap lampu kuningan mungil
+    ctx.fillStyle = '#ffe58f';
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.arc(lx, ly, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#fffdf6';
+    ctx.beginPath();
+    ctx.arc(lx - 1.5, ly - 1.5, 2.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 2. Poster Hangat: bingkai ilustrasi pastel di dinding utara Ruang Konsultasi
+  if (has('poster-hangat')) {
+    const px = zx + zw * 0.32;
+    const py = zy + 4;
+    rrect(ctx, px, py, 30, 14, 3);
+    ctx.fillStyle = '#fff8e2';
+    ctx.fill();
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.3;
+    ctx.stroke();
+    ctx.fillStyle = '#7fc29b';
+    ctx.beginPath();
+    ctx.arc(px + 10, py + 9, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f5be42';
+    ctx.beginPath();
+    ctx.arc(px + 21, py + 6.5, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 3. Tanaman Monstera: pot terakota rimbun di sudut kiri atas Ruang Konsultasi
+  if (has('tanaman-monstera')) {
+    const mx = zx + 18;
+    const my = zy + 22;
+    const sway = reducedMotion ? 0 : Math.sin(timeSeconds * 1.8) * 1.2;
+    ctx.fillStyle = '#d47c48';
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.arc(mx, my + 2, 7.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    for (let i = 0; i < 5; i += 1) {
+      const ang = (i * Math.PI * 2) / 5 - 0.5;
+      ctx.fillStyle = i % 2 === 0 ? '#2e825a' : '#43a675';
+      ctx.beginPath();
+      ctx.ellipse(
+        mx + Math.cos(ang) * 7 + sway * 0.4,
+        my - 2 + Math.sin(ang) * 5.5,
+        5.5,
+        3.2,
+        ang,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+      ctx.stroke();
+    }
+  }
+
+  // 4. Pemutar Vinyl: meja piringan hitam kayu + not musik melayang lembut di sudut kiri bawah
+  if (has('pemutar-vinyl')) {
+    const vx = zx + 18;
+    const vy = zy + zh - 16;
+    rrect(ctx, vx - 11, vy - 8, 22, 16, 4);
+    ctx.fillStyle = '#b47142';
+    ctx.fill();
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.3;
+    ctx.stroke();
+    // Piringan hitam berputar
+    ctx.fillStyle = '#25232b';
+    ctx.beginPath();
+    ctx.arc(vx - 1, vy, 5.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#e56256';
+    ctx.beginPath();
+    ctx.arc(vx - 1, vy, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    if (!reducedMotion) {
+      const lift = (timeSeconds * 10) % 14;
+      const alpha = Math.max(0, 1 - lift / 14);
+      ctx.font = '700 9px Fredoka, sans-serif';
+      ctx.fillStyle = `rgba(46, 130, 116, ${alpha.toFixed(2)})`;
+      ctx.fillText('♪', vx + 8 + Math.sin(timeSeconds * 3) * 2, vy - 6 - lift);
+    }
+  }
+
+  // 5. Kucing Penenang (Maneki-Neko): figurin kucing krem dengan kerah merah di sisi kanan bawah
+  if (has('kucing-penenang')) {
+    const kx = zx + zw - 18;
+    const ky = zy + zh - 15;
+    const bob = reducedMotion ? 0 : Math.sin(timeSeconds * 3.4) * 1.1;
+    // Badan & kepala krem
+    ctx.fillStyle = '#fffaf0';
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.arc(kx, ky + 1, 6.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Telinga kucing
+    ctx.beginPath();
+    ctx.moveTo(kx - 5, ky - 3);
+    ctx.lineTo(kx - 3.5, ky - 8.5);
+    ctx.lineTo(kx - 0.5, ky - 4.5);
+    ctx.moveTo(kx + 5, ky - 3);
+    ctx.lineTo(kx + 3.5, ky - 8.5);
+    ctx.lineTo(kx + 0.5, ky - 4.5);
+    ctx.fill();
+    ctx.stroke();
+    // Kerah merah & lonceng emas
+    ctx.fillStyle = '#e5534b';
+    ctx.fillRect(kx - 4.5, ky + 3, 9, 2.2);
+    ctx.fillStyle = '#f5be42';
+    ctx.beginPath();
+    ctx.arc(kx, ky + 4.5, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+    // Tangan kecil melambai
+    ctx.fillStyle = '#fffaf0';
+    ctx.beginPath();
+    ctx.arc(kx + 5.5, ky - 1 - bob, 2.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // 6. Set Teh Hangat: kilau emas & uap ekstra lembut di atas meja konsultasi
+  if (has('set-teh-hangat')) {
+    const tx = zx + zw * 0.66;
+    const ty = zy + zh * 0.48;
+    if (!reducedMotion) {
+      for (let i = 0; i < 2; i += 1) {
+        const rise = (timeSeconds * 9 + i * 5) % 12;
+        const alpha = Math.max(0, 0.85 - rise / 14);
+        ctx.strokeStyle = `rgba(255, 251, 232, ${alpha.toFixed(2)})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(tx - 4 + i * 7, ty - 6 - rise);
+        ctx.quadraticCurveTo(tx - 2 + i * 7, ty - 10 - rise, tx - 5 + i * 7, ty - 14 - rise);
+        ctx.stroke();
+      }
+    }
+  }
+
+  ctx.restore();
+}
+
+// ---------------------------------------------------------------------------
+// 6. Partikel Hidup Taman Luar (Daun/Kelopak Melayang & 2 Kupu-Kupu Kampus)
+// ---------------------------------------------------------------------------
+
+export function drawOutdoorAmbientParticles(
+  ctx: CanvasRenderingContext2D,
+  widthCss: number,
+  heightCss: number,
+  camera: { offsetX: number; offsetY: number; scale: number },
+  map: LabMapData,
+  timeSeconds: number,
+  reducedMotion: boolean
+): void {
+  if (reducedMotion || widthCss < 200 || heightCss < 200) return;
+  const worldW = map.width * map.tileSizePx * camera.scale;
+  const worldH = map.height * map.tileSizePx * camera.scale;
+  const bx = camera.offsetX;
+  const by = camera.offsetY;
+
+  ctx.save();
+  // 8 kelopak/daun halus melayang di luar gedung (hanya di area halaman rumput)
+  for (let i = 0; i < 8; i += 1) {
+    const speedX = 12 + (i % 3) * 5;
+    const speedY = 6 + (i % 4) * 2.5;
+    const px = ((i * 187 + timeSeconds * speedX) % (widthCss + 40)) - 20;
+    const py = ((i * 109 + timeSeconds * speedY + Math.sin(timeSeconds * 1.4 + i) * 14) % (heightCss + 40)) - 20;
+    // Skip bila di atas bagian tengah dalam gedung agar tak mengganggu pembacaan ruangan
+    if (px > bx + 14 && px < bx + worldW - 14 && py > by + 14 && py < by + worldH - 14) continue;
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(timeSeconds * 0.9 + i * 1.2);
+    ctx.fillStyle = i % 3 === 0 ? 'rgba(255, 224, 232, 0.82)' : 'rgba(232, 245, 178, 0.78)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 4.2, 2.1, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // 2 kupu-kupu kampus mungil menari di taman bagian bawah & kiri luar gedung
+  const butterflies = [
+    {
+      cx: Math.max(40, bx + worldW * 0.28),
+      cy: Math.min(heightCss - 26, by + worldH + 34),
+      col: '#ffe58f',
+      phase: 0,
+    },
+    {
+      cx: Math.min(widthCss - 50, bx + worldW * 0.72),
+      cy: Math.max(26, by - 26),
+      col: '#bae6fd',
+      phase: 2.3,
+    },
+  ];
+  for (const b of butterflies) {
+    const x = b.cx + Math.sin(timeSeconds * 0.9 + b.phase) * 34;
+    const y = b.cy + Math.cos(timeSeconds * 1.6 + b.phase) * 8;
+    const flap = Math.abs(Math.sin(timeSeconds * 11 + b.phase));
+    const wingW = 1.6 + flap * 3.4;
+    ctx.fillStyle = b.col;
+    ctx.strokeStyle = 'rgba(62, 37, 23, 0.7)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.ellipse(x - wingW * 0.6, y, wingW, 2.8, -0.3, 0, Math.PI * 2);
+    ctx.ellipse(x + wingW * 0.6, y, wingW, 2.8, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
   ctx.restore();
 }

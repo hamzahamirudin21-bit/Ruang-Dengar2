@@ -36,11 +36,14 @@ import {
 } from '../world/furnitureArt';
 import { paintPlaque } from '../world/plaque';
 import {
+  drawEquippedBkDecorOnMap,
   drawIllustratedFurniture,
   drawIllustratedZoneLabel,
+  drawOutdoorAmbientParticles,
   drawOutdoorCampusCourtyard,
   getIllustratedLabBackdrop,
 } from '../world/illustratedLab';
+import type { RoomDecorId } from '../../engine/roomDecor';
 import { buildDrawList, spriteFeet } from '../world/worldMetrics';
 
 export interface CameraTransform {
@@ -74,6 +77,8 @@ export interface LabRenderInput {
   reducedMotion?: boolean;
   /** Riak umpan balik klik pada koordinat dunia. */
   clickRipple?: ClickRippleState | null;
+  /** Daftar hiasan Ruang BK yang terpasang agar tampil nyata di peta 2D. */
+  equippedDecor?: readonly RoomDecorId[];
   /** Opsional. Bila tidak ada, render identik dengan sebelumnya. */
   story?: StoryRenderLayer;
 }
@@ -543,8 +548,17 @@ export function renderLabCanvas(
   const timeSec = input.timeSeconds ?? 0;
   const reduced = input.reducedMotion ?? false;
 
-  // 1. Halaman Kampus Hidup 2.5D di luar gedung (rumput sunlit, jalan batu, pohon bergoyang)
-  drawOutdoorCampusCourtyard(ctx, widthCss, heightCss, camera, map, timeSec, reduced);
+  // 1. Halaman Kampus Hidup 2.5D di luar gedung (rumput sunlit sesuai jam, jalan batu, pohon bergoyang)
+  drawOutdoorCampusCourtyard(
+    ctx,
+    widthCss,
+    heightCss,
+    camera,
+    map,
+    timeSec,
+    reduced,
+    clockMinutesOfDay
+  );
 
   ctx.save();
   ctx.translate(camera.offsetX, camera.offsetY);
@@ -555,6 +569,8 @@ export function renderLabCanvas(
   if (illustratedBg) {
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(illustratedBg, 0, 0, worldW, worldH);
+    // Hiasan Ruang BK yang dibeli pemain langsung tampak hidup di dalam peta 2D!
+    drawEquippedBkDecorOnMap(ctx, map, input.equippedDecor, timeSec, reduced);
   } else {
     const tilemap = getTilemapCanvas(map, doorMode);
     if (tilemap) {
@@ -815,4 +831,7 @@ export function renderLabCanvas(
   drawClickRipple(ctx, input.clickRipple, timeSec, reduced);
 
   ctx.restore();
+
+  // 10. Partikel hidup halaman luar (daun/kelopak melayang & kupu-kupu kampus)
+  drawOutdoorAmbientParticles(ctx, widthCss, heightCss, camera, map, timeSec, reduced);
 }

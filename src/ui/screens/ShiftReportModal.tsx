@@ -148,7 +148,7 @@ export const ShiftReportModal: React.FC<ShiftReportModalProps> = ({
               </GameButton>
             </div>
             <GameButton variant="primer" size="sm" bounce onClick={onClose}>
-              Lanjut Ungkap Semua 15 Kisah →
+              Lanjut Ungkap Semua {report.totalStudents} Kisah →
             </GameButton>
           </div>
         </div>
