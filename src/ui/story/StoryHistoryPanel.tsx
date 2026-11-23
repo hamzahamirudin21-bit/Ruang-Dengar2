@@ -55,7 +55,7 @@ export function StoryHistoryPanel({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#2c1a0e]/65 p-4 backdrop-blur-xs"
       onKeyDown={handleKeyDown}
       onClick={onClose}
     >
@@ -66,14 +66,11 @@ export function StoryHistoryPanel({
         aria-labelledby={TITLE_ID}
         onClick={(e) => e.stopPropagation()}
         className={`vn-box--solid flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden ${
-          reducedMotion ? '' : 'transition-opacity duration-150'
+          reducedMotion ? '' : 'fx-panel-in'
         }`}
       >
-        <div
-          className="flex items-center justify-between gap-3 border-b px-5 py-3.5"
-          style={{ borderColor: 'var(--vnp-border)', background: 'rgba(27, 42, 73, 0.05)' }}
-        >
-          <h2 id={TITLE_ID} className="text-base font-extrabold" style={{ color: 'var(--vn-navy)' }}>
+        <div className="flex items-center justify-between gap-3 border-b-[3px] border-[#3e2517] bg-gradient-to-r from-[#2e8274] to-[#216459] px-5 py-3.5 text-[#fffdf6]">
+          <h2 id={TITLE_ID} className="font-['Fredoka'] text-lg font-bold drop-shadow-[0_2px_0_#3e2517]">
             {S.historyTitle}
           </h2>
           <button
@@ -81,7 +78,7 @@ export function StoryHistoryPanel({
             type="button"
             aria-label={S.historyCloseAria}
             onClick={onClose}
-            className="vn-topbtn"
+            className="game-btn-secondary !min-h-[2rem] !px-4 text-xs"
           >
             {S.historyCloseBtn}
           </button>
@@ -89,11 +86,9 @@ export function StoryHistoryPanel({
 
         <div className="flex-1 overflow-y-auto px-5 py-4" tabIndex={0}>
           {entries.length === 0 ? (
-            <p className="text-sm" style={{ color: 'var(--vnp-ink-muted)' }}>
-              {S.historyEmpty}
-            </p>
+            <p className="text-sm text-[#6b482e]">{S.historyEmpty}</p>
           ) : (
-            <ol className="flex flex-col gap-3.5">
+            <ol className="flex flex-col gap-3">
               {entries.map((entry, idx) => {
                 const prevNodeId = entry.fromNodeId ?? (idx > 0 ? entries[idx - 1].nodeId : null);
                 const followUp = graph
@@ -102,56 +97,53 @@ export function StoryHistoryPanel({
                 return (
                   <li
                     key={`${entry.turn}-${entry.nodeId}-${idx}`}
-                    className="rounded-xl border p-3.5"
-                    style={{ borderColor: 'var(--vnp-border)', background: 'rgba(255, 255, 255, 0.72)' }}
+                    className="rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffdf7] p-3.5 shadow-[inset_0_-3px_0_#f0e0bf]"
                   >
-                    <div className="mb-1.5 text-[0.7rem] font-bold uppercase tracking-wider" style={{ color: 'var(--vnp-ink-muted)' }}>
-                      Giliran {entry.turn}
+                    <div className="mb-2 inline-block rounded-full border border-[#3e2517]/30 bg-[#f7e7c5] px-2.5 py-0.5 font-['Fredoka'] text-[0.7rem] font-bold text-[#5d3d26]">
+                      {entry.turn === 0 ? 'Pembuka' : `Langkah ${entry.turn}`}
                     </div>
                     {entry.counselorLine && (
-                      <p className="mb-2 text-sm leading-relaxed">
-                        <span className="font-bold" style={{ color: 'var(--vnp-name-dosen)' }}>
+                      <p className="mb-2 rounded-xl border border-[#2e8274]/30 bg-[#ecfbf6] px-3 py-2 text-sm leading-relaxed text-[#243d38]">
+                        <span className="font-['Fredoka'] font-bold text-[#1e685b]">
                           {S.speakerCounselor}:
                         </span>{' '}
                         {entry.counselorLine}
                       </p>
                     )}
                     {entry.studentLine.aside && (
-                      <p className="mb-1.5 text-sm italic" style={{ color: 'var(--vnp-ink-muted)' }}>
+                      <p className="mb-1.5 text-sm italic text-[#6b482e]">
                         <span className="font-semibold not-italic">{S.narrationSpeaker}:</span>{' '}
                         {entry.studentLine.aside}
                       </p>
                     )}
-                    <p className="text-sm leading-relaxed">
-                      <span className="font-bold" style={{ color: 'var(--vnp-name-mhs)' }}>
+                    <p className="rounded-xl border border-[#d8534a]/25 bg-[#fff5f2] px-3 py-2 text-sm leading-relaxed text-[#3e2517]">
+                      <span className="font-['Fredoka'] font-bold text-[#c4443c]">
                         {studentName}:
                       </span>{' '}
                       {entry.studentLine.text}
                     </p>
                     {entry.studentLine.cue && (
-                      <p className="mt-1 text-xs italic" style={{ color: 'var(--vnp-ink-muted)' }}>
+                      <p className="mt-1.5 border-l-2 border-[#d9b27a] pl-2.5 text-xs italic text-[#7a5234]">
                         {entry.studentLine.cue}
                       </p>
                     )}
 
                     {followUp && (
-                      <div className="mt-2.5 border-t pt-2.5" style={{ borderColor: 'var(--vnp-border)' }}>
+                      <div className="mt-2.5 border-t border-dashed border-[#3e2517]/20 pt-2.5">
                         {followUp.aside && (
-                          <p className="mb-1 text-sm italic" style={{ color: 'var(--vnp-ink-muted)' }}>
+                          <p className="mb-1 text-sm italic text-[#6b482e]">
                             <span className="font-semibold not-italic">{S.narrationSpeaker}:</span>{' '}
                             {followUp.aside}
                           </p>
                         )}
-                        <p className="text-sm leading-relaxed">
-                          <span className="font-bold" style={{ color: 'var(--vnp-name-mhs)' }}>
+                        <p className="text-sm leading-relaxed text-[#3e2517]">
+                          <span className="font-['Fredoka'] font-bold text-[#c4443c]">
                             {studentName}:
                           </span>{' '}
                           {followUp.text}
                         </p>
                         {followUp.cue && (
-                          <p className="mt-1 text-xs italic" style={{ color: 'var(--vnp-ink-muted)' }}>
-                            {followUp.cue}
-                          </p>
+                          <p className="mt-1 text-xs italic text-[#7a5234]">{followUp.cue}</p>
                         )}
                       </div>
                     )}

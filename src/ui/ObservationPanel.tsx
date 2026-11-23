@@ -116,12 +116,12 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
   }, [anecdotalRecords, selectedAgent]);
 
   return (
-    <div className="space-y-4 text-xs text-[var(--ui-text)]" data-testid="observation-panel">
+    <div className="space-y-4 text-xs text-[#3e2517]" data-testid="observation-panel">
       {/* Pemilih Mahasiswa */}
-      <div>
+      <div className="rounded-2xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-3 shadow-[inset_0_-3px_0_#f0e0bf]">
         <label
           htmlFor="obs-student-select"
-          className="block font-semibold text-[var(--ui-text)]"
+          className="block font-['Fredoka'] text-xs font-bold text-[#3e2517]"
         >
           {STRINGS.observation.selectStudentLabel}
         </label>
@@ -129,7 +129,7 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
           id="obs-student-select"
           value={selectedAgentId ?? ''}
           onChange={(e) => onSelectAgent(e.target.value || null)}
-          className="mt-1 w-full rounded-lg border border-[var(--ui-border)] bg-[var(--ui-surface)] px-2.5 py-2 text-xs text-[var(--ui-text)]"
+          className="mt-1.5 w-full rounded-xl border-2 border-[#3e2517]/40 bg-[#fff9ec] px-2.5 py-2 text-xs font-semibold text-[#3e2517]"
         >
           <option value="">{STRINGS.observation.allStudentsOverviewOption}</option>
           {agents.map((a) => (
@@ -141,17 +141,17 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
       </div>
 
       {/* Pola Perilaku Teramati (Fakta Murni, tanpa tafsir) */}
-      <section aria-label={STRINGS.observation.patternsTitle} className="rounded-lg border border-[var(--ui-border)] bg-[var(--ui-surface-muted)] p-3">
-        <h3 className="text-xs font-bold text-[var(--ui-text)]">
+      <section aria-label={STRINGS.observation.patternsTitle} className="rounded-2xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-3.5 shadow-[inset_0_-3px_0_#f0e0bf]">
+        <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
           {STRINGS.observation.patternsTitle}
           {selectedAgent ? ` — ${selectedAgent.name}` : ''}
         </h3>
         {factualPatterns.length === 0 ? (
-          <p className="mt-1.5 text-[11px] text-[var(--ui-text-muted)]">
+          <p className="mt-1.5 text-[11px] text-[#6b482e]">
             {STRINGS.observation.noPatternsYet}
           </p>
         ) : (
-          <ul className="mt-2 list-disc space-y-1.5 pl-4 text-[11px] leading-relaxed text-[var(--ui-text)]">
+          <ul className="mt-2 list-disc space-y-1.5 pl-4 text-[11px] leading-relaxed text-[#3e2517]">
             {factualPatterns.map((fact, idx) => (
               <li key={idx}>{fact}</li>
             ))}
@@ -160,9 +160,9 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
       </section>
 
       {/* Peta Panas Keberadaan 40 x 24 */}
-      <section aria-label={STRINGS.observation.heatmapTitle} className="rounded-lg border border-[var(--ui-border)] bg-[var(--ui-surface)] p-3">
+      <section aria-label={STRINGS.observation.heatmapTitle} className="rounded-2xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-3.5 shadow-[inset_0_-3px_0_#f0e0bf]">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-xs font-bold text-[var(--ui-text)]">
+          <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
             {STRINGS.observation.heatmapTitle}
           </h3>
           {selectedAgent && (
@@ -357,7 +357,7 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
 
             <button
               type="submit"
-              className="w-full rounded-lg bg-[var(--ui-accent)] px-3 py-2 text-xs font-semibold text-white hover:bg-[var(--ui-accent-hover)]"
+              className="game-btn-primary w-full text-xs"
             >
               {STRINGS.observation.saveAnecdotalBtn}
             </button>
@@ -366,12 +366,12 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
       </section>
 
       {/* Daftar Catatan Anekdot Tersimpan */}
-      <section aria-label={STRINGS.observation.savedAnecdotalTitle} className="border-t border-[var(--ui-border)] pt-3">
-        <h3 className="text-xs font-bold text-[var(--ui-text)]">
+      <section aria-label={STRINGS.observation.savedAnecdotalTitle} className="border-t-2 border-dashed border-[#3e2517]/20 pt-3">
+        <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
           {STRINGS.observation.savedAnecdotalTitle} ({filteredRecords.length})
         </h3>
         {filteredRecords.length === 0 ? (
-          <p className="mt-1 text-[11px] text-[var(--ui-text-muted)]">
+          <p className="mt-1 text-[11px] text-[#6b482e]">
             {STRINGS.observation.noAnecdotalYet}
           </p>
         ) : (
@@ -383,7 +383,7 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
               return (
                 <li
                   key={rec.id}
-                  className="rounded-lg border border-[var(--ui-border)] bg-[var(--ui-surface-muted)] p-2.5 text-[11px]"
+                  className="rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffdf7] p-3 text-[11px] shadow-[inset_0_-2px_0_#f0e0bf]"
                 >
                   <div className="flex items-center justify-between gap-2 font-semibold text-[var(--ui-text)]">
                     <span>{rec.agentName}</span>

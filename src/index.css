@@ -2325,3 +2325,63 @@ html[data-reduced-motion='true'] .fx-sparkle {
     transition: none !important;
   }
 }
+
+/* ===== Animasi Mikro Cozy Dekorasi Ruang BK & Scrollbar Buku Ilustrasi Hangat ===== */
+@keyframes cozy-steam-kf {
+  0%, 100% { transform: translateY(0); opacity: 0.75; }
+  50% { transform: translateY(-5px); opacity: 1; }
+}
+@keyframes cozy-paw-wave-kf {
+  0%, 100% { transform: rotate(0deg); }
+  45% { transform: rotate(12deg); }
+  75% { transform: rotate(-6deg); }
+}
+@keyframes cozy-lamp-pulse-kf {
+  0%, 100% { opacity: 0.82; }
+  50% { opacity: 1; }
+}
+@keyframes cozy-vinyl-spin-kf {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.cozy-steam { animation: cozy-steam-kf 2.8s ease-in-out infinite; }
+.cozy-paw-wave { animation: cozy-paw-wave-kf 2.4s ease-in-out infinite; }
+.cozy-lamp-pulse { animation: cozy-lamp-pulse-kf 3.6s ease-in-out infinite; }
+.cozy-vinyl-spin { animation: cozy-vinyl-spin-kf 7.5s linear infinite; }
+
+html[data-reduced-motion="true"] .cozy-steam,
+html[data-reduced-motion="true"] .cozy-paw-wave,
+html[data-reduced-motion="true"] .cozy-lamp-pulse,
+html[data-reduced-motion="true"] .cozy-vinyl-spin {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cozy-steam,
+  .cozy-paw-wave,
+  .cozy-lamp-pulse,
+  .cozy-vinyl-spin {
+    animation: none !important;
+  }
+}
+
+/* Scrollbar hangat bergaya kayu & krem agar selaras di seluruh panel & modal */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #b78556 #f3e4c7;
+}
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-track {
+  background: #f3e4c7;
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #b87a4b 0%, #8e5633 100%);
+  border: 2px solid #f3e4c7;
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #c98856 0%, #9f633c 100%);
+}

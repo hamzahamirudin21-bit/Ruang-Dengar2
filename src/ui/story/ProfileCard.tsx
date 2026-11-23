@@ -19,16 +19,11 @@ const TABS: readonly { id: ProfileTabId; Icon: React.FC<{ className?: string }> 
 ];
 
 const Field: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <section className="mb-3.5 rounded-xl border p-3" style={{ borderColor: 'var(--vnp-border)', background: 'rgba(255, 255, 255, 0.65)' }}>
-    <h3
-      className="mb-1 text-[0.7rem] font-extrabold uppercase tracking-wider"
-      style={{ color: 'var(--vnp-ink-muted)' }}
-    >
+  <section className="mb-3 rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffdf7] p-3 shadow-[inset_0_-2px_0_#efe0c0]">
+    <h3 className="mb-1 font-['Fredoka'] text-[0.72rem] font-bold uppercase tracking-wider text-[#7a5234]">
       {title}
     </h3>
-    <div className="text-sm font-medium leading-snug" style={{ color: 'var(--vnp-ink)' }}>
-      {children}
-    </div>
+    <div className="text-sm font-medium leading-snug text-[#3e2517]">{children}</div>
   </section>
 );
 
@@ -73,16 +68,13 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
       className={`flex flex-col overflow-hidden ${className}`}
       style={{ color: 'var(--vnp-ink)' }}
     >
-      <div
-        className="flex shrink-0 items-center justify-between gap-2 border-b px-4 py-3"
-        style={{ borderColor: 'var(--vnp-border)', background: 'rgba(27, 42, 73, 0.06)' }}
-      >
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b-[2.5px] border-[#3e2517] bg-gradient-to-r from-[#f8e6c1] to-[#f2d8a6] px-4 py-3">
         {!collapsed && (
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-extrabold" style={{ color: 'var(--vn-navy)' }}>
+            <h2 className="truncate font-['Fredoka'] text-base font-bold text-[#3e2517]">
               {profile.name}
             </h2>
-            <div className="mt-0.5 flex flex-wrap gap-1.5 text-[0.7rem] font-semibold" style={{ color: 'var(--vnp-ink-muted)' }}>
+            <div className="mt-0.5 flex flex-wrap gap-1.5 text-[0.72rem] font-semibold text-[#6b482e]">
               <span>{S.profileIdBadge(profile.number)}</span>
               <span aria-hidden="true">·</span>
               <span>{S.profileCohortBadge(profile.cohort)}</span>
@@ -107,8 +99,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
             role="tablist"
             aria-label={S.profileTabsAria}
             onKeyDown={onTabKeyDown}
-            className="grid shrink-0 grid-cols-4 gap-1 border-b p-2"
-            style={{ borderColor: 'var(--vnp-border)' }}
+            className="grid shrink-0 grid-cols-4 gap-1.5 border-b-2 border-[#3e2517]/20 bg-[#f9eed6] p-2"
           >
             {TABS.map(({ id, Icon }) => {
               const selected = tab === id;
@@ -122,11 +113,11 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
                   aria-controls="profile-tabpanel"
                   tabIndex={selected ? 0 : -1}
                   onClick={() => setTab(id)}
-                  className="flex flex-col items-center justify-center gap-0.5 rounded-lg px-1.5 py-1.5 text-[0.7rem] font-bold transition-colors"
-                  style={{
-                    background: selected ? 'var(--vn-navy)' : 'transparent',
-                    color: selected ? '#fdf9f2' : 'var(--vnp-ink-muted)',
-                  }}
+                  className={`flex flex-col items-center justify-center gap-0.5 rounded-xl border-2 px-1.5 py-1.5 font-['Fredoka'] text-[0.7rem] font-bold transition ${
+                    selected
+                      ? 'border-[#3e2517] bg-[#2e8274] text-[#fffdf6] shadow-[0_2px_0_#3e2517]'
+                      : 'border-transparent bg-transparent text-[#6b482e] hover:bg-[#f2dfb9]'
+                  }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
                   <span className="truncate">{S.profileTabs[id]}</span>

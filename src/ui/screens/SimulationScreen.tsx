@@ -116,6 +116,7 @@ import { RoomDecorModal } from './RoomDecorModal';
 import { ShiftReportModal } from './ShiftReportModal';
 import { computeCampusMissionSummary } from '../../engine/isolationMission';
 import {
+  ROOM_DECOR_CATALOG,
   buyRoomDecor,
   computeAvailableStars,
   toggleEquipRoomDecor,
@@ -1061,6 +1062,29 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     [story.missions, roomDecor]
   );
 
+  const canBuyAnyDecor = useMemo(
+    () =>
+      ROOM_DECOR_CATALOG.some(
+        (item) => !roomDecor.ownedIds.includes(item.id) && availableStars >= item.cost
+      ),
+    [roomDecor.ownedIds, availableStars]
+  );
+
+  // Toast perayaan hangat saat baru saja menuntaskan cerita mahasiswa
+  const [celebrationToast, setCelebrationToast] = useState<string | null>(null);
+  const prevMissionsDoneRef = useRef<number>(missionsDone);
+  useEffect(() => {
+    const prev = prevMissionsDoneRef.current;
+    prevMissionsDoneRef.current = missionsDone;
+    if (missionsDone > prev) {
+      setCelebrationToast(
+        `✨ Kisah terungkap (${missionsDone}/${STUDENT_COUNT}) · ⭐ +2 Bintang Empati siap untuk Hias Ruang BK!`
+      );
+      const timer = window.setTimeout(() => setCelebrationToast(null), 5500);
+      return () => window.clearTimeout(timer);
+    }
+  }, [missionsDone]);
+
   const handleBuyDecor = useCallback(
     (itemId: RoomDecorId) => {
       setRoomDecor((prev) => {
@@ -1211,9 +1235,17 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               playSfx('klik');
               setDecorShopOpen(true);
             }}
-            className="inline-flex items-center gap-1.5 rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#ffe694] to-[#f2b53b] px-3.5 py-1 font-['Fredoka'] text-xs font-bold text-[#3e2517] shadow-[inset_0_-2.5px_0_#c68616,0_3px_0_#3e2517] transition hover:-translate-y-0.5 hover:brightness-105"
+            className="relative inline-flex items-center gap-1.5 rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#ffe694] to-[#f2b53b] px-3.5 py-1 font-['Fredoka'] text-xs font-bold text-[#3e2517] shadow-[inset_0_-2.5px_0_#c68616,0_3px_0_#3e2517] transition hover:-translate-y-0.5 hover:brightness-105"
             title="Hias Ruang Konsultasi BK dengan Bintang Empati"
           >
+            {canBuyAnyDecor && (
+              <span
+                aria-hidden="true"
+                className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full border-[1.5px] border-[#3e2517] bg-[#e56256] text-[9px] font-bold text-white"
+              >
+                !
+              </span>
+            )}
             <span aria-hidden="true">🪴</span>
             <span className="hidden md:inline">Hias Ruang</span>
             <span>⭐ {availableStars}</span>
@@ -1273,6 +1305,15 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               );
             })}
           </div>
+          <GameButton
+            variant="bulat-ikon"
+            bounce
+            onClick={() => { playSfx('klik'); setBriefingOpen(true); }}
+            aria-label="Panduan Shift Pagi"
+            title="Panduan Shift Pagi"
+          >
+            <span className="font-['Fredoka'] text-sm font-bold" aria-hidden="true">?</span>
+          </GameButton>
           <GameButton
             variant="bulat-ikon"
             bounce
@@ -1492,6 +1533,46 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                   <span>Semua Terjaga</span>
                 </div>
               )}
+            </div>
+            {/* Toast Perayaan Bintang Empati melayang saat kisah baru terungkap */}
+            {celebrationToast && (
+              <div
+                role="status"
+                className="fx-panel-in absolute bottom-12 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#ffe799] to-[#f4b93c] px-4 py-1.5 font-['Fredoka'] text-xs font-bold text-[#3e2517] shadow-[0_4px_0_#3e2517]"
+              >
+                <span>{celebrationToast}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playSfx('klik');
+                    setCelebrationToast(null);
+                    setDecorShopOpen(true);
+                  }}
+                  className="rounded-full border border-[#3e2517] bg-[#fffdf6] px-2.5 py-0.5 text-[11px] font-bold text-[#3e2517] hover:bg-[#fff4d4]"
+                >
+                  Hias →
+                </button>
+              </div>
+            )}
+            {/* Legenda Mini Energi di sudut kiri bawah kanvas (jelas dalam 2 detik!) */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-3 left-3 z-10 hidden flex-wrap items-center gap-2 rounded-full border-2 border-[#3e2517] bg-[#fffdf6]/92 px-3 py-1 font-['Fredoka'] text-[11px] font-bold text-[#3e2517] shadow-[0_3px_0_#3e2517] sm:inline-flex"
+            >
+              <span className="inline-flex items-center gap-1">
+                <span className="h-2.5 w-2.5 rounded-full border border-[#3e2517] bg-[#36ab81]" />
+                Mengobrol (+)
+              </span>
+              <span className="opacity-35">·</span>
+              <span className="inline-flex items-center gap-1">
+                <span className="h-2.5 w-2.5 rounded-full border border-[#3e2517] bg-[#f2ae30]" />
+                Waspada
+              </span>
+              <span className="opacity-35">·</span>
+              <span className="inline-flex items-center gap-1">
+                <span className="h-2.5 w-2.5 rounded-full border border-[#3e2517] bg-[#e5534b]" />
+                Terisolasi (&lt;35%)
+              </span>
             </div>
             {/* Bingkai viewport hangat hand-inked */}
             <div
@@ -1749,13 +1830,161 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                 }}
               />
             ) : (
-              <div className="rounded-xl border border-dashed border-[var(--ui-border)] bg-[var(--ui-surface-muted)] p-5">
-                <h2 className="text-base font-semibold text-[var(--ui-text)]">
-                  {STRINGS.tabs.placeholders[activeTab].title}
-                </h2>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--ui-text-muted)]">
-                  {STRINGS.tabs.placeholders[activeTab].description(STUDENT_COUNT)}
-                </p>
+              <div className="space-y-3.5 text-xs text-[#3e2517]" data-testid="counselor-notes-panel">
+                <div className="rounded-2xl border-2 border-[#3e2517] bg-gradient-to-b from-[#fffdf7] to-[#f8ecd2] p-3.5 shadow-[0_4px_0_#3e2517]">
+                  <h2 className="font-['Fredoka'] text-sm font-bold text-[#3e2517]">
+                    📓 {STRINGS.tabs.placeholders[activeTab].title}
+                  </h2>
+                  <p className="mt-1 leading-relaxed text-[#6b482e]">
+                    Ringkasan lengkap seluruh kisah terungkap, catatan anekdot, dan hipotesis relasi mahasiswa di laboratorium.
+                  </p>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                    <div className="rounded-xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-2">
+                      <div className="font-['Fredoka'] text-base font-bold text-[#2e8274]">
+                        {missionsDone}/{STUDENT_COUNT}
+                      </div>
+                      <div className="text-[10px] font-semibold text-[#6b482e]">Kisah</div>
+                    </div>
+                    <div className="rounded-xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-2">
+                      <div className="font-['Fredoka'] text-base font-bold text-[#c6453c]">
+                        {anecdotalRecords.length}
+                      </div>
+                      <div className="text-[10px] font-semibold text-[#6b482e]">Anekdot</div>
+                    </div>
+                    <div className="rounded-xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-2">
+                      <div className="font-['Fredoka'] text-base font-bold text-[#b87314]">
+                        {hypotheses.length}
+                      </div>
+                      <div className="text-[10px] font-semibold text-[#6b482e]">Hipotesis</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <GameButton
+                      variant="primer"
+                      size="sm"
+                      onClick={() => {
+                        playSfx('klik');
+                        setJournalOpen(true);
+                      }}
+                    >
+                      📖 Buka Jurnal ({missionsDone}/{STUDENT_COUNT})
+                    </GameButton>
+                    <GameButton
+                      variant="sekunder"
+                      size="sm"
+                      onClick={() => {
+                        playSfx('klik');
+                        setDecorShopOpen(true);
+                      }}
+                    >
+                      🪴 Hias Ruang · ⭐ {availableStars}
+                    </GameButton>
+                  </div>
+                </div>
+
+                {/* Daftar Kisah Terungkap */}
+                <section className="rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffdf7] p-3">
+                  <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
+                    ✦ Kisah Mahasiswa Terungkap ({missionsDone})
+                  </h3>
+                  {missionsDone === 0 ? (
+                    <p className="mt-1.5 text-[11px] text-[#6b482e]">
+                      Belum ada kisah yang terbuka. Hampiri mahasiswa di peta atau lewat tab Misi untuk mulai mendengarkan.
+                    </p>
+                  ) : (
+                    <ul className="mt-2 space-y-1.5">
+                      {agentsSnapshot
+                        .filter((a) => story.missions[a.id]?.status === 'selesai')
+                        .map((a) => (
+                          <li
+                            key={a.id}
+                            className="rounded-xl border border-[#3e2517]/20 bg-[#fff7de] px-2.5 py-2"
+                          >
+                            <div className="font-['Fredoka'] font-bold text-[#3e2517]">{a.name}</div>
+                            <div className="text-[11px] font-semibold text-[#7a4b10]">
+                              “{signalForStudent(a.id).unlockedTitle}”
+                            </div>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </section>
+
+                {/* Catatan Anekdot Terbaru */}
+                <section className="rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffdf7] p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
+                      📝 Catatan Anekdot ({anecdotalRecords.length})
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('pengamatan')}
+                      className="font-['Fredoka'] text-[11px] font-bold text-[#2e8274] underline"
+                    >
+                      Tambah di Pengamatan →
+                    </button>
+                  </div>
+                  {anecdotalRecords.length === 0 ? (
+                    <p className="mt-1.5 text-[11px] text-[#6b482e]">
+                      Belum ada catatan anekdot tersimpan.
+                    </p>
+                  ) : (
+                    <ul className="mt-2 space-y-1.5">
+                      {anecdotalRecords.slice(0, 5).map((rec) => (
+                        <li
+                          key={rec.id}
+                          className="rounded-xl border border-[#3e2517]/15 bg-[#fffaf0] px-2.5 py-1.5 text-[11px]"
+                        >
+                          <div className="font-bold text-[#3e2517]">
+                            {rec.agentName}{' '}
+                            <span className="font-normal text-[#7a5234]">
+                              ({rec.dateLabel} · {rec.timeLabel})
+                            </span>
+                          </div>
+                          <p className="mt-0.5 text-[#5c3d26]">{rec.observedFact}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+
+                {/* Hipotesis Relasi Terbaru */}
+                <section className="rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffdf7] p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
+                      🔎 Hipotesis Sosiometri ({hypotheses.length})
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('sosiogram')}
+                      className="font-['Fredoka'] text-[11px] font-bold text-[#2e8274] underline"
+                    >
+                      Buka Sosiogram →
+                    </button>
+                  </div>
+                  {hypotheses.length === 0 ? (
+                    <p className="mt-1.5 text-[11px] text-[#6b482e]">
+                      Belum ada hipotesis relasi yang dicatat.
+                    </p>
+                  ) : (
+                    <ul className="mt-2 space-y-1.5">
+                      {hypotheses.slice(0, 5).map((h) => (
+                        <li
+                          key={h.id}
+                          className="rounded-xl border border-[#3e2517]/15 bg-[#fffaf0] px-2.5 py-1.5 text-[11px]"
+                        >
+                          <div className="font-bold text-[#3e2517]">
+                            {h.agentName}{' '}
+                            <span className="font-normal text-[#7a5234]">
+                              · Keyakinan {h.confidence}
+                            </span>
+                          </div>
+                          <p className="mt-0.5 text-[#5c3d26]">{h.hypothesisText}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
               </div>
             )}
           </div>
@@ -1796,7 +2025,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           role="dialog"
           aria-modal="true"
           data-testid="debrief-overlay"
-          className="fixed inset-0 z-[70] overflow-y-auto bg-[var(--ui-bg,#f8fafc)] p-3 sm:p-6"
+          className="fixed inset-0 z-[70] overflow-y-auto bg-[#eadbc2] p-3 sm:p-6"
         >
           <DebriefDashboard
             props={story.debriefProps}

@@ -14,7 +14,6 @@ import type { RoomDecorId } from '../../engine/roomDecor';
 import { signalForStudent } from '../../engine/storySignals';
 import { resolveSceneArt, sceneVariantForGraph } from '../scene/sceneArt';
 import type { SceneVariant } from '../scene/sceneArt';
-import { STORY_PALETTE as P } from './palette';
 import { ProfileCard } from './ProfileCard';
 import { RoomDecorOverlay } from './RoomDecorOverlay';
 import { StoryHistoryPanel } from './StoryHistoryPanel';
@@ -155,111 +154,128 @@ function MissionSummaryCard({
   const stress = S.impactWords[impactWord(outcome.stressDelta)];
   const canFollowUp = outcome.kind !== 'terbantu';
   const storySignal = signalForStudent(studentId);
+  const earnedStars = outcome.kind === 'terbantu' ? 2 : outcome.kind === 'kemajuan-kecil' ? 1 : 0;
 
   return (
     <section
       role="region"
       aria-label={S.summaryCardTitle}
-      className="vn-box--solid max-h-full w-full max-w-xl overflow-y-auto p-6"
+      className="vn-box--solid fx-panel-in max-h-full w-full max-w-xl overflow-y-auto !p-0"
       data-testid="story-mission-summary"
     >
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b pb-3" style={{ borderColor: 'var(--vnp-border)' }}>
-        <h2 className="text-lg font-extrabold" style={{ color: 'var(--vn-navy)' }}>
-          {S.summaryCardTitle}
-        </h2>
-        <span
-          className="rounded-full px-3 py-1 text-xs font-bold"
-          style={{
-            background: outcome.kind === 'terbantu' ? '#1b5e4a' : outcome.kind === 'kemajuan-kecil' ? '#1d5d7a' : '#8f3451',
-            color: '#ffffff',
-          }}
-        >
-          {S.outcomeLabels[outcome.kind]}
-        </span>
-      </div>
-
-      {outcome.kind === 'terbantu' && (
-        <div
-          className="mb-3.5 rounded-[4px_14px_4px_14px] border-2 p-3"
-          style={{ borderColor: '#e5ac3f', background: '#fff8e6' }}
-          data-testid="story-unlocked-card"
-        >
-          <p className="font-['Outfit'] text-[11px] font-extrabold uppercase tracking-wider" style={{ color: '#9a640b' }}>
-            ✦ Kisah Terungkap di Jurnal Lab
-          </p>
-          <p className="mt-0.5 font-['Outfit'] text-sm font-black" style={{ color: 'var(--vn-navy)' }}>
-            “{storySignal.unlockedTitle}”
-          </p>
-          <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--vnp-ink)' }}>
-            {storySignal.unlockedExcerpt}
-          </p>
-        </div>
-      )}
-
-      <p className="text-sm leading-relaxed" style={{ color: 'var(--vnp-ink)' }}>
-        {outcome.summaryBody}
-      </p>
-
-      {outcome.reasons.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--vnp-ink-muted)' }}>
-            {S.summaryReasonsTitle}
-          </h3>
-          <ul className="mt-1.5 list-disc space-y-1 pl-5 text-sm" style={{ color: 'var(--vnp-ink)' }}>
-            {outcome.reasons.map((r) => (
-              <li key={r}>{r}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl border p-3 text-sm" style={{ borderColor: 'var(--vnp-border)', background: 'rgba(255,255,255,0.55)' }}>
+      {/* Header Pita Perayaan Cozy */}
+      <div
+        className="flex flex-wrap items-center justify-between gap-2 border-b-[3px] border-[#3e2517] px-6 py-4 text-[#fffdf6]"
+        style={{
+          background:
+            outcome.kind === 'terbantu'
+              ? 'linear-gradient(135deg, #2e8274 0%, #1f6458 100%)'
+              : outcome.kind === 'kemajuan-kecil'
+                ? 'linear-gradient(135deg, #c9862d 0%, #a16518 100%)'
+                : 'linear-gradient(135deg, #c94c44 0%, #9b332d 100%)',
+        }}
+      >
         <div>
-          <span className="block text-xs font-semibold" style={{ color: 'var(--vnp-ink-muted)' }}>
-            {S.summaryEnergyLabel}
-          </span>
-          <span className="font-bold" style={{ color: 'var(--vnp-ink)' }}>
-            {energy} ({energySigned})
-          </span>
+          <p className="font-['Fredoka'] text-[11px] font-bold uppercase tracking-wider text-[#ffe8a3]">
+            {outcome.kind === 'terbantu' ? '✦ Pendampingan Berhasil' : 'Catatan Akhir Sesi'}
+          </p>
+          <h2 className="font-['Fredoka'] text-xl font-bold drop-shadow-[0_2px_0_#3e2517]">
+            {S.summaryCardTitle}
+          </h2>
         </div>
-        <div>
-          <span className="block text-xs font-semibold" style={{ color: 'var(--vnp-ink-muted)' }}>
-            {S.summaryStressLabel}
-          </span>
-          <span className="font-bold" style={{ color: 'var(--vnp-ink)' }}>
-            {stress}
+        <div className="flex items-center gap-2">
+          {earnedStars > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full border-2 border-[#3e2517] bg-[#ffe694] px-3 py-1 font-['Fredoka'] text-xs font-bold text-[#3e2517] shadow-[0_3px_0_#3e2517]">
+              ⭐ +{earnedStars} Bintang
+            </span>
+          )}
+          <span className="rounded-full border-2 border-[#3e2517] bg-[#fffdf6] px-3 py-1 font-['Fredoka'] text-xs font-bold text-[#3e2517] shadow-[0_3px_0_#3e2517]">
+            {S.outcomeLabels[outcome.kind]}
           </span>
         </div>
       </div>
 
-      <p className="mt-4 text-xs leading-relaxed" style={{ color: 'var(--vnp-ink-muted)' }}>
-        {canFollowUp ? S.followUpNote : S.missionCompleteNote}
-      </p>
+      <div className="p-6">
+        {outcome.kind === 'terbantu' && (
+          <div
+            className="mb-4 rounded-[20px] border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#fff8de] to-[#fdebb7] p-3.5 shadow-[inset_0_-3px_0_#e8c673,0_4px_0_#3e2517]"
+            data-testid="story-unlocked-card"
+          >
+            <p className="font-['Fredoka'] text-[11px] font-bold uppercase tracking-wider text-[#9c5a0e]">
+              📖 Kisah Terungkap di Jurnal Lab
+            </p>
+            <p className="mt-0.5 font-['Fredoka'] text-base font-bold text-[#3e2517]">
+              “{storySignal.unlockedTitle}”
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-[#5c3d26]">
+              {storySignal.unlockedExcerpt}
+            </p>
+          </div>
+        )}
 
-      <div className="mt-5 flex flex-wrap justify-end gap-2.5">
-        <button
-          type="button"
-          className="vn-topbtn !min-h-[40px] !px-5 !text-sm"
-          style={
-            onReturnToLab
-              ? { background: '#efe5d0', color: 'var(--vn-navy)', borderColor: '#0f1b33' }
-              : { background: P.accent, color: '#ffffff' }
-          }
-          aria-label={S.viewDebriefAria}
-          onClick={onViewDebrief}
-        >
-          {onReturnToLab ? 'Lihat Refleksi' : S.viewDebriefBtn}
-        </button>
-        {onReturnToLab && (
+        <p className="text-sm leading-relaxed text-[#3e2517]">{outcome.summaryBody}</p>
+
+        {outcome.reasons.length > 0 && (
+          <div className="mt-4 rounded-2xl border-2 border-[#3e2517]/20 bg-[#fffaf0] p-3.5">
+            <h3 className="font-['Fredoka'] text-xs font-bold uppercase tracking-wider text-[#7a5234]">
+              {S.summaryReasonsTitle}
+            </h3>
+            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-sm text-[#3e2517]">
+              {outcome.reasons.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+          <div className="rounded-2xl border-[2.5px] border-[#3e2517] bg-[#fffdf7] p-3 shadow-[0_3px_0_#3e2517]">
+            <span className="block font-['Fredoka'] text-xs font-semibold text-[#7a5234]">
+              ⚡ {S.summaryEnergyLabel}
+            </span>
+            <span
+              className={`font-['Fredoka'] text-base font-bold ${
+                energyDeltaPct > 0
+                  ? 'text-[#217a62]'
+                  : energyDeltaPct < 0
+                    ? 'text-[#c6453c]'
+                    : 'text-[#3e2517]'
+              }`}
+            >
+              {energy} ({energySigned})
+            </span>
+          </div>
+          <div className="rounded-2xl border-[2.5px] border-[#3e2517] bg-[#fffdf7] p-3 shadow-[0_3px_0_#3e2517]">
+            <span className="block font-['Fredoka'] text-xs font-semibold text-[#7a5234]">
+              🌿 {S.summaryStressLabel}
+            </span>
+            <span className="font-['Fredoka'] text-base font-bold text-[#3e2517]">{stress}</span>
+          </div>
+        </div>
+
+        <p className="mt-4 text-xs leading-relaxed text-[#6b482e]">
+          {canFollowUp ? S.followUpNote : S.missionCompleteNote}
+        </p>
+
+        <div className="mt-5 flex flex-wrap justify-end gap-2.5">
           <button
             type="button"
-            className="vn-topbtn !min-h-[40px] !px-6 !text-sm"
-            style={{ background: P.accent, color: '#ffffff' }}
-            onClick={onReturnToLab}
+            className="game-btn-secondary !px-5 text-sm"
+            aria-label={S.viewDebriefAria}
+            onClick={onViewDebrief}
           >
-            Kembali ke Lab →
+            {onReturnToLab ? 'Lihat Refleksi' : S.viewDebriefBtn}
           </button>
-        )}
+          {onReturnToLab && (
+            <button
+              type="button"
+              className="game-btn-primary !px-6 text-sm"
+              onClick={onReturnToLab}
+            >
+              Kembali ke Lab →
+            </button>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -565,6 +581,30 @@ export function StoryScreen({
       </div>
       {/* 1b. Pencahayaan emosi panggung halus berbasis ekspresi terlihat */}
       <div className="vn-mood-layer" aria-hidden="true" />
+      {/* 1b2. Partikel debu sinar matahari hangat melayang di Ruang Konsultasi */}
+      {!reducedMotion && scene?.setting === 'ruang-konsultasi' && (
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[1] overflow-hidden">
+          {[
+            { left: '16%', top: '28%', size: 7, delay: '0s' },
+            { left: '34%', top: '22%', size: 5, delay: '1.6s' },
+            { left: '52%', top: '34%', size: 8, delay: '3.1s' },
+            { left: '68%', top: '24%', size: 6, delay: '4.5s' },
+            { left: '82%', top: '38%', size: 7, delay: '2.2s' },
+          ].map((mote, idx) => (
+            <span
+              key={idx}
+              className="fx-dust absolute"
+              style={{
+                left: mote.left,
+                top: mote.top,
+                width: `${mote.size}px`,
+                height: `${mote.size}px`,
+                animationDelay: mote.delay,
+              }}
+            />
+          ))}
+        </div>
+      )}
       {/* 1c. Hiasan Ruang Konsultasi yang telah dibuka & dipasang pemain */}
       <RoomDecorOverlay
         setting={scene?.setting ?? 'ruang-konsultasi'}
@@ -641,11 +681,35 @@ export function StoryScreen({
         <div className="vn-topbar-center">
           {scene && (
             <div className="vn-location" data-testid="story-scene-caption">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-center gap-2">
                 <span className="vn-location-title">{scene.title}</span>
                 {isCompactMode && !state.ended && (
-                  <span className="rounded-full border border-[#3e2517]/40 bg-[#f6e4be] px-2 py-0.5 font-['Fredoka'] text-[10px] font-bold text-[#5a341c]">
-                    {Math.min(7, state.turn + 1)}/7
+                  <span
+                    className="inline-flex items-center gap-1 rounded-full border-2 border-[#3e2517]/50 bg-[#fff5d8] px-2.5 py-0.5"
+                    aria-label={`Langkah ${Math.min(7, state.turn + 1)} dari 7`}
+                  >
+                    <span className="inline-flex items-center gap-1" aria-hidden="true">
+                      {[1, 2, 3, 4, 5, 6, 7].map((step) => {
+                        const currentStep = Math.min(7, state.turn + 1);
+                        const done = step < currentStep;
+                        const active = step === currentStep;
+                        return (
+                          <span
+                            key={step}
+                            className={`inline-block rounded-full border border-[#3e2517] transition-all ${
+                              active
+                                ? 'h-2.5 w-2.5 bg-[#e56256] scale-110'
+                                : done
+                                  ? 'h-2 w-2 bg-[#2e8274]'
+                                  : 'h-1.5 w-1.5 bg-[#e8d5b0]'
+                            }`}
+                          />
+                        );
+                      })}
+                    </span>
+                    <span className="ml-0.5 font-['Fredoka'] text-[10px] font-bold text-[#3e2517]">
+                      {Math.min(7, state.turn + 1)}/7
+                    </span>
                   </span>
                 )}
               </div>
@@ -785,18 +849,18 @@ export function StoryScreen({
 
       {/* 8. Dialog konfirmasi akhiri sesi */}
       {confirmEnd && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2c1a0e]/65 p-4 backdrop-blur-xs">
           <div
             role="alertdialog"
             aria-modal="true"
             aria-labelledby="story-end-title"
             aria-describedby="story-end-body"
-            className="vn-box--solid w-full max-w-md p-6"
+            className="vn-box--solid fx-panel-in w-full max-w-md p-6"
           >
-            <h2 id="story-end-title" className="mb-2 text-base font-extrabold" style={{ color: 'var(--vn-navy)' }}>
+            <h2 id="story-end-title" className="mb-2 font-['Fredoka'] text-lg font-bold text-[#3e2517]">
               {S.endSessionConfirmTitle}
             </h2>
-            <p id="story-end-body" className="mb-5 text-sm leading-relaxed" style={{ color: 'var(--vnp-ink)' }}>
+            <p id="story-end-body" className="mb-5 text-sm leading-relaxed text-[#5c3d26]">
               {S.endSessionConfirmBody}
             </p>
             <div className="flex justify-end gap-2.5">
@@ -804,8 +868,7 @@ export function StoryScreen({
                 type="button"
                 autoFocus
                 aria-label={S.endSessionConfirmNo}
-                className="vn-topbtn"
-                style={{ background: '#e8dcc6', color: 'var(--vnp-ink)', borderColor: 'var(--vnp-border-strong)' }}
+                className="game-btn-secondary !px-4 text-sm"
                 onClick={() => setConfirmEnd(false)}
               >
                 {S.endSessionConfirmNo}
@@ -813,8 +876,7 @@ export function StoryScreen({
               <button
                 type="button"
                 aria-label={S.endSessionConfirmYes}
-                className="vn-topbtn"
-                style={{ background: P.accent, color: '#ffffff' }}
+                className="game-btn-primary !px-5 text-sm"
                 onClick={confirmAndEnd}
               >
                 {S.endSessionConfirmYes}

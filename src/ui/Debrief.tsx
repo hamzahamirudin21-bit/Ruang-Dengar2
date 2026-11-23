@@ -362,13 +362,13 @@ const RUBRIC_ITEM_ORDER: readonly import('../types').RubricItemId[] = [
 ];
 
 const SECTION_CLASS =
-  'space-y-3 rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-4';
-const H2_CLASS = 'text-sm font-bold text-[var(--ui-text)]';
-const MUTED_CLASS = 'text-[11px] leading-relaxed text-[var(--ui-text-muted)]';
+  'space-y-3 rounded-[22px] border-[2.5px] border-[#3e2517] bg-[#fffdf7] p-4 sm:p-5 shadow-[inset_0_-4px_0_#edd9b4,0_5px_0_#3e2517]';
+const H2_CLASS = "font-['Fredoka'] text-base font-bold text-[#3e2517]";
+const MUTED_CLASS = 'text-[11px] leading-relaxed text-[#6b482e]';
 const BTN_CLASS =
-  'whitespace-nowrap rounded-lg border border-[var(--ui-border)] bg-[var(--ui-surface-muted)] px-3 py-2 text-xs font-semibold text-[var(--ui-text)] hover:bg-[var(--ui-surface)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60';
+  'game-btn-secondary !min-h-[2.1rem] !px-4 text-xs whitespace-nowrap';
 const BTN_PRIMARY_CLASS =
-  'whitespace-nowrap rounded-lg bg-[var(--ui-accent)] px-3 py-2 text-xs font-semibold text-white hover:bg-[var(--ui-accent-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60';
+  'game-btn-primary !min-h-[2.1rem] !px-4 text-xs whitespace-nowrap';
 
 function channelName(id: ContactChannelId): string {
   return CONTACT_CHANNELS.find((c) => c.id === id)?.name ?? id;
@@ -777,18 +777,23 @@ export const DebriefDashboard: React.FC<DebriefDashboardProps> = ({
   const verdictById = new Map(view.hypothesisVerdicts.map((v) => [v.hypothesisId, v]));
 
   return (
-    <div data-debrief-root className="space-y-4 p-4 text-xs text-[var(--ui-text)]">
-      <header className="flex items-start justify-between gap-3">
+    <div data-debrief-root className="mx-auto max-w-4xl space-y-4 p-3 sm:p-5 text-xs text-[#3e2517]">
+      <header className="flex flex-wrap items-center justify-between gap-3 rounded-[26px] border-[3.5px] border-[#3e2517] bg-gradient-to-r from-[#2e8274] via-[#257164] to-[#1e5c51] px-6 py-4 text-[#fffdf6] shadow-[0_6px_0_#3e2517]">
         <div>
-          <h1 className="text-lg font-bold">{D.title}</h1>
-          <p className={MUTED_CLASS}>{D.subtitle}</p>
+          <p className="font-['Fredoka'] text-[11px] font-bold uppercase tracking-wider text-[#ffe8a3]">
+            ✦ Laporan Refleksi Konseling
+          </p>
+          <h1 className="font-['Fredoka'] text-xl font-bold drop-shadow-[0_2px_0_#3e2517]">
+            {D.title}
+          </h1>
+          <p className="mt-0.5 text-xs text-[#e2f7f0]">{D.subtitle}</p>
         </div>
         <button type="button" data-print-hide onClick={onClose} className={BTN_CLASS}>
           {D.closeButton}
         </button>
       </header>
 
-      <p role="note" className="rounded-lg border border-[var(--ui-warning-border)] bg-[var(--ui-warning-bg)] p-2.5 text-xs font-medium text-[var(--ui-warning-text)]">
+      <p role="note" className="rounded-2xl border-2 border-[#3e2517]/40 bg-[#fff5d6] p-3 text-xs font-semibold text-[#5d3d18]">
         {D.learningToolDisclaimer}
       </p>
 
@@ -901,16 +906,33 @@ export const DebriefDashboard: React.FC<DebriefDashboardProps> = ({
           {D.rubric.descriptorLabels[rubric.totalDescriptor]}
         </p>
         {rubric.neutralCount > 0 && <p className={MUTED_CLASS}>{D.rubric.neutralCountLabel(rubric.neutralCount)}</p>}
-        <ul className="space-y-2">
+        <ul className="space-y-2.5">
           {rubric.items.map((item) => (
-            <li key={item.id} className="rounded-lg border border-[var(--ui-border)] p-2.5">
-              <div className="flex items-baseline justify-between gap-2">
-                <h3 className="text-xs font-bold">{D.rubric.itemLabels[item.id]}</h3>
-                <span className="font-mono-data">
-                  {D.rubric.scoreLabel}: <span className="font-semibold">{item.score}</span> ·{' '}
+            <li
+              key={item.id}
+              className="rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffaf0] p-3"
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
+                  {D.rubric.itemLabels[item.id]}
+                </h3>
+                <span className="font-mono-data text-[11px] font-bold text-[#5d3d26]">
+                  {D.rubric.scoreLabel}: <span className="text-[#217a62]">{item.score}</span> ·{' '}
                   {D.rubric.descriptorLabels[item.descriptor]}
                   {item.neutral && ` · ${D.rubric.neutralBadge}`}
                 </span>
+              </div>
+              <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full border border-[#3e2517]/40 bg-[#eeddc0]">
+                <div
+                  className={`h-full rounded-full ${
+                    item.score >= 75
+                      ? 'bg-[#2e8274]'
+                      : item.score >= 50
+                        ? 'bg-[#e8a730]'
+                        : 'bg-[#d8534a]'
+                  }`}
+                  style={{ width: `${Math.max(4, Math.min(100, item.score))}%` }}
+                />
               </div>
               {item.neutral && item.neutralNote && (
                 <p className={MUTED_CLASS}>

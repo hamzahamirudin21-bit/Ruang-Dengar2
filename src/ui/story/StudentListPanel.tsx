@@ -28,12 +28,9 @@ export const StudentListPanel: React.FC<StudentListPanelProps> = ({
       className={`flex flex-col overflow-hidden ${className}`}
       style={{ color: 'var(--vnp-ink)' }}
     >
-      <div
-        className="flex shrink-0 items-center justify-between gap-2 border-b px-4 py-3"
-        style={{ borderColor: 'var(--vnp-border)', background: 'rgba(27, 42, 73, 0.06)' }}
-      >
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b-[2.5px] border-[#3e2517] bg-gradient-to-r from-[#f8e6c1] to-[#f2d8a6] px-4 py-3">
         {!collapsed && (
-          <h2 className="text-sm font-extrabold tracking-wide" style={{ color: 'var(--vn-navy)' }}>
+          <h2 className="font-['Fredoka'] text-base font-bold tracking-wide text-[#3e2517]">
             {S.studentListTitle(rows.length)}
           </h2>
         )}
@@ -50,26 +47,23 @@ export const StudentListPanel: React.FC<StudentListPanelProps> = ({
       </div>
 
       {!collapsed && (
-        <ul className="min-w-0 flex-1 space-y-1.5 overflow-y-auto overflow-x-hidden p-3">
+        <ul className="min-w-0 flex-1 space-y-2 overflow-y-auto overflow-x-hidden p-3">
           {rows.map((row) => {
             const active = row.id === activeId;
             return (
               <li
                 key={row.id}
                 aria-current={active ? 'true' : undefined}
-                className="flex items-center gap-2.5 rounded-xl border px-2.5 py-1.5 transition-colors"
-                style={{
-                  borderColor: active ? 'var(--vn-accent)' : 'var(--vnp-border)',
-                  background: active ? 'rgba(29, 93, 122, 0.12)' : 'rgba(255, 255, 255, 0.72)',
-                  color: 'var(--vnp-ink)',
-                }}
+                className={`flex items-center gap-2.5 rounded-2xl border-2 px-2.5 py-1.5 transition ${
+                  active
+                    ? 'border-[#3e2517] bg-[#e4f7f1] shadow-[0_3px_0_#3e2517]'
+                    : 'border-[#3e2517]/20 bg-[#fffdf7]'
+                }`}
               >
                 <div
-                  className="h-9 w-9 shrink-0 overflow-hidden rounded-full border"
-                  style={{
-                    borderColor: active ? 'var(--vn-accent)' : 'var(--vnp-border-strong)',
-                    background: '#efe7d8',
-                  }}
+                  className={`h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 ${
+                    active ? 'border-[#2e8274]' : 'border-[#3e2517]/40'
+                  } bg-[#f5e7cb]`}
                 >
                   <div className="h-full w-full [&>canvas]:!h-full [&>canvas]:!w-full [&>canvas]:object-cover [&>canvas]:object-top [&>img]:!h-full [&>img]:!w-full">
                     <PixelPortrait
@@ -84,7 +78,9 @@ export const StudentListPanel: React.FC<StudentListPanelProps> = ({
                 </div>
                 <span
                   title={row.name}
-                  className={`min-w-0 flex-1 truncate text-sm ${active ? 'font-extrabold' : 'font-semibold'}`}
+                  className={`min-w-0 flex-1 truncate font-['Fredoka'] text-sm text-[#3e2517] ${
+                    active ? 'font-bold' : 'font-semibold'
+                  }`}
                 >
                   {row.name}
                   {active && <span className="sr-only"> ({S.activeMarkerLabel})</span>}
@@ -92,8 +88,7 @@ export const StudentListPanel: React.FC<StudentListPanelProps> = ({
                 {active && (
                   <span
                     aria-hidden="true"
-                    className="h-2 w-2 shrink-0 rounded-full"
-                    style={{ background: 'var(--vn-accent)' }}
+                    className="h-2.5 w-2.5 shrink-0 rounded-full border border-[#3e2517] bg-[#2e8274]"
                   />
                 )}
                 <StatusShapeIcon shape={row.statusShape} className="h-3 w-3 shrink-0 opacity-70" />

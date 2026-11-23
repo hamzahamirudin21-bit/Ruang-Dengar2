@@ -135,6 +135,29 @@ export const StartScreen: React.FC<StartScreenProps> = ({
     <main className="title-screen" onPointerMove={handlePointerMove}>
       <canvas ref={canvasRef} className="title-backdrop" aria-hidden="true" />
       <div className="title-sunbeams" aria-hidden="true" />
+      {!reduced && (
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[1] overflow-hidden">
+          {[
+            { left: '14%', top: '26%', size: 6, delay: '0s' },
+            { left: '38%', top: '18%', size: 8, delay: '1.8s' },
+            { left: '62%', top: '28%', size: 6, delay: '3.2s' },
+            { left: '78%', top: '20%', size: 7, delay: '0.9s' },
+            { left: '88%', top: '46%', size: 5, delay: '4.1s' },
+          ].map((mote, idx) => (
+            <span
+              key={idx}
+              className="fx-dust absolute"
+              style={{
+                left: mote.left,
+                top: mote.top,
+                width: `${mote.size}px`,
+                height: `${mote.size}px`,
+                animationDelay: mote.delay,
+              }}
+            />
+          ))}
+        </div>
+      )}
       <div className="title-shade" aria-hidden="true" />
       <div className="title-border" aria-hidden="true" />
 

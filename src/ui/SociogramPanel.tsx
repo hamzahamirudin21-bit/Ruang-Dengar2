@@ -228,10 +228,10 @@ const SociogramViewport: React.FC<SociogramViewportProps> = ({
   };
 
   return (
-    <div className="rounded-lg border border-[var(--ui-border)] bg-[var(--ui-surface)] p-2">
-      <div className="mb-1.5 flex items-center justify-between text-[11px] font-semibold text-[var(--ui-text)]">
-        <span>{title}</span>
-        <span className="font-mono-data font-normal text-[var(--ui-text-muted)]">
+    <div className="rounded-2xl border-2 border-[#3e2517]/35 bg-[#fffdf7] p-2.5 shadow-[inset_0_-3px_0_#f0e0bf]">
+      <div className="mb-1.5 flex items-center justify-between text-[11px] font-bold text-[#3e2517]">
+        <span className="font-['Fredoka']">{title}</span>
+        <span className="font-mono-data font-semibold text-[#6b482e]">
           {stats.reciprocalPairCount} timbal balik
         </span>
       </div>
@@ -240,7 +240,7 @@ const SociogramViewport: React.FC<SociogramViewportProps> = ({
         viewBox={`0 0 ${svgWidth} ${svgHeight}`}
         role="img"
         aria-label={title}
-        className="block h-auto w-full select-none rounded border border-[var(--ui-border)] bg-[#fafbfc]"
+        className="block h-auto w-full select-none rounded-xl border-2 border-[#3e2517]/25 bg-[#fffaf0]"
       >
         <defs>
           <marker
@@ -522,25 +522,25 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
   };
 
   return (
-    <div className="space-y-4 text-xs text-[var(--ui-text)]" data-testid="sociogram-panel">
+    <div className="space-y-4 text-xs text-[#3e2517]" data-testid="sociogram-panel">
       {/* Penafian kehati-hatian wajib */}
       <div
         role="note"
-        className="rounded-lg border border-[var(--ui-warning-border)] bg-[var(--ui-warning-bg)] p-3 text-[12px] leading-relaxed text-[var(--ui-warning-text)]"
+        className="rounded-2xl border-2 border-[#3e2517]/35 bg-[#fff5d6] p-3 text-[12px] leading-relaxed text-[#5d3d18] shadow-[inset_0_-3px_0_#ebd49a]"
       >
         {STRINGS.sociogram.cautionBanner}
       </div>
 
       {/* Pertanyaan sosiometri positif */}
-      <div className="border-b border-[var(--ui-border)] pb-2.5">
-        <p className="text-[11px] font-medium text-[var(--ui-text-muted)]">
+      <div className="rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffdf7] p-3">
+        <p className="font-['Fredoka'] text-[11px] font-bold uppercase tracking-wider text-[#7a5234]">
           {STRINGS.sociogram.positiveQuestionLabel}
         </p>
-        <p className="mt-0.5 text-xs font-semibold text-[var(--ui-text)]">
+        <p className="mt-0.5 text-xs font-bold text-[#3e2517]">
           {STRINGS.sociogram.positiveQuestionText}
         </p>
         {primarySnapshot.isLivePreview && (
-          <p className="mt-1 text-[11px] text-[var(--ui-text-muted)]">
+          <p className="mt-1 text-[11px] text-[#6b482e]">
             {STRINGS.sociogram.previewNotice}
           </p>
         )}
@@ -549,15 +549,15 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
       {/* Kontrol tampilan & slider hari */}
       <div className="space-y-2.5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-1 rounded-md border border-[var(--ui-border)] bg-[var(--ui-surface-muted)] p-0.5">
+          <div className="flex items-center gap-1 rounded-full border-2 border-[#3e2517]/35 bg-[#f5e6c8] p-0.5">
             <button
               type="button"
               onClick={() => setColorMode('none')}
               aria-pressed={colorMode === 'none'}
-              className={`whitespace-nowrap rounded px-2 py-1 text-[11px] font-medium ${
+              className={`whitespace-nowrap rounded-full px-2.5 py-1 font-['Fredoka'] text-[11px] font-bold transition ${
                 colorMode === 'none'
-                  ? 'bg-[var(--ui-surface)] text-[var(--ui-text)] shadow-xs'
-                  : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]'
+                  ? 'bg-[#3e2517] text-[#fffdf6]'
+                  : 'text-[#6b482e] hover:text-[#3e2517]'
               }`}
             >
               {STRINGS.sociogram.colorModeNone}
@@ -566,25 +566,25 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
               type="button"
               onClick={() => setColorMode('station')}
               aria-pressed={colorMode === 'station'}
-              className={`whitespace-nowrap rounded px-2 py-1 text-[11px] font-medium ${
+              className={`whitespace-nowrap rounded-full px-2.5 py-1 font-['Fredoka'] text-[11px] font-bold transition ${
                 colorMode === 'station'
-                  ? 'bg-[var(--ui-surface)] text-[var(--ui-text)] shadow-xs'
-                  : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]'
+                  ? 'bg-[#3e2517] text-[#fffdf6]'
+                  : 'text-[#6b482e] hover:text-[#3e2517]'
               }`}
             >
               {STRINGS.sociogram.colorModeStation}
             </button>
           </div>
 
-          <div className="flex items-center gap-1 rounded-md border border-[var(--ui-border)] bg-[var(--ui-surface-muted)] p-0.5">
+          <div className="flex items-center gap-1 rounded-full border-2 border-[#3e2517]/35 bg-[#f5e6c8] p-0.5">
             <button
               type="button"
               onClick={() => setCompareMode('single')}
               aria-pressed={compareMode === 'single'}
-              className={`whitespace-nowrap rounded px-2 py-1 text-[11px] font-medium ${
+              className={`whitespace-nowrap rounded-full px-2.5 py-1 font-['Fredoka'] text-[11px] font-bold transition ${
                 compareMode === 'single'
-                  ? 'bg-[var(--ui-surface)] text-[var(--ui-text)] shadow-xs'
-                  : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]'
+                  ? 'bg-[#2e8274] text-[#fffdf6]'
+                  : 'text-[#6b482e] hover:text-[#3e2517]'
               }`}
             >
               {STRINGS.sociogram.compareModeSingle}
@@ -593,10 +593,10 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
               type="button"
               onClick={() => setCompareMode('split')}
               aria-pressed={compareMode === 'split'}
-              className={`whitespace-nowrap rounded px-2 py-1 text-[11px] font-medium ${
+              className={`whitespace-nowrap rounded-full px-2.5 py-1 font-['Fredoka'] text-[11px] font-bold transition ${
                 compareMode === 'split'
-                  ? 'bg-[var(--ui-surface)] text-[var(--ui-text)] shadow-xs'
-                  : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]'
+                  ? 'bg-[#2e8274] text-[#fffdf6]'
+                  : 'text-[#6b482e] hover:text-[#3e2517]'
               }`}
             >
               {STRINGS.sociogram.compareModeSplit}
@@ -605,10 +605,10 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
         </div>
 
         {/* Slider hari */}
-        <div className="flex items-center gap-3 rounded-lg border border-[var(--ui-border)] bg-[var(--ui-surface-muted)] px-3 py-2">
+        <div className="flex items-center gap-3 rounded-2xl border-2 border-[#3e2517]/30 bg-[#fffdf7] px-3 py-2">
           <label
             htmlFor="sociogram-day-slider"
-            className="shrink-0 font-medium text-[var(--ui-text)]"
+            className="shrink-0 font-['Fredoka'] font-bold text-[#3e2517]"
           >
             {compareMode === 'split'
               ? STRINGS.sociogram.dayCompareLabel
@@ -621,9 +621,9 @@ export const SociogramPanel: React.FC<SociogramPanelProps> = ({
             max={maxDay}
             value={clampedDay}
             onChange={(e) => setSelectedDay(Number(e.target.value))}
-            className="flex-1 accent-[var(--ui-accent)]"
+            className="flex-1 accent-[#2e8274]"
           />
-          <span className="font-mono-data shrink-0 font-semibold text-[var(--ui-text)]">
+          <span className="font-mono-data shrink-0 font-bold text-[#3e2517]">
             Hari {clampedDay}/{maxDay}
           </span>
         </div>
