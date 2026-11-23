@@ -11,7 +11,7 @@ import type { AvatarMode } from '../../engine/story/avatar';
 import type { MissionRecord } from '../../engine/story/saveSlot';
 import type { ObservationLogState, StudentAgent } from '../../types';
 import { PixelPortrait } from '../characters/PixelPortrait';
-import { GameBadge, GameButton, GameRibbon, frameClass } from '../components/game';
+import { GameBadge, GameButton, frameClass } from '../components/game';
 import { IconBintang, IconJam, IconObrolan } from '../components/GameIcons';
 import { CONFETTI_LIFETIME_MS, confettiSpecs } from '../motion/confetti';
 import { playSfx } from '../motion/sfx';
@@ -124,13 +124,10 @@ export function MissionPanel({
   );
 
   return (
-    <section aria-label={S.missionPanelTitle} className="relative flex flex-col gap-3 p-2">
-      <header className="flex flex-col gap-2.5">
-        <GameRibbon level={2}>{S.missionPanelTitle}</GameRibbon>
-        <p className="text-xs leading-relaxed text-[#5d3d26]">{S.missionPanelIntro}</p>
-
-        {/* Papan Komando Misi Cozy: Target Shift + Kesehatan Energi Lab + Hias Ruang BK + Jurnal */}
-        <div className="rounded-[22px] border-[3px] border-[#3e2517] bg-gradient-to-b from-[#6b3e22] to-[#4f2c17] p-3 text-[#fffaf0] shadow-[inset_0_2px_0_rgba(255,235,190,0.22),inset_0_-4px_0_rgba(40,20,10,0.45),0_5px_0_#3e2517]">
+    <section aria-label={S.missionPanelTitle} className="relative flex flex-col gap-3">
+      <header className="flex flex-col gap-2">
+        {/* Papan Komando Misi Cozy — langsung tampak utuh tanpa judul ganda terpotong! */}
+        <div className="rounded-[20px] border-[3px] border-[#3e2517] bg-gradient-to-b from-[#6b3e22] to-[#4f2c17] p-3 text-[#fffaf0] shadow-[inset_0_2px_0_rgba(255,235,190,0.22),inset_0_-4px_0_rgba(40,20,10,0.45),0_4px_0_#3e2517]">
           {/* Progres Target Shift (3 kisah pertama -> lalu koleksi 15 kisah!) */}
           <div className="flex items-center justify-between gap-2">
             <span className="font-['Fredoka'] text-xs font-bold tracking-wide text-[#ffe494]">
@@ -281,23 +278,28 @@ export function MissionPanel({
               key={agent.id}
               data-agent-id={agent.id}
               aria-current={isActive ? 'true' : undefined}
-              className={`dossier-card ${frameClass(isActive ? 'navy' : 'krem')} ${urgencyHighlight} flex gap-2.5 p-2.5 text-sm`}
+              className={`dossier-card ${frameClass(isActive ? 'navy' : 'krem')} ${urgencyHighlight} flex items-start gap-2.5 p-2.5 text-sm`}
             >
               <div
-                className="relative shrink-0 overflow-hidden rounded-2xl border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#d8ecfa] via-[#f0f5e8] to-[#f8e6c8] shadow-[0_3px_0_#3e2517]"
+                className="relative h-[96px] w-[72px] shrink-0 self-start overflow-hidden rounded-2xl border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#d8ecfa] via-[#f0f5e8] to-[#f8e6c8] shadow-[0_3px_0_#3e2517]"
                 style={{ lineHeight: 0 }}
               >
-                <span className="dossier-index-tag absolute left-0 top-0 z-10" aria-hidden="true">
+                <span
+                  className="absolute left-1 top-1 z-10 rounded-full border border-[#fffdf6]/40 bg-[#3e2517]/92 px-1.5 py-0.5 font-['Fredoka'] text-[10px] font-bold leading-none text-[#fffdf6]"
+                  aria-hidden="true"
+                >
                   {indexTag}
                 </span>
-                <PixelPortrait
-                  studentId={agent.id}
-                  name={agent.name}
-                  expression={status === 'selesai' ? 'tersenyum' : 'netral'}
-                  scale={1}
-                  reducedMotion={reducedMotion}
-                  demographicLabel={agent.demographicLabel}
-                />
+                <div className="h-full w-full [&>canvas]:!h-full [&>canvas]:!w-full [&>canvas]:object-contain [&>canvas]:object-bottom [&>img]:!h-full [&>img]:!w-full">
+                  <PixelPortrait
+                    studentId={agent.id}
+                    name={agent.name}
+                    expression={status === 'selesai' ? 'tersenyum' : 'netral'}
+                    scale={1}
+                    reducedMotion={reducedMotion}
+                    demographicLabel={agent.demographicLabel}
+                  />
+                </div>
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center justify-between gap-1.5">

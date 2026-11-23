@@ -1325,15 +1325,15 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           </GameButton>
         </div>
       </GameFrame>
-      {/* Ruang kerja utama: kiri 69% Papan Peta Lab 2D + kanan 31% Papan Klip Konselor Melayang */}
-      <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
+      {/* Ruang kerja utama: kiri 68% Papan Peta Lab 2D + kanan 32% Panel Konselor — bingkai & header sejajar 100%! */}
+      <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row lg:items-stretch">
         {/* Kolom kiri: Papan Peta Lab 2D Berbingkai Tinta Tangan Cozy */}
         <section
           aria-label={STRINGS.canvasToolbar.mapLegendTitle}
-          className="flex flex-col overflow-hidden rounded-[26px] border-[3.5px] border-[#3e2517] bg-[#fffdf5] shadow-[0_7px_0_#3e2517,0_14px_28px_rgba(62,37,23,0.18)] lg:min-h-0 lg:w-[69%] lg:flex-1"
+          className="flex flex-col overflow-hidden rounded-[26px] border-[3.5px] border-[#3e2517] bg-[#fffdf5] shadow-[0_7px_0_#3e2517,0_14px_28px_rgba(62,37,23,0.18)] lg:min-h-0 lg:w-[68%] lg:flex-1"
         >
-          {/* Bilah kontrol peta */}
-          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b-[3px] border-[#3e2517] bg-gradient-to-b from-[#a76940] to-[#874f2d] px-3.5 py-2 text-[#fffdf6]">
+          {/* Bilah kontrol peta (tinggi min-h-[54px] sejajar presisi dengan header Panel Konselor kanan!) */}
+          <div className="flex min-h-[54px] shrink-0 flex-wrap items-center justify-between gap-2 border-b-[3px] border-[#3e2517] bg-gradient-to-b from-[#a76940] to-[#874f2d] px-3.5 py-2 text-[#fffdf6]">
             <div className="flex flex-wrap items-center gap-2">
               <GameButton
                 variant="bulat-ikon"
@@ -1581,12 +1581,19 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
             />
           </div>
 
-          {/* Bilah info mahasiswa atau zona terpilih (krem hangat hand-inked) */}
-          <div className="shrink-0 border-t-[3px] border-[#3e2517] bg-gradient-to-b from-[#fffdf6] to-[#f7e9cd] px-4 py-2.5 text-xs">
+          {/* Bilah info mahasiswa atau zona terpilih — Grid 3-Kolom Simetris Kompak (nol ruang kosong!) */}
+          <div className="shrink-0 border-t-[3px] border-[#3e2517] bg-gradient-to-b from-[#fffdf6] to-[#f6e6c8] px-3.5 py-2.5 text-xs shadow-[inset_0_2px_0_rgba(255,255,255,0.8)]">
             {selectedAgentSnapshot ? (
-              <div className="flex flex-wrap items-center justify-between gap-2" data-testid="agent-inspector-bar">
-                <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-                  <div className="shrink-0 overflow-hidden rounded-2xl border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#d8ecfa] via-[#f0f5e8] to-[#f8e6c8] shadow-[0_3px_0_#3e2517]" style={{ lineHeight: 0 }}>
+              <div
+                className="grid grid-cols-1 items-center gap-3 md:grid-cols-[auto_minmax(0,1fr)_auto]"
+                data-testid="agent-inspector-bar"
+              >
+                {/* Kolom 1: Potret mahasiswa proporsional & tidak melar */}
+                <div
+                  className="relative h-[78px] w-[62px] shrink-0 overflow-hidden rounded-2xl border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#d8ecfa] via-[#f0f5e8] to-[#f8e6c8] shadow-[0_3px_0_#3e2517]"
+                  style={{ lineHeight: 0 }}
+                >
+                  <div className="h-full w-full [&>canvas]:!h-full [&>canvas]:!w-full [&>canvas]:object-contain [&>canvas]:object-bottom [&>img]:!h-full [&>img]:!w-full">
                     <PixelPortrait
                       studentId={selectedAgentSnapshot.id}
                       name={selectedAgentSnapshot.name}
@@ -1596,29 +1603,46 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                       demographicLabel={selectedAgentSnapshot.demographicLabel}
                     />
                   </div>
-                  <div className="min-w-0">
-                    <div className="text-sm font-bold text-[var(--game-ink)]">
+                </div>
+
+                {/* Kolom 2: Identitas + status pil + potensi & sinyal mengisi ruang tengah penuh */}
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-['Fredoka'] text-[0.95rem] font-bold text-[#3e2517]">
                       {STRINGS.agentInspector.selectedPrefix} {selectedAgentSnapshot.name}
-                    </div>
-                    <div className="text-[var(--game-ink)]">
-                      {STRINGS.agentInspector.activityLabel}:{' '}
+                    </span>
+                    <span className="rounded-full border border-[#3e2517]/40 bg-[#fffdf7] px-2 py-0.5 font-['Fredoka'] text-[11px] font-bold text-[#2e8274]">
                       {STRINGS.agentInspector.activityNames[selectedAgentSnapshot.status]}
-                      <span aria-hidden="true"> · </span>
+                    </span>
+                    <span className="rounded-full border border-[#3e2517]/40 bg-[#fff3d6] px-2 py-0.5 font-['Fredoka'] text-[11px] font-bold text-[#8a4f16]">
                       {STRINGS.agentInspector.socialLabel}:{' '}
                       {STRINGS.agentInspector.socialNames[selectedAgentSnapshot.socialStatus]}
-                    </div>
-                    <div className="text-[var(--game-ink)]">
-                      ({STRINGS.agentInspector.cohortPrefix} {selectedAgentSnapshot.cohort} ·{' '}
-                      {selectedAgentSnapshot.demographicLabel.originLabel}) ·{' '}
-                      {STRINGS.agentInspector.potentialLabel}: {selectedAgentSnapshot.uniquePotential} ·{' '}
-                      {selectedAgentSnapshot.activityGoal}
-                    </div>
+                    </span>
+                    <span className="hidden rounded-full bg-[#3e2517]/10 px-2 py-0.5 text-[11px] font-semibold text-[#5d3d26] xl:inline-block">
+                      {STRINGS.agentInspector.cohortPrefix} {selectedAgentSnapshot.cohort} ·{' '}
+                      {selectedAgentSnapshot.demographicLabel.originLabel}
+                    </span>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3">
+
+                  <p className="line-clamp-1 text-[11.5px] leading-snug text-[#4e321e]">
+                    <strong className="text-[#3e2517]">{STRINGS.agentInspector.potentialLabel}:</strong>{' '}
+                    {selectedAgentSnapshot.uniquePotential}
+                    <span aria-hidden="true"> · </span>
+                    <span className="text-[#6b482e]">{selectedAgentSnapshot.activityGoal}</span>
+                  </p>
+
+                  <p className="line-clamp-1 rounded-xl border border-[#3e2517]/20 bg-[#fffdf7]/85 px-2.5 py-1 text-[11px] italic text-[#6b482e]">
+                    🔔 Sinyal teramati: “{signalForStudent(selectedAgentSnapshot.id).clue}”
+                  </p>
+                </div>
+
+                {/* Kolom 3: Meter Energi/Stres di atas & Tombol Aksi sejajar rapi di bawah */}
+                <div className="flex shrink-0 flex-col items-stretch justify-between gap-2 md:items-end">
+                  <div className="flex flex-wrap items-center gap-2 rounded-2xl border-2 border-[#3e2517]/30 bg-[#fffdf7] px-2.5 py-1.5 shadow-[inset_0_-2px_0_#edd9b4]">
                     {selectedMeters.energy && (
                       <GameMeter
                         label={STRINGS.agentInspector.energyLabel}
-                        icon={<IconEnergi className="h-5 w-5" />}
+                        icon={<IconEnergi className="h-4 w-4" />}
                         value={selectedMeters.energy.value}
                         max={selectedMeters.energy.max}
                         higherIsBetter={selectedMeters.energy.higherIsBetter}
@@ -1627,57 +1651,64 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                     {selectedMeters.stress && (
                       <GameMeter
                         label={STRINGS.agentInspector.stressLabel}
-                        icon={<IconStres className="h-5 w-5" />}
+                        icon={<IconStres className="h-4 w-4" />}
                         value={selectedMeters.stress.value}
                         max={selectedMeters.stress.max}
                         higherIsBetter={selectedMeters.stress.higherIsBetter}
                       />
                     )}
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <GameButton
-                    variant="primer"
-                    size="sm"
-                    bounce
-                    onClick={() => { playSfx('klik'); story.requestApproach(selectedAgentSnapshot.id); }}
-                    aria-label={STRINGS.story.approachAria(selectedAgentSnapshot.name)}
-                    className="whitespace-nowrap text-xs"
-                  >
-                    {STRINGS.story.approachBtn}
-                  </GameButton>
-                  <GameButton
-                    variant="sekunder"
-                    size="sm"
-                    bounce
-                    onClick={() => { playSfx('klik'); setSelectedAgentId(null); }}
-                    className="whitespace-nowrap text-xs"
-                  >
-                    {STRINGS.agentInspector.closeAgent}
-                  </GameButton>
+                  <div className="flex items-center justify-end gap-2">
+                    <GameButton
+                      variant="primer"
+                      size="sm"
+                      bounce
+                      onClick={() => { playSfx('klik'); story.requestApproach(selectedAgentSnapshot.id); }}
+                      aria-label={STRINGS.story.approachAria(selectedAgentSnapshot.name)}
+                      className="!min-h-[2rem] whitespace-nowrap !px-4 text-xs"
+                    >
+                      {STRINGS.story.approachBtn}
+                    </GameButton>
+                    <GameButton
+                      variant="sekunder"
+                      size="sm"
+                      bounce
+                      onClick={() => { playSfx('klik'); setSelectedAgentId(null); }}
+                      className="!min-h-[2rem] whitespace-nowrap !px-3.5 text-xs"
+                    >
+                      {STRINGS.agentInspector.closeAgent}
+                    </GameButton>
+                  </div>
                 </div>
               </div>
-
             ) : selectedZone ? (
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <span className="font-semibold text-[var(--ui-text)]">
-                    {STRINGS.canvasToolbar.selectedZonePrefix} {selectedZone.label}
-                  </span>
-                  <span className="mx-2 text-[var(--ui-text-muted)]" aria-hidden="true">
-                    ·
-                  </span>
-                  <span className="text-[var(--ui-text-muted)]">
+              <div className="grid grid-cols-1 items-center gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border-2 border-[#3e2517] bg-[#ffe694] px-2.5 py-0.5 font-['Fredoka'] text-xs font-bold text-[#3e2517]">
+                      📍 {STRINGS.canvasToolbar.selectedZonePrefix} {selectedZone.label}
+                    </span>
+                    {story.statusMessage && (
+                      <span
+                        role="status"
+                        data-testid="story-status"
+                        className="truncate rounded-full border border-[#2e8274]/40 bg-[#e4f7f1] px-2.5 py-0.5 text-[11px] font-semibold text-[#1e6457]"
+                      >
+                        {story.statusMessage}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 line-clamp-1 text-[11.5px] text-[#5d3d26]">
                     {selectedZone.id === 'konsultasi'
                       ? viewOptions.consultationDoorMode === 'lab'
                         ? STRINGS.canvasToolbar.doorVisibilityHintLab
                         : STRINGS.canvasToolbar.doorVisibilityHintSide
                       : selectedZone.description}
-                  </span>
+                  </p>
                 </div>
-                <div className="font-mono-data flex items-center gap-3 text-[var(--ui-text-muted)]">
-                  <span>
-                    {STRINGS.canvasToolbar.privacyLabel}:{' '}
+                <div className="flex shrink-0 flex-wrap items-center gap-1.5 font-['Fredoka'] text-[11px] font-bold">
+                  <span className="rounded-full border-2 border-[#3e2517]/35 bg-[#fffdf7] px-2.5 py-1 text-[#3e2517]">
+                    🔒 {STRINGS.canvasToolbar.privacyLabel}{' '}
                     {Math.round(
                       getEffectiveZonePrivacy(
                         selectedZone.id,
@@ -1687,50 +1718,39 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                     )}
                     %
                   </span>
-                  <span aria-hidden="true">·</span>
-                  <span>
-                    {STRINGS.canvasToolbar.capacityLabel}: {selectedZone.capacity}
+                  <span className="rounded-full border-2 border-[#3e2517]/35 bg-[#fffdf7] px-2.5 py-1 text-[#3e2517]">
+                    👥 {STRINGS.canvasToolbar.capacityLabel} {selectedZone.capacity}
                   </span>
-                  <span aria-hidden="true">·</span>
-                  <span>
-                    {STRINGS.canvasToolbar.slotsLabel}: {selectedZone.standingSlots.length}
+                  <span className="rounded-full border-2 border-[#3e2517]/35 bg-[#fffdf7] px-2.5 py-1 text-[#3e2517]">
+                    🪑 {STRINGS.canvasToolbar.slotsLabel} {selectedZone.standingSlots.length}
                   </span>
                 </div>
               </div>
             ) : (
-              <p className="text-[var(--ui-text-muted)]">
-                {STRINGS.canvasToolbar.noZoneSelected}
-              </p>
+              <p className="text-[#6b482e]">{STRINGS.canvasToolbar.noZoneSelected}</p>
             )}
-            {story.statusMessage && (
+            {selectedAgentSnapshot && story.statusMessage && (
               <p
                 role="status"
                 data-testid="story-status"
-                className="mt-1.5 font-medium text-[var(--ui-text)]"
+                className="mt-1.5 border-t border-dashed border-[#3e2517]/20 pt-1 text-[11px] font-semibold text-[#6b482e]"
               >
-                {story.statusMessage}
+                💡 {story.statusMessage}
               </p>
             )}
           </div>
         </section>
 
-        {/* Kolom kanan: Papan Klip Konselor Melayang (Pop-Up Rounded Clipboard — bukan sidebar kotak tajam!) */}
+        {/* Kolom kanan: Panel Konselor dengan bingkai, sudut & tinggi header kayu SEJAJAR 100% dengan Papan Peta kiri! */}
         <GameFrame
           as="aside"
           variant="krem"
-          nails
           animateIn
           aria-label="Panel Konselor"
-          className="relative flex min-h-0 w-full flex-col !rounded-[28px] !border-[3.5px] !border-[#3e2517] !shadow-[inset_0_-5px_0_#e5caa0,0_7px_0_#3e2517,0_14px_28px_rgba(62,37,23,0.18)] lg:w-[31%]"
+          className="relative flex min-h-0 w-full flex-col overflow-hidden !rounded-[26px] !border-[3.5px] !border-[#3e2517] !shadow-[0_7px_0_#3e2517,0_14px_28px_rgba(62,37,23,0.18)] lg:w-[32%]"
         >
-          {/* Penjepit papan klip dekoratif di tengah atas */}
-          <div
-            aria-hidden="true"
-            className="mx-auto -mt-2 flex h-4 w-24 items-center justify-center rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#ffe391] to-[#d99b2a] shadow-[0_2px_0_#3e2517]"
-          >
-            <span className="h-1.5 w-10 rounded-full bg-[#3e2517]/30" />
-          </div>
-          <div className="shrink-0 px-3 pt-2 text-center">
+          {/* Header kayu hangat min-h-[54px] — sejajar presisi dengan Bilah Kontrol Peta di kiri! */}
+          <div className="flex min-h-[54px] shrink-0 items-center justify-center border-b-[3px] border-[#3e2517] bg-gradient-to-b from-[#a76940] to-[#874f2d] px-3 py-1.5">
             <GameRibbon level={2} tone="navy" shine>
               Panel Konselor
             </GameRibbon>
@@ -1738,7 +1758,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           <div
             role="tablist"
             aria-label="Menu Panel Konselor"
-            className="grid shrink-0 grid-cols-4 items-end gap-1 border-b-[3px] border-[#3e2517] px-2.5 pt-2.5 [&>button]:min-w-0 [&>button]:justify-center [&>button]:!px-1.5 [&>button]:!text-[0.72rem]"
+            className="grid shrink-0 grid-cols-4 items-end gap-1 border-b-[3px] border-[#3e2517] bg-[#f4e4c5] px-2 pt-2 [&>button]:min-w-0 [&>button]:justify-center [&>button]:!px-1.5 [&>button]:!text-[0.72rem]"
           >
             {STRINGS.tabs.list.map((tab) => {
               const TabIcon = TAB_ICON_COMPONENTS[tab.id];
@@ -1761,7 +1781,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
             id={`panel-${activeTab}`}
             role="tabpanel"
             aria-labelledby={`tab-${activeTab}`}
-            className="flex-1 overflow-y-auto p-4"
+            className="flex-1 overflow-y-auto p-3"
           >
             {activeTab === 'pengamatan' ? (
               <ObservationPanel
