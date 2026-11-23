@@ -112,8 +112,17 @@ import type { SceneVariant } from '../scene/sceneArt';
 import { MissionPanel } from '../story/MissionPanel';
 import { StoryJournalModal } from '../story/StoryJournalModal';
 import { MorningBriefingModal } from './MorningBriefingModal';
+import { RoomDecorModal } from './RoomDecorModal';
 import { ShiftReportModal } from './ShiftReportModal';
 import { computeCampusMissionSummary } from '../../engine/isolationMission';
+import {
+  buyRoomDecor,
+  computeAvailableStars,
+  toggleEquipRoomDecor,
+  type RoomDecorId,
+  type RoomDecorState,
+} from '../../engine/roomDecor';
+import { loadRoomDecorState, saveRoomDecorState } from '../../utils/decorStorage';
 import {
   SHIFT_TARGET_STORIES,
   computeShiftReport,
@@ -222,7 +231,13 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   const briefingOpenRef = useRef<boolean>(true);
   const [journalOpen, setJournalOpen] = useState<boolean>(false);
   const [shiftReportOpen, setShiftReportOpen] = useState<boolean>(false);
+  const [decorShopOpen, setDecorShopOpen] = useState<boolean>(false);
+  const [roomDecor, setRoomDecor] = useState<RoomDecorState>(() => loadRoomDecorState());
   const shiftCelebratedRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    saveRoomDecorState(roomDecor);
+  }, [roomDecor]);
 
   useEffect(() => {
     briefingOpenRef.current = briefingOpen;
@@ -372,6 +387,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       } else if (e.key === 'Escape') {
         setJournalOpen(false);
         setShiftReportOpen(false);
+        setDecorShopOpen(false);
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown);
@@ -1040,6 +1056,27 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     [agentsSnapshot, story.missions]
   );
 
+  const availableStars = useMemo(
+    () => computeAvailableStars(story.missions, roomDecor),
+    [story.missions, roomDecor]
+  );
+
+  const handleBuyDecor = useCallback(
+    (itemId: RoomDecorId) => {
+      setRoomDecor((prev) => {
+        const res = buyRoomDecor(prev, itemId, story.missions);
+        if (res.ok) playSfx('misi-selesai');
+        return res.next;
+      });
+    },
+    [story.missions]
+  );
+
+  const handleToggleEquipDecor = useCallback((itemId: RoomDecorId) => {
+    playSfx('klik');
+    setRoomDecor((prev) => toggleEquipRoomDecor(prev, itemId));
+  }, []);
+
   // Tampilkan Kartu Hasil Shift satu kali tepat saat target 3 kisah baru tercapai dan kembali ke lab
   useEffect(() => {
     if (shiftCelebratedRef.current === null) {
@@ -1120,15 +1157,22 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
 
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--ui-bg)] lg:h-screen lg:overflow-hidden">
+    <div
+      className="flex min-h-screen flex-col gap-2.5 bg-[#e8d8be] p-2.5 lg:h-screen lg:overflow-hidden"
+      style={{
+        backgroundImage:
+          'radial-gradient(rgba(62, 37, 23, 0.09) 1.2px, transparent 1.2px), linear-gradient(180deg, #efe2ca 0%, #e2cfa9 100%)',
+        backgroundSize: '20px 20px, 100% 100%',
+      }}
+    >
 
-      {/* HUD atas bergaya game */}
+      {/* HUD atas bergaya game cozy hand-inked melayang (membulat lembut, nol kotak tajam!) */}
       <GameFrame
         as="header"
         variant="kayu"
         nails
         animateIn
-        className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 !rounded-none px-3 py-2 lg:px-5"
+        className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 !rounded-[24px] px-4 py-2 lg:px-5"
       >
         {/* Kiri: kembali & logo pita */}
         <div className="flex items-center gap-3">
@@ -1140,7 +1184,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           </GameRibbon>
         </div>
 
-        {/* Tengah: empat lencana dan meter energi konselor */}
+        {/* Tengah: empat lencana, tombol pop-up Hias Ruang BK, dan meter energi konselor */}
         <div className="flex flex-wrap items-center gap-2 text-sm">
           {hudBadges.map((b) => {
             const BadgeIcon = HUD_ICON_COMPONENTS[b.icon];
@@ -1160,17 +1204,31 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               </span>
             );
           })}
+          <button
+            type="button"
+            data-testid="open-decor-shop-btn"
+            onClick={() => {
+              playSfx('klik');
+              setDecorShopOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#ffe694] to-[#f2b53b] px-3.5 py-1 font-['Fredoka'] text-xs font-bold text-[#3e2517] shadow-[inset_0_-2.5px_0_#c68616,0_3px_0_#3e2517] transition hover:-translate-y-0.5 hover:brightness-105"
+            title="Hias Ruang Konsultasi BK dengan Bintang Empati"
+          >
+            <span aria-hidden="true">🪴</span>
+            <span className="hidden md:inline">Hias Ruang</span>
+            <span>⭐ {availableStars}</span>
+          </button>
           <span
-            className="hidden h-2.5 w-14 overflow-hidden rounded-[2px_6px_2px_6px] border border-[#0f1b33] bg-white/15 md:block"
+            className="hidden h-2.5 w-14 overflow-hidden rounded-full border-2 border-[#3e2517] bg-[#3e2517]/40 md:block"
             aria-hidden="true"
           >
             <span
-              className="block h-full bg-[var(--game-gold)]"
+              className="block h-full rounded-full bg-[#ffe285]"
               style={{ width: `${Math.round(dayRatio * 100)}%` }}
             />
           </span>
           {hudMeters.energy && (
-            <span className="inline-flex items-center rounded-[4px_12px_4px_12px] border-2 border-[var(--vn-gold)]/65 bg-[var(--game-navy)] px-3 py-1 text-[var(--game-cream-paper)] shadow-[0_3px_0_rgba(7,12,24,0.65)]">
+            <span className="inline-flex items-center rounded-full border-[2.5px] border-[#3e2517] bg-[#fffaf0] px-3 py-1 text-[#3e2517] shadow-[inset_0_-2px_0_#e5caa0,0_3px_0_#3e2517]">
               <GameMeter
                 label={hudMeters.energy.label}
                 icon={<IconEnergi className="h-5 w-5" />}
@@ -1226,15 +1284,15 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           </GameButton>
         </div>
       </GameFrame>
-      {/* Ruang kerja utama: kiri 70% Kanvas Dunia 2D, kanan 30% Panel Konselor */}
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        {/* Kolom kiri: Dunia 2D */}
+      {/* Ruang kerja utama: kiri 69% Papan Peta Lab 2D + kanan 31% Papan Klip Konselor Melayang */}
+      <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
+        {/* Kolom kiri: Papan Peta Lab 2D Berbingkai Tinta Tangan Cozy */}
         <section
           aria-label={STRINGS.canvasToolbar.mapLegendTitle}
-          className="flex flex-col border-b border-[var(--ui-border)] lg:min-h-0 lg:w-[70%] lg:flex-1 lg:border-r lg:border-b-0"
+          className="flex flex-col overflow-hidden rounded-[26px] border-[3.5px] border-[#3e2517] bg-[#fffdf5] shadow-[0_7px_0_#3e2517,0_14px_28px_rgba(62,37,23,0.18)] lg:min-h-0 lg:w-[69%] lg:flex-1"
         >
           {/* Bilah kontrol peta */}
-          <div className="game-panel-wood flex shrink-0 flex-wrap items-center justify-between gap-2 !rounded-none px-3 py-2">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b-[3px] border-[#3e2517] bg-gradient-to-b from-[#a76940] to-[#874f2d] px-3.5 py-2 text-[#fffdf6]">
             <div className="flex flex-wrap items-center gap-2">
               <GameButton
                 variant="bulat-ikon"
@@ -1366,15 +1424,15 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               className="map-hud-pill pointer-events-none absolute left-3 top-3 z-10"
             >
               <span
-                className={`inline-block h-2 w-2 rotate-45 ${
+                className={`inline-block h-2.5 w-2.5 rounded-full border border-[#3e2517] ${
                   clock.minutesOfDay < 660
-                    ? 'bg-[#fde08d]'
+                    ? 'bg-[#f5be42]'
                     : clock.minutesOfDay >= 870
-                      ? 'bg-[#fb923c]'
-                      : 'bg-[#38bdf8]'
+                      ? 'bg-[#e56256]'
+                      : 'bg-[#3aa08e]'
                 }`}
               />
-              <span className="text-[#fde08d]">
+              <span className="text-[#b8463c]">
                 {clock.minutesOfDay < 660
                   ? 'Pagi Cerah'
                   : clock.minutesOfDay >= 870
@@ -1421,7 +1479,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                   <span className="hidden truncate font-normal italic opacity-90 xl:inline">
                     “{signalForStudent(campusMission.topPriorityAgent.id).clue}”
                   </span>
-                  <span className="shrink-0 text-[#fde08d]">Hampiri →</span>
+                  <span className="shrink-0 underline decoration-2 underline-offset-2">Hampiri →</span>
                 </button>
               ) : (
                 <div
@@ -1435,24 +1493,19 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                 </div>
               )}
             </div>
-            {/* Bingkai viewport tinta biru-dongker + 4 siku kuningan arsitektural */}
+            {/* Bingkai viewport hangat hand-inked */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 border-4 border-[var(--vn-navy)]"
-            >
-              <span className="absolute left-1.5 top-1.5 h-5 w-5 border-l-[3px] border-t-[3px] border-[var(--game-gold)]" />
-              <span className="absolute right-1.5 top-1.5 h-5 w-5 border-r-[3px] border-t-[3px] border-[var(--game-gold)]" />
-              <span className="absolute bottom-1.5 left-1.5 h-5 w-5 border-b-[3px] border-l-[3px] border-[var(--game-gold)]" />
-              <span className="absolute bottom-1.5 right-1.5 h-5 w-5 border-b-[3px] border-r-[3px] border-[var(--game-gold)]" />
-            </div>
+              className="pointer-events-none absolute inset-0 border-[3px] border-[#3e2517]/25"
+            />
           </div>
 
-          {/* Bilah info mahasiswa atau zona terpilih (ringkas, tanpa tumpang tindih dengan kanvas) */}
-          <div className="game-panel-cream shrink-0 !rounded-none px-4 py-2.5 text-xs">
+          {/* Bilah info mahasiswa atau zona terpilih (krem hangat hand-inked) */}
+          <div className="shrink-0 border-t-[3px] border-[#3e2517] bg-gradient-to-b from-[#fffdf6] to-[#f7e9cd] px-4 py-2.5 text-xs">
             {selectedAgentSnapshot ? (
               <div className="flex flex-wrap items-center justify-between gap-2" data-testid="agent-inspector-bar">
                 <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-                  <div className="shrink-0 overflow-hidden rounded-[5px_14px_5px_14px] border-2 border-[#0f1b33] bg-gradient-to-b from-[#cbe2f6] via-[#e7f1fa] to-[#f4e7d2] shadow-[0_3px_0_#0f1b33]" style={{ lineHeight: 0 }}>
+                  <div className="shrink-0 overflow-hidden rounded-2xl border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#d8ecfa] via-[#f0f5e8] to-[#f8e6c8] shadow-[0_3px_0_#3e2517]" style={{ lineHeight: 0 }}>
                     <PixelPortrait
                       studentId={selectedAgentSnapshot.id}
                       name={selectedAgentSnapshot.name}
@@ -1580,16 +1633,23 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           </div>
         </section>
 
-        {/* Kolom kanan: Panel Konselor dengan 4 tab */}
+        {/* Kolom kanan: Papan Klip Konselor Melayang (Pop-Up Rounded Clipboard — bukan sidebar kotak tajam!) */}
         <GameFrame
           as="aside"
           variant="krem"
           nails
           animateIn
           aria-label="Panel Konselor"
-          className="flex min-h-0 w-full flex-col !rounded-none lg:w-[30%]"
+          className="relative flex min-h-0 w-full flex-col !rounded-[28px] !border-[3.5px] !border-[#3e2517] !shadow-[inset_0_-5px_0_#e5caa0,0_7px_0_#3e2517,0_14px_28px_rgba(62,37,23,0.18)] lg:w-[31%]"
         >
-          <div className="shrink-0 px-3 pt-3 text-center">
+          {/* Penjepit papan klip dekoratif di tengah atas */}
+          <div
+            aria-hidden="true"
+            className="mx-auto -mt-2 flex h-4 w-24 items-center justify-center rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#ffe391] to-[#d99b2a] shadow-[0_2px_0_#3e2517]"
+          >
+            <span className="h-1.5 w-10 rounded-full bg-[#3e2517]/30" />
+          </div>
+          <div className="shrink-0 px-3 pt-2 text-center">
             <GameRibbon level={2} tone="navy" shine>
               Panel Konselor
             </GameRibbon>
@@ -1597,7 +1657,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           <div
             role="tablist"
             aria-label="Menu Panel Konselor"
-            className="grid shrink-0 grid-cols-4 items-end gap-1 border-b-2 border-[#0f1b33]/25 px-2 pt-2 [&>button]:min-w-0 [&>button]:justify-center [&>button]:!px-1.5 [&>button]:!text-[0.72rem]"
+            className="grid shrink-0 grid-cols-4 items-end gap-1 border-b-[3px] border-[#3e2517] px-2.5 pt-2.5 [&>button]:min-w-0 [&>button]:justify-center [&>button]:!px-1.5 [&>button]:!text-[0.72rem]"
           >
             {STRINGS.tabs.list.map((tab) => {
               const TabIcon = TAB_ICON_COMPONENTS[tab.id];
@@ -1666,6 +1726,11 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                 activeAgentId={story.activeAgentId}
                 observationLog={observationLog}
                 currentDay={clock.day}
+                availableStars={availableStars}
+                onOpenDecorShop={() => {
+                  playSfx('klik');
+                  setDecorShopOpen(true);
+                }}
                 onOpenJournal={() => {
                   playSfx('klik');
                   setJournalOpen(true);
@@ -1720,6 +1785,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               roster={agentsSnapshot}
               missions={story.missions}
               sceneVariant={storySceneVariant}
+              equippedDecor={roomDecor.equippedIds}
             />
           </div>
         )}
@@ -1775,6 +1841,17 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           reducedMotion={reducedMotion}
           onOpenJournal={() => setJournalOpen(true)}
           onClose={() => setShiftReportOpen(false)}
+        />
+      )}
+
+      {/* Pop-Up Hias Ruang Konsultasi BK (tukar ⭐ Bintang Empati -> tampil nyata di ruangan!) */}
+      {decorShopOpen && (
+        <RoomDecorModal
+          decor={roomDecor}
+          missions={story.missions}
+          onBuy={handleBuyDecor}
+          onToggleEquip={handleToggleEquipDecor}
+          onClose={() => setDecorShopOpen(false)}
         />
       )}
 

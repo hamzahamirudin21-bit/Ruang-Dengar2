@@ -298,13 +298,13 @@ export const StartScreen: React.FC<StartScreenProps> = ({
 
           <div className="title-spotlight-bar">
             <div className="min-w-0">
-              <div className="font-['Outfit','Plus_Jakarta_Sans',sans-serif] text-[0.65rem] font-extrabold tracking-[0.12em] text-[#fde08d] uppercase">
+              <div className="font-['Fredoka',sans-serif] text-[0.68rem] font-bold tracking-[0.08em] text-[#c6453c] uppercase">
                 Sorotan Pemeran
               </div>
-              <div className="truncate font-['Outfit','Plus_Jakarta_Sans',sans-serif] text-sm font-extrabold text-white">
+              <div className="truncate font-['Fredoka',sans-serif] text-sm font-bold text-[#3e2517]">
                 Ibu Dosen BK &amp; {featured.name}
               </div>
-              <div className="truncate text-[0.7rem] text-[#cbd5e1]">{featured.tag}</div>
+              <div className="truncate text-[0.72rem] font-semibold text-[#6b482e]">{featured.tag}</div>
             </div>
             <div className="title-spotlight-dots" role="group" aria-label="Pilih sorotan pemeran">
               {FEATURED_CAST.map((c, i) => (

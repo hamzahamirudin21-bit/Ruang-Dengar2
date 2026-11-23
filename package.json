@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx --test \"src/engine/*.test.ts\" \"src/engine/story/*.test.ts\" \"src/data/*.test.ts\" \"src/data/stories/*.test.ts\" \"src/ui/story/*.test.ts\" \"src/ui/characters/*.test.ts\" \"src/ui/screens/*.test.ts\" \"src/ui/world/*.test.ts\" \"src/ui/scene/*.test.ts\" \"src/ui/canvas/*.test.ts\" \"src/ui/components/game/*.test.ts\" \"src/ui/motion/*.test.ts\" \"scripts/*.test.ts\""
+    "test": "tsx --test \"src/engine/*.test.ts\" \"src/engine/story/*.test.ts\" \"src/data/*.test.ts\" \"src/data/stories/*.test.ts\" \"src/data/storiesCompact/*.test.ts\" \"src/ui/story/*.test.ts\" \"src/ui/characters/*.test.ts\" \"src/ui/screens/*.test.ts\" \"src/ui/world/*.test.ts\" \"src/ui/scene/*.test.ts\" \"src/ui/canvas/*.test.ts\" \"src/ui/components/game/*.test.ts\" \"src/ui/motion/*.test.ts\" \"scripts/*.test.ts\""
   },
   "dependencies": {
     "@google/genai": "^3.6.1",

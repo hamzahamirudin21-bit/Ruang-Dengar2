@@ -8,8 +8,8 @@ export interface MorningBriefingModalProps {
 }
 
 /**
- * Briefing Pagi 1-kartu saat pemain baru memasuki Lab Vokasi:
- * memberi konteks cerita, alasan jelas menghampiri mahasiswa, dan target shift yang menarik.
+ * Briefing Pagi bergaya kartu ilustrasi tinta hangat (hand-inked cozy):
+ * langsung memberi premis cerita, alasan menghampiri, ritme 7 giliran, & fitur Hias Ruang BK.
  */
 export const MorningBriefingModal: React.FC<MorningBriefingModalProps> = ({ onStartShift }) => {
   const dosenSrc = assetUrl('assets/characters/dosen-portrait.png');
@@ -20,73 +20,71 @@ export const MorningBriefingModal: React.FC<MorningBriefingModalProps> = ({ onSt
       aria-modal="true"
       aria-labelledby="briefing-title"
       data-testid="morning-briefing-modal"
-      className="fixed inset-0 z-[75] flex items-center justify-center bg-[#091224]/72 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-[75] flex items-center justify-center bg-[#2c1a0e]/68 p-4 backdrop-blur-xs"
     >
-      <div className="game-panel-cream relative grid w-full max-w-2xl overflow-hidden !rounded-[8px_26px_8px_26px] border-[3px] border-[#0f1b33] shadow-[0_10px_0_#091122,0_26px_60px_rgba(5,10,22,0.65)] sm:grid-cols-[0.82fr_1.18fr]">
-        {/* Sisi Kiri: Ilustrasi Ibu Dosen BK + Cap Shift Pagi */}
-        <div className="relative flex flex-col items-center justify-end overflow-hidden border-b-2 border-[#0f1b33] bg-gradient-to-b from-[#17305a] via-[#1c486e] to-[#122240] px-4 pt-5 sm:border-b-0 sm:border-r-2">
-          <span className="absolute left-3 top-3 rounded-[3px_10px_3px_10px] border border-[#fde08d]/65 bg-[#0f1b33]/85 px-2.5 py-1 font-['Outfit'] text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#fde08d]">
-            08.00 WIB · Shift Pagi
+      <div className="game-panel-cream relative grid w-full max-w-2xl overflow-hidden !rounded-[28px] border-[3.5px] border-[#3e2517] shadow-[0_10px_0_#3e2517,0_26px_60px_rgba(38,20,10,0.5)] sm:grid-cols-[0.82fr_1.18fr]">
+        {/* Sisi Kiri: Ibu Dosen BK + Cap Pagi Hangat */}
+        <div className="relative flex flex-col items-center justify-end overflow-hidden border-b-[3px] border-[#3e2517] bg-gradient-to-b from-[#fce6b8] via-[#f6cf8a] to-[#e6ac62] px-4 pt-5 sm:border-b-0 sm:border-r-[3px]">
+          <span className="absolute left-3 top-3 rounded-full border-2 border-[#3e2517] bg-[#d9534f] px-3 py-0.5 font-['Fredoka'] text-[11px] font-bold uppercase tracking-wider text-[#fffaf0] shadow-[0_3px_0_#3e2517]">
+            ☀️ 08.00 · Shift Pagi
           </span>
           <img
             src={dosenSrc}
             alt="Ibu Dosen BK"
-            className="mt-6 h-52 w-auto object-contain object-bottom drop-shadow-[0_12px_20px_rgba(5,10,22,0.55)] sm:h-64"
+            className="mt-6 h-52 w-auto object-contain object-bottom drop-shadow-[0_10px_16px_rgba(62,37,23,0.35)] sm:h-64"
           />
         </div>
 
-        {/* Sisi Kanan: Premis Cerita & 3 Langkah Misi */}
+        {/* Sisi Kanan: Premis & 3 Langkah Main yang Seru */}
         <div className="flex flex-col justify-between gap-4 p-5 sm:p-6">
           <div>
-            <p className="font-['Outfit'] text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#175e75]">
-              Misi Hari Ini · Di Balik Ruang Lab
+            <p className="font-['Fredoka'] text-xs font-bold uppercase tracking-wider text-[#c4453d]">
+              Ruang Dengar · Di Balik Lab Vokasi
             </p>
             <h2
               id="briefing-title"
-              className="mt-1 font-['Outfit'] text-2xl font-black leading-tight text-[#0f1b33]"
+              className="mt-1 font-['Fredoka'] text-2xl font-bold leading-tight text-[#3e2517]"
             >
-              Ada Cerita di Balik Setiap Keheningan
+              Amati Sinyalnya, Dengarkan Ceritanya!
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-[#2d3b52]">
-              Di balik ramainya praktikum hari ini, beberapa mahasiswa diam-diam mulai menjauh,
-              memendam beban, dan kehabisan energi sosialnya.
+            <p className="mt-2 text-sm leading-relaxed text-[#5c3d28]">
+              Di balik sibuknya praktikum hari ini, ada mahasiswa yang diam-diam menjauh dan
+              energinya perlahan meredup.
             </p>
 
-            <ol className="mt-3.5 space-y-2 text-xs leading-relaxed text-[#1d2b44]">
-              <li className="flex items-start gap-2.5 rounded-[4px_12px_4px_12px] border border-[#0f1b33]/18 bg-white/80 p-2.5">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[3px_7px_3px_7px] bg-[#14233f] font-['Outfit'] text-[11px] font-black text-[#fde08d]">
+            <ol className="mt-3.5 space-y-2 text-xs leading-relaxed text-[#3e2517]">
+              <li className="flex items-start gap-2.5 rounded-[16px] border-2 border-[#3e2517]/25 bg-[#fffdf7] p-2.5 shadow-[inset_0_-3px_0_#eedcb9]">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-[#3e2517] bg-[#f7c85c] font-['Fredoka'] text-xs font-bold text-[#3e2517]">
                   1
                 </span>
                 <span>
-                  <strong>Pantau bilah energi di peta.</strong> Mahasiswa yang mengobrol energinya
-                  naik (<strong className="text-emerald-700">+</strong>), sedangkan yang terus
-                  menyendiri energinya makin meredup (<strong className="text-red-700">▼</strong>).
+                  <strong>Pantau energi &amp; sinyal di peta.</strong> Yang mengobrol energinya
+                  naik (<strong className="text-emerald-700">+</strong>), yang menyendiri terus
+                  energinya turun (<strong className="text-red-700">▼</strong>).
                 </span>
               </li>
-              <li className="flex items-start gap-2.5 rounded-[4px_12px_4px_12px] border border-[#0f1b33]/18 bg-white/80 p-2.5">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[3px_7px_3px_7px] bg-[#14233f] font-['Outfit'] text-[11px] font-black text-[#fde08d]">
+              <li className="flex items-start gap-2.5 rounded-[16px] border-2 border-[#3e2517]/25 bg-[#fffdf7] p-2.5 shadow-[inset_0_-3px_0_#eedcb9]">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-[#3e2517] bg-[#f7c85c] font-['Fredoka'] text-xs font-bold text-[#3e2517]">
                   2
                 </span>
                 <span>
-                  <strong>Baca sinyal perilaku mereka.</strong> Setiap mahasiswa yang mulai
-                  terisolasi meninggalkan petunjuk kecil. Klik untuk menghampiri dan cari tahu
-                  alasannya.
+                  <strong>Ngobrol hangat dalam 7 langkah.</strong> Hampiri mereka dan pilih cara
+                  bicara yang sabar agar mereka berani membuka kisahnya dan energinya pulih!
                 </span>
               </li>
-              <li className="flex items-start gap-2.5 rounded-[4px_12px_4px_12px] border border-[#0f1b33]/18 bg-white/80 p-2.5">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[3px_7px_3px_7px] bg-[#14233f] font-['Outfit'] text-[11px] font-black text-[#fde08d]">
+              <li className="flex items-start gap-2.5 rounded-[16px] border-2 border-[#3e2517]/25 bg-[#fffdf7] p-2.5 shadow-[inset_0_-3px_0_#eedcb9]">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-[#3e2517] bg-[#f7c85c] font-['Fredoka'] text-xs font-bold text-[#3e2517]">
                   3
                 </span>
                 <span>
-                  <strong>Dengarkan dengan hati, bukan menceramahi.</strong> Cara bicaramu
-                  menentukan apakah mereka berani membuka kisahnya dan energinya pulih kembali.
+                  <strong>Raih ⭐ Bintang Empati &amp; Hias Ruang BK!</strong> Pasang tanaman, teko
+                  teh, lampu senja, sampai patung kucing sapa agar ruang konsultasimu makin nyaman!
                 </span>
               </li>
             </ol>
 
-            <div className="mt-3.5 rounded-[4px_12px_4px_12px] border-2 border-[#e5ac3f] bg-[#fff8e6] px-3 py-2 text-xs font-bold text-[#14233f]">
-              🎯 Target Shift: Ungkap minimal {SHIFT_TARGET_STORIES} kisah mahasiswa &amp; jaga
-              energi lab (bebas lanjut hingga semua 15 kisah terbuka!).
+            <div className="mt-3.5 rounded-[16px] border-2 border-[#3e2517] bg-[#fff3cc] px-3.5 py-2 font-['Fredoka'] text-xs font-semibold text-[#3e2517] shadow-[0_3px_0_#3e2517]">
+              🎯 Target Shift: Ungkap {SHIFT_TARGET_STORIES} kisah mahasiswa &amp; hias Ruang BK-mu!
             </div>
           </div>
 
@@ -98,7 +96,7 @@ export const MorningBriefingModal: React.FC<MorningBriefingModalProps> = ({ onSt
               onClick={onStartShift}
               className="w-full sm:w-auto"
             >
-              Mulai Mengawasi Lab →
+              Mulai Shift Pagi →
             </GameButton>
           </div>
         </div>

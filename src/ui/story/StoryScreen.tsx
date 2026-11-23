@@ -10,11 +10,13 @@ import { dosenExpressionFor } from '../characters/dosenPortrait';
 import { playSfx } from '../motion/sfx';
 import { IconProfil, IconRelasi } from '../components/GameIcons';
 import { classifyAgentWellbeing } from '../../engine/isolationMission';
+import type { RoomDecorId } from '../../engine/roomDecor';
 import { signalForStudent } from '../../engine/storySignals';
 import { resolveSceneArt, sceneVariantForGraph } from '../scene/sceneArt';
 import type { SceneVariant } from '../scene/sceneArt';
 import { STORY_PALETTE as P } from './palette';
 import { ProfileCard } from './ProfileCard';
+import { RoomDecorOverlay } from './RoomDecorOverlay';
 import { StoryHistoryPanel } from './StoryHistoryPanel';
 import { EmoteBubble } from './EmoteBubble';
 import { StoryBackdrop } from './SceneBackdrop';
@@ -67,6 +69,8 @@ export interface StoryScreenProps {
   missions?: Readonly<Record<string, MissionRecord>>;
   /** Varian latar adegan; bila kosong diturunkan dari id graf. */
   sceneVariant?: SceneVariant;
+  /** Daftar hiasan Ruang Konsultasi yang sedang terpasang. */
+  equippedDecor?: readonly RoomDecorId[];
   className?: string;
 }
 
@@ -278,6 +282,7 @@ export function StoryScreen({
   roster,
   missions,
   sceneVariant,
+  equippedDecor,
   className,
 }: StoryScreenProps) {
   const S = STRINGS.story;
@@ -322,24 +327,48 @@ export function StoryScreen({
 
   const variant: SceneVariant = sceneVariant ?? sceneVariantForGraph(scene?.id ?? '');
 
-  // Rangkaian beat koheren: Ucapan Dosen -> Reaksi Mahasiswa -> Lanjutan Simpul Baru (bila belum tercakup)
-  const beats = useMemo<StoryBeat[]>(() => {
+  // Mode ringkas v2 (7 giliran): langsung tampilkan respons mahasiswa (tanpa klik ulang kalimat dosen & tanpa lompatan acak!)
+  const isCompactMode = graph.version >= 2;
+  const activeSource = useMemo<BeatSource | null>(() => {
     const last = state.history[state.history.length - 1];
-    const prev = state.history.length >= 2 ? state.history[state.history.length - 2] : undefined;
-    const prevNodeId = arrival?.fromNodeId ?? last?.fromNodeId ?? prev?.nodeId ?? null;
-    const source: BeatSource | null = arrival
+    return arrival
       ? { counselorLine: arrival.counselorLine, student: arrival.student }
       : last
         ? { counselorLine: last.counselorLine, student: last.studentLine }
         : null;
-    if (!source) return [];
-    const result = buildBeats(source);
-    const followUp = followUpReplyFor(graph, state.nodeId, source.student, prevNodeId);
+  }, [arrival, state.history]);
+
+  const beats = useMemo<StoryBeat[]>(() => {
+    if (!activeSource) return [];
+    if (isCompactMode) {
+      const compactBeats: StoryBeat[] = [];
+      if (activeSource.student.aside?.trim()) {
+        compactBeats.push({
+          kind: 'selingan',
+          text: activeSource.student.aside,
+          expression: null,
+          italic: true,
+        });
+      }
+      compactBeats.push({
+        kind: 'mahasiswa',
+        text: activeSource.student.text,
+        expression: activeSource.student.expression,
+        italic: false,
+      });
+      return compactBeats;
+    }
+    const last = state.history[state.history.length - 1];
+    const prev = state.history.length >= 2 ? state.history[state.history.length - 2] : undefined;
+    const prevNodeId = arrival?.fromNodeId ?? last?.fromNodeId ?? prev?.nodeId ?? null;
+    const result = buildBeats(activeSource);
+    const followUp = followUpReplyFor(graph, state.nodeId, activeSource.student, prevNodeId);
     if (followUp) {
       result.push(...buildBeats({ counselorLine: null, student: followUp }));
     }
     return result;
-  }, [arrival, state.history, state.nodeId, graph]);
+  }, [activeSource, isCompactMode, arrival, state.history, state.nodeId, graph]);
+  const inlineCueText = isCompactMode ? (activeSource?.student.cue ?? null) : null;
 
   // Kurasi tepat 3 pilihan seimbang agar layar bersih & simetris
   const choices = useMemo(
@@ -536,6 +565,12 @@ export function StoryScreen({
       </div>
       {/* 1b. Pencahayaan emosi panggung halus berbasis ekspresi terlihat */}
       <div className="vn-mood-layer" aria-hidden="true" />
+      {/* 1c. Hiasan Ruang Konsultasi yang telah dibuka & dipasang pemain */}
+      <RoomDecorOverlay
+        setting={scene?.setting ?? 'ruang-konsultasi'}
+        equippedIds={equippedDecor ?? []}
+        reducedMotion={reducedMotion}
+      />
 
       {/* 2. Dua karakter simetris saling berhadapan: Dosen (kiri -> menghadap kanan), Mahasiswa (kanan -> menghadap kiri) */}
       <div className="vn-cast">
@@ -606,7 +641,14 @@ export function StoryScreen({
         <div className="vn-topbar-center">
           {scene && (
             <div className="vn-location" data-testid="story-scene-caption">
-              <span className="vn-location-title">{scene.title}</span>
+              <div className="flex items-center gap-2">
+                <span className="vn-location-title">{scene.title}</span>
+                {isCompactMode && !state.ended && (
+                  <span className="rounded-full border border-[#3e2517]/40 bg-[#f6e4be] px-2 py-0.5 font-['Fredoka'] text-[10px] font-bold text-[#5a341c]">
+                    {Math.min(7, state.turn + 1)}/7
+                  </span>
+                )}
+              </div>
               <span className="vn-location-caption">{scene.caption}</span>
             </div>
           )}
@@ -691,6 +733,7 @@ export function StoryScreen({
           counselorSpeaking,
         )}
         isSpeaking={!typing.done && (counselorSpeaking || studentSpeaking)}
+        cueText={inlineCueText}
         italic={!!beat?.italic}
         canContinue={(hasNextBeat || !typing.done) && !state.ended}
         auto={auto}

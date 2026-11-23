@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
-import { STORY_GRAPHS } from '../../data/stories';
+import { COMPACT_STORY_GRAPHS as STORY_GRAPHS } from '../../data/storiesCompact';
 import { STRINGS } from '../../data/strings';
 import { formatClockTime } from '../../engine/clock';
 import { finalizeCounselingSession } from '../../engine/trust';

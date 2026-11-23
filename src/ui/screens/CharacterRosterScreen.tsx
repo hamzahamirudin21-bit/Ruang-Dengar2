@@ -77,14 +77,14 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
       ref={rootRef}
       className={`flex h-screen flex-col px-6 py-3.5 ${layout.fitsOneScreen ? 'overflow-hidden' : 'overflow-y-auto'}`}
       style={{
-        backgroundColor: '#f3ebd8',
+        backgroundColor: '#e8d8be',
         backgroundImage:
-          'radial-gradient(rgba(15, 27, 51, 0.09) 1px, transparent 1px), linear-gradient(180deg, #faf5e8 0%, #ede3cc 100%)',
+          'radial-gradient(rgba(62, 37, 23, 0.1) 1.2px, transparent 1.2px), linear-gradient(180deg, #f6ead4 0%, #e5d2b3 100%)',
         backgroundSize: '20px 20px, 100% 100%',
       }}
     >
       <div className="mx-auto flex min-h-0 w-full max-w-[90rem] flex-1 flex-col">
-        <header className="game-panel-wood game-nails mb-3 flex shrink-0 items-center justify-between gap-3 px-5 py-2.5 text-[#f8f5ef]">
+        <header className="game-panel-wood game-nails mb-3 flex shrink-0 items-center justify-between gap-3 px-5 py-2.5 text-[#fffdf6]">
           <div className="flex min-w-0 items-center gap-3.5">
             <span className="title-wave-bars" aria-hidden="true">
               <span />
@@ -92,11 +92,11 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
               <span />
               <span />
             </span>
-            <h1 className="font-['Outfit','Plus_Jakarta_Sans',sans-serif] text-lg font-extrabold tracking-[0.12em] text-[#fde08d] uppercase md:text-xl">
+            <h1 className="font-['Fredoka',sans-serif] text-lg font-bold tracking-wide text-[#ffe694] md:text-xl">
               {STRINGS.roster.title}
             </h1>
-            <span aria-hidden="true" className="hidden h-4 w-0.5 bg-[#e5ac3f]/45 md:block" />
-            <p className="hidden truncate text-sm text-[#dbe4f3] md:block">
+            <span aria-hidden="true" className="hidden h-4 w-0.5 bg-[#ffe694]/45 md:block" />
+            <p className="hidden truncate text-sm text-[#fff3dc] md:block">
               {STRINGS.roster.subtitle}
             </p>
           </div>

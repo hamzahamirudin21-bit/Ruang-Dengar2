@@ -36,6 +36,10 @@ export interface MissionPanelProps {
   onOpenJournal?: () => void;
   /** Membuka Kartu Hasil Shift (opsional). */
   onOpenShiftReport?: () => void;
+  /** Jumlah ⭐ Bintang Empati tersedia untuk menghias Ruang Konsultasi. */
+  availableStars?: number;
+  /** Membuka pop-up Hias Ruang BK (opsional). */
+  onOpenDecorShop?: () => void;
 }
 
 type MissionStatus = MissionRecord['status'];
@@ -71,6 +75,8 @@ export function MissionPanel({
   onFollowUp,
   onOpenJournal,
   onOpenShiftReport,
+  availableStars = 0,
+  onOpenDecorShop,
 }: MissionPanelProps): React.ReactElement {
   const S = STRINGS.story;
   const busy = avatarMode !== 'idle';
@@ -119,26 +125,26 @@ export function MissionPanel({
 
   return (
     <section aria-label={S.missionPanelTitle} className="relative flex flex-col gap-3 p-2">
-      <header className="flex flex-col gap-2">
+      <header className="flex flex-col gap-2.5">
         <GameRibbon level={2}>{S.missionPanelTitle}</GameRibbon>
-        <p className="text-xs leading-relaxed text-slate-800">{S.missionPanelIntro}</p>
+        <p className="text-xs leading-relaxed text-[#5d3d26]">{S.missionPanelIntro}</p>
 
-        {/* Papan Komando Misi: Target Shift + Kesehatan Energi Lab + Jurnal Kisah */}
-        <div className="rounded-[5px_14px_5px_14px] border-2 border-[#0f1b33] bg-[#14233f] p-2.5 text-[#fff8e6] shadow-[0_4px_0_rgba(15,27,51,0.3)]">
+        {/* Papan Komando Misi Cozy: Target Shift + Kesehatan Energi Lab + Hias Ruang BK + Jurnal */}
+        <div className="rounded-[22px] border-[3px] border-[#3e2517] bg-gradient-to-b from-[#6b3e22] to-[#4f2c17] p-3 text-[#fffaf0] shadow-[inset_0_2px_0_rgba(255,235,190,0.22),inset_0_-4px_0_rgba(40,20,10,0.45),0_5px_0_#3e2517]">
           {/* Progres Target Shift (3 kisah pertama -> lalu koleksi 15 kisah!) */}
           <div className="flex items-center justify-between gap-2">
-            <span className="font-['Outfit'] text-[11px] font-extrabold uppercase tracking-wider text-[#fde08d]">
+            <span className="font-['Fredoka'] text-xs font-bold tracking-wide text-[#ffe494]">
               {shiftReached ? '✦ Target Shift Tercapai!' : 'Target Shift Hari Ini'}
             </span>
-            <span className="font-['Outfit'] text-xs font-extrabold">
+            <span className="font-['Fredoka'] text-xs font-bold">
               {shiftReached
                 ? `${summary.missionsCompleted}/${summary.missionsTotal} Kisah`
                 : `${summary.missionsCompleted}/${SHIFT_TARGET_STORIES} Kisah`}
             </span>
           </div>
-          <div className="mt-1 h-2 w-full overflow-hidden rounded-[2px_6px_2px_6px] border border-[#0a1222] bg-white/15">
+          <div className="mt-1 h-2.5 w-full overflow-hidden rounded-full border-2 border-[#3e2517] bg-[#2f1a0e]">
             <div
-              className="h-full bg-gradient-to-r from-[#f5b82e] to-[#fde08d] transition-all duration-300"
+              className="h-full rounded-full bg-gradient-to-r from-[#f4b637] to-[#ffe694] transition-all duration-300"
               style={{
                 width: `${
                   shiftReached
@@ -150,54 +156,86 @@ export function MissionPanel({
           </div>
 
           <div className="mt-2.5 flex items-center justify-between gap-2 text-[11px]">
-            <span className="font-semibold text-[#dbe6f7]">Energi Rata-rata Lab</span>
-            <span className="font-['Outfit'] font-extrabold text-[#fde08d]">
+            <span className="font-semibold text-[#f8e7c9]">Energi Rata-rata Lab</span>
+            <span className="font-['Fredoka'] font-bold text-[#ffe494]">
               {summary.averageEnergyPct}%
             </span>
           </div>
-          <div className="mt-1 h-1.5 w-full overflow-hidden rounded-[2px_6px_2px_6px] border border-[#0a1222] bg-white/15">
+          <div className="mt-1 h-2 w-full overflow-hidden rounded-full border-2 border-[#3e2517] bg-[#2f1a0e]">
             <div
-              className={`h-full transition-all duration-300 ${
+              className={`h-full rounded-full transition-all duration-300 ${
                 summary.averageEnergyPct < 40
-                  ? 'bg-[#ef4444]'
+                  ? 'bg-[#ef5b53]'
                   : summary.averageEnergyPct < 65
-                    ? 'bg-[#f59e0b]'
-                    : 'bg-[#10b981]'
+                    ? 'bg-[#f5b63b]'
+                    : 'bg-[#45c493]'
               }`}
               style={{ width: `${summary.averageEnergyPct}%` }}
             />
           </div>
 
-          <div className="mt-2 grid grid-cols-3 gap-1.5 text-center">
-            <div className="rounded-[3px_8px_3px_8px] border border-red-400/40 bg-red-950/60 px-1.5 py-1">
-              <div className="font-['Outfit'] text-sm font-black text-red-200">
+          <div className="mt-2.5 grid grid-cols-3 gap-1.5 text-center">
+            <div className="rounded-2xl border-2 border-[#3e2517] bg-[#a83530] px-1.5 py-1 shadow-[inset_0_-2px_0_rgba(62,37,23,0.4)]">
+              <div className="font-['Fredoka'] text-sm font-bold text-[#fff5f2]">
                 {summary.criticalAgents.length}
               </div>
-              <div className="text-[10px] font-semibold text-red-100/85">Kritis &lt;35%</div>
+              <div className="text-[10px] font-semibold text-[#ffe0dc]">Kritis &lt;35%</div>
             </div>
-            <div className="rounded-[3px_8px_3px_8px] border border-amber-400/40 bg-amber-950/55 px-1.5 py-1">
-              <div className="font-['Outfit'] text-sm font-black text-amber-200">
+            <div className="rounded-2xl border-2 border-[#3e2517] bg-[#b5731a] px-1.5 py-1 shadow-[inset_0_-2px_0_rgba(62,37,23,0.4)]">
+              <div className="font-['Fredoka'] text-sm font-bold text-[#fffaf0]">
                 {summary.warningAgents.length}
               </div>
-              <div className="text-[10px] font-semibold text-amber-100/85">Waspada</div>
+              <div className="text-[10px] font-semibold text-[#ffefc8]">Waspada</div>
             </div>
-            <div className="rounded-[3px_8px_3px_8px] border border-emerald-400/40 bg-emerald-950/55 px-1.5 py-1">
-              <div className="font-['Outfit'] text-sm font-black text-emerald-200">
+            <div className="rounded-2xl border-2 border-[#3e2517] bg-[#247364] px-1.5 py-1 shadow-[inset_0_-2px_0_rgba(62,37,23,0.4)]">
+              <div className="font-['Fredoka'] text-sm font-bold text-[#f2fff9]">
                 {summary.communicatingCount}
               </div>
-              <div className="text-[10px] font-semibold text-emerald-100/85">Mengobrol</div>
+              <div className="text-[10px] font-semibold text-[#d2f5e9]">Mengobrol</div>
             </div>
           </div>
 
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-1.5 border-t border-white/15 pt-2">
-            <div className="inline-flex items-center gap-1 text-[10px] font-bold">
+          {/* Tombol Pop-Up Hias Ruang BK + Jurnal + Kartu Hasil */}
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-white/15 pt-2.5">
+            {onOpenDecorShop && (
+              <button
+                type="button"
+                onClick={onOpenDecorShop}
+                className="flex-1 rounded-full border-2 border-[#3e2517] bg-gradient-to-b from-[#ffe58f] to-[#f2b53b] px-3 py-1 font-['Fredoka'] text-[11px] font-bold text-[#3e2517] shadow-[inset_0_-2px_0_#c68616,0_3px_0_#3e2517] transition hover:-translate-y-0.5 hover:brightness-105"
+              >
+                🪴 Hias Ruang BK · ⭐ {availableStars}
+              </button>
+            )}
+            {onOpenJournal && (
+              <button
+                type="button"
+                onClick={onOpenJournal}
+                className="rounded-full border-2 border-[#3e2517] bg-gradient-to-b from-[#3aa08e] to-[#267567] px-2.5 py-1 font-['Fredoka'] text-[11px] font-bold text-[#fffdf6] shadow-[inset_0_-2px_0_#1b574c,0_3px_0_#3e2517] transition hover:-translate-y-0.5 hover:brightness-105"
+              >
+                📖 Jurnal ({summary.missionsCompleted}/{summary.missionsTotal})
+              </button>
+            )}
+            {onOpenShiftReport && shiftReached && (
+              <button
+                type="button"
+                onClick={onOpenShiftReport}
+                className="rounded-full border-2 border-[#3e2517] bg-gradient-to-b from-[#fffdf6] to-[#f5e3be] px-2.5 py-1 font-['Fredoka'] text-[11px] font-bold text-[#3e2517] shadow-[0_3px_0_#3e2517] transition hover:-translate-y-0.5"
+              >
+                🏆 Kartu Hasil
+              </button>
+            )}
+          </div>
+
+          <div className="mt-2 flex items-center justify-between gap-1.5 border-t border-white/10 pt-2">
+            <span className="text-[10px] font-semibold text-[#f3dfc0]">Urutkan daftar:</span>
+            <div className="inline-flex items-center gap-1 font-['Fredoka'] text-[10px] font-bold">
               <button
                 type="button"
                 onClick={() => setSortMode('urgensi')}
-                className={`rounded-[3px_7px_3px_7px] px-2 py-0.5 transition ${
+                className={`rounded-full border border-[#3e2517] px-2.5 py-0.5 transition ${
                   sortMode === 'urgensi'
-                    ? 'bg-[#fde08d] text-[#0f1b33]'
-                    : 'bg-white/10 text-slate-200 hover:bg-white/20'
+                    ? 'bg-[#ffe494] text-[#3e2517]'
+                    : 'bg-white/10 text-[#fff4de] hover:bg-white/20'
                 }`}
               >
                 Prioritas Energi
@@ -205,34 +243,14 @@ export function MissionPanel({
               <button
                 type="button"
                 onClick={() => setSortMode('daftar')}
-                className={`rounded-[3px_7px_3px_7px] px-2 py-0.5 transition ${
+                className={`rounded-full border border-[#3e2517] px-2.5 py-0.5 transition ${
                   sortMode === 'daftar'
-                    ? 'bg-[#fde08d] text-[#0f1b33]'
-                    : 'bg-white/10 text-slate-200 hover:bg-white/20'
+                    ? 'bg-[#ffe494] text-[#3e2517]'
+                    : 'bg-white/10 text-[#fff4de] hover:bg-white/20'
                 }`}
               >
                 #01–#15
               </button>
-            </div>
-            <div className="inline-flex items-center gap-1">
-              {onOpenJournal && (
-                <button
-                  type="button"
-                  onClick={onOpenJournal}
-                  className="rounded-[3px_8px_3px_8px] border border-[#fde08d]/60 bg-[#175e75] px-2 py-0.5 text-[10px] font-extrabold text-[#fff8e6] hover:bg-[#1f7b96]"
-                >
-                  Jurnal ({summary.missionsCompleted}/{summary.missionsTotal})
-                </button>
-              )}
-              {onOpenShiftReport && shiftReached && (
-                <button
-                  type="button"
-                  onClick={onOpenShiftReport}
-                  className="rounded-[3px_8px_3px_8px] border border-[#0f1b33] bg-[#fde08d] px-2 py-0.5 text-[10px] font-extrabold text-[#0f1b33] hover:brightness-105"
-                >
-                  Kartu Hasil
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -266,7 +284,7 @@ export function MissionPanel({
               className={`dossier-card ${frameClass(isActive ? 'navy' : 'krem')} ${urgencyHighlight} flex gap-2.5 p-2.5 text-sm`}
             >
               <div
-                className="relative shrink-0 overflow-hidden rounded-[4px_12px_4px_12px] border-2 border-[#0f1b33] bg-gradient-to-b from-[#cbe2f6] via-[#e7f1fa] to-[#f4e7d2] shadow-[0_3px_0_rgba(15,27,51,0.28)]"
+                className="relative shrink-0 overflow-hidden rounded-2xl border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#d8ecfa] via-[#f0f5e8] to-[#f8e6c8] shadow-[0_3px_0_#3e2517]"
                 style={{ lineHeight: 0 }}
               >
                 <span className="dossier-index-tag absolute left-0 top-0 z-10" aria-hidden="true">
@@ -283,7 +301,9 @@ export function MissionPanel({
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center justify-between gap-1.5">
-                  <span className="font-bold tracking-tight">{agent.name}</span>
+                  <span className="font-['Fredoka'] text-[0.95rem] font-bold tracking-tight">
+                    {agent.name}
+                  </span>
                   <GameBadge
                     icon={statusIcon(status)}
                     value={statusText}
@@ -299,16 +319,16 @@ export function MissionPanel({
                       className={
                         wellbeing.tier === 'kritis'
                           ? isActive
-                            ? 'text-red-300'
-                            : 'text-red-700'
+                            ? 'text-[#ffd0cc]'
+                            : 'text-[#b9322c]'
                           : wellbeing.tier === 'waspada'
                             ? isActive
-                              ? 'text-amber-300'
-                              : 'text-amber-800'
+                              ? 'text-[#ffe699]'
+                              : 'text-[#a35c0e]'
                             : wellbeing.isCommunicating
                               ? isActive
-                                ? 'text-emerald-300'
-                                : 'text-emerald-700'
+                                ? 'text-[#b7f7df]'
+                                : 'text-[#207258]'
                               : 'opacity-80'
                       }
                     >
@@ -321,14 +341,14 @@ export function MissionPanel({
                     </span>
                     <span className="font-mono-data">{wellbeing.energyPct}%</span>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-[2px_6px_2px_6px] border border-[#0f1b33]/70 bg-[#0f1b33]/20">
+                  <div className="h-2.5 w-full overflow-hidden rounded-full border-2 border-[#3e2517] bg-[#3e2517]/20">
                     <div
-                      className={`h-full transition-all duration-300 ${
+                      className={`h-full rounded-full transition-all duration-300 ${
                         wellbeing.tier === 'kritis'
-                          ? 'bg-red-500'
+                          ? 'bg-[#e5534b]'
                           : wellbeing.tier === 'waspada'
-                            ? 'bg-amber-500'
-                            : 'bg-emerald-500'
+                            ? 'bg-[#f2ae30]'
+                            : 'bg-[#36ab81]'
                       }`}
                       style={{ width: `${wellbeing.energyPct}%` }}
                     />
@@ -338,10 +358,10 @@ export function MissionPanel({
                 {/* Sinyal Perilaku Pemicu Rasa Penasaran atau Judul Kisah Terungkap */}
                 {status === 'selesai' ? (
                   <p
-                    className={`mt-1.5 rounded-[3px_8px_3px_8px] px-2 py-1 text-[11px] font-bold ${
+                    className={`mt-1.5 rounded-xl border border-[#3e2517]/20 px-2.5 py-1 text-[11px] font-bold ${
                       isActive
-                        ? 'bg-[#e5ac3f]/20 text-[#fde08d]'
-                        : 'bg-[#fff3cd] text-[#784905]'
+                        ? 'bg-[#ffe494]/20 text-[#ffe699]'
+                        : 'bg-[#fff2c6] text-[#6d420c]'
                     }`}
                   >
                     ✦ Kisah terungkap: “{storySig.unlockedTitle}”
@@ -349,7 +369,7 @@ export function MissionPanel({
                 ) : (
                   <p
                     className={`mt-1.5 text-[11px] italic leading-snug ${
-                      isActive ? 'text-slate-200' : 'text-slate-700'
+                      isActive ? 'text-[#e8fff7]' : 'text-[#66452d]'
                     }`}
                   >
                     “{storySig.clue}”
@@ -359,18 +379,18 @@ export function MissionPanel({
                 <dl className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
                   <dt className="font-semibold uppercase tracking-wider opacity-70">{S.roleLabel}</dt>
                   <dd
-                    className={`rounded-[3px_8px_3px_8px] px-1.5 py-0.5 font-semibold ${
-                      isActive ? 'bg-white/15' : 'bg-[#0f1b33]/10'
+                    className={`rounded-full px-2 py-0.5 font-semibold ${
+                      isActive ? 'bg-white/15' : 'bg-[#3e2517]/10'
                     }`}
                   >
                     {roleLabel}
                   </dd>
                   {isoPct >= 50 && (
                     <dd
-                      className={`rounded-[3px_8px_3px_8px] px-1.5 py-0.5 font-bold ${
+                      className={`rounded-full px-2 py-0.5 font-bold ${
                         isActive
-                          ? 'bg-amber-400/20 text-amber-200'
-                          : 'bg-amber-100 text-amber-900'
+                          ? 'bg-[#ffe494]/25 text-[#ffe699]'
+                          : 'bg-[#fde5b8] text-[#7a4508]'
                       }`}
                     >
                       {isoPct}% sendiri

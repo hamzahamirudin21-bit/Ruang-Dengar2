@@ -130,7 +130,7 @@ export const RosterCard: React.FC<RosterCardProps> = ({ model, reducedMotion, wi
           </span>
           <span
             title={model.name}
-            className="inline-flex w-fit max-w-full truncate rounded-tr-lg rounded-bl-lg border border-[#e5ac3f]/70 bg-[#0f1b33]/92 px-2 py-0.5 font-['Outfit','Plus_Jakarta_Sans',sans-serif] text-[0.75rem] font-extrabold leading-tight text-[#fff9ec] shadow-sm"
+            className="inline-flex w-fit max-w-full truncate rounded-full border-2 border-[#3e2517] bg-[#fffdf5] px-2.5 py-0.5 font-['Fredoka',sans-serif] text-[0.76rem] font-bold leading-tight text-[#3e2517] shadow-[0_2px_0_#3e2517]"
           >
             {firstName}
           </span>
@@ -142,13 +142,13 @@ export const RosterCard: React.FC<RosterCardProps> = ({ model, reducedMotion, wi
         <div className="roster-chibi-hop shrink-0 -mb-0.5">
           <SpriteCanvas studentId={model.studentId} />
         </div>
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5 rounded-tr-xl rounded-bl-xl border-[1.5px] border-[#0f1b33]/80 bg-[#fdf9ef]/95 px-2 py-1 shadow-[0_2px_0_rgba(15,27,51,0.55)]">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5 rounded-2xl border-2 border-[#3e2517] bg-[#fffdf5]/95 px-2 py-1 shadow-[0_2px_0_#3e2517]">
           {interests.map((it) => (
             <span
               key={it.key}
-              className="inline-flex min-w-0 items-center gap-1 text-[0.64rem] font-bold leading-tight text-[#0f1b33]"
+              className="inline-flex min-w-0 items-center gap-1 text-[0.64rem] font-bold leading-tight text-[#3e2517]"
             >
-              <span className="shrink-0 text-[#15667f]">
+              <span className="shrink-0 text-[#2e8274]">
                 <InterestIcon id={it.iconId} />
               </span>
               <span className="truncate">{it.text}</span>

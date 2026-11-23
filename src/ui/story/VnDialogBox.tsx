@@ -36,7 +36,9 @@ export interface VnDialogBoxProps {
   isSpeaking?: boolean;
   /** Dipanggil saat status pengetikan berubah (true = teks masih diketik). */
   onTypingChange?: (typing: boolean) => void;
-  /** Slot opsional di bagian atas kotak (mis. umpan balik kaidah teori konseling). */
+  /** Isyarat gerak tubuh mahasiswa yang ditampilkan halus di bawah dialog tanpa klik tambahan. */
+  cueText?: string | null;
+  /** Slot opsional di bagian atas kotak. */
   headerSlot?: ReactNode;
   /** Konten tambahan di dalam kotak (opsional). */
   children?: ReactNode;
@@ -64,6 +66,7 @@ export function VnDialogBox({
   onEndSession,
   speakerSide,
   isSpeaking,
+  cueText,
   onTypingChange,
   headerSlot,
   children,
@@ -88,7 +91,7 @@ export function VnDialogBox({
     <section
       role="region"
       aria-label={S.dialogueRegionLabel}
-      className={`vn-box ${className ?? ''}`}
+      className={`vn-box ${showNameTab ? (isDosen ? 'vn-box--tail-left' : 'vn-box--tail-right') : ''} ${className ?? ''}`}
       data-testid="vn-dialog-box"
       onClick={onAdvance}
     >
@@ -139,6 +142,11 @@ export function VnDialogBox({
                 </button>
               )}
             </p>
+            {cueText && !narration && (
+              <p className="vn-cue" data-testid="vn-dialog-cue">
+                {cueText}
+              </p>
+            )}
           </>
         ) : (
           <p className="vn-text vn-text--narration">{S.historyEmpty}</p>
