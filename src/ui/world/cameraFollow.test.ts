@@ -7,6 +7,7 @@ import {
   MAX_SCALE,
   MIN_SCALE,
   clampCamera,
+  coverFillScale,
   defaultScale,
   followCamera,
   zoomScale,
@@ -105,5 +106,23 @@ test('Property 22: zoomScale selalu dalam [0.5, 3.2]', () => {
     const factor = Math.exp(randomRange(rng, -4, 4));
     const out = zoomScale(start, factor);
     assert.ok(out >= MIN_SCALE && out <= MAX_SCALE, `out=${out}`);
+  }
+});
+
+test('coverFillScale selalu memenuhi 100% lebar & tinggi panggung peta tanpa tepi kosong', () => {
+  for (const [width, height] of [
+    [640, 400],
+    [820, 480],
+    [960, 540],
+    [1280, 720],
+    [1366, 768],
+    [1920, 1080],
+  ]) {
+    const scale = coverFillScale({ width, height }, LAB_MAP);
+    assert.ok(scale >= MIN_SCALE && scale <= MAX_SCALE);
+    assert.ok(worldW * scale >= width, `lebar kurang di ${width}x${height}`);
+    assert.ok(worldH * scale >= height, `tinggi kurang di ${width}x${height}`);
+    const clamped = clampCamera({ scale, offsetX: 500, offsetY: 500 }, { width, height }, LAB_MAP);
+    assert.ok(clamped.offsetX <= 0 && clamped.offsetY <= 0);
   }
 });

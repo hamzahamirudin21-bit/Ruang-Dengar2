@@ -29,39 +29,63 @@ export interface PixelPortraitProps {
   className?: string;
 }
 
-/* Manifest dimuat sekali di latar belakang; kegagalan berarti tidak ada aset. */
+/* Manifest & URL tercache dimuat sekali di latar belakang agar tidak pernah berkedip ke kanvas prosedural. */
 let manifestPromise: Promise<AssetManifest | null> | null = null;
+let cachedManifest: AssetManifest | null = null;
+const cachedLoadedUrls = new Set<string>();
+
 function getManifest(): Promise<AssetManifest | null> {
-  if (!manifestPromise) manifestPromise = loadManifest();
+  if (!manifestPromise) {
+    manifestPromise = loadManifest().then((m) => {
+      cachedManifest = m;
+      return m;
+    });
+  }
   return manifestPromise;
 }
 
 function useAssetState(studentId: string): {
   manifest: AssetManifest | null;
   loaded: ReadonlySet<string>;
+  ready: boolean;
+  version: number;
 } {
-  const [state, setState] = useState<{ manifest: AssetManifest | null; loaded: ReadonlySet<string> }>({
-    manifest: null,
-    loaded: new Set(),
-  });
+  const [state, setState] = useState<{
+    manifest: AssetManifest | null;
+    version: number;
+    ready: boolean;
+  }>(() => ({
+    manifest: cachedManifest,
+    version: 0,
+    ready: cachedManifest !== null,
+  }));
   useEffect(() => {
     let cancelled = false;
     void getManifest().then(async (manifest) => {
       const entry = manifest?.characters[studentId];
-      if (!manifest || !entry) return;
+      if (!manifest || !entry) {
+        if (!cancelled) setState((prev) => ({ manifest, version: prev.version + 1, ready: true }));
+        return;
+      }
       const names = [entry.portrait, ...Object.values(entry.expressions ?? {})].filter(
         (n): n is string => typeof n === 'string',
       );
       const urls = names.map(assetUrl);
-      const ok = await Promise.all(urls.map((u) => preloadImage(u)));
+      const pending = urls.filter((u) => !cachedLoadedUrls.has(u));
+      if (pending.length > 0) {
+        const ok = await Promise.all(pending.map((u) => preloadImage(u)));
+        pending.forEach((u, i) => {
+          if (ok[i]) cachedLoadedUrls.add(u);
+        });
+      }
       if (cancelled) return;
-      setState({ manifest, loaded: new Set(urls.filter((_, i) => ok[i])) });
+      setState((prev) => ({ manifest, version: prev.version + 1, ready: true }));
     });
     return () => {
       cancelled = true;
     };
   }, [studentId]);
-  return state;
+  return { manifest: state.manifest, loaded: cachedLoadedUrls, ready: state.ready, version: state.version };
 }
 
 export function PixelPortrait({
@@ -80,10 +104,11 @@ export function PixelPortrait({
   const s = Math.max(1, Math.floor(Number.isFinite(scale) ? scale : 1));
   const label = studentId === DOSEN_ID ? STRINGS.story.portraitCounselorAlt : portraitAltText(name);
 
-  const { manifest, loaded } = useAssetState(studentId);
+  const { manifest, loaded, ready, version } = useAssetState(studentId);
   const source = useMemo(
     () => resolvePortraitSource(studentId, expression, manifest, loaded),
-    [studentId, expression, manifest, loaded],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [studentId, expression, manifest, version, ready],
   );
 
   useEffect(() => {
@@ -158,6 +183,16 @@ export function PixelPortrait({
         style={style}
         data-expression={expression}
         draggable={false}
+      />
+    );
+  }
+
+  if (!ready) {
+    return (
+      <div
+        aria-hidden="true"
+        className={className}
+        style={{ width, height }}
       />
     );
   }

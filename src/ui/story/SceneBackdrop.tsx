@@ -25,8 +25,8 @@ export interface StoryBackdropProps {
 }
 
 const DUST_COUNT = 10;
-/** Skala kecil agar tepi tidak pernah terlihat saat parallax (±4 px) dan kabur. */
-const BACKDROP_SCALE = 1.03;
+/** Skala kecil agar tepi tidak pernah terlihat saat parallax (±4 px) tanpa memotong papan nama ruangan. */
+const BACKDROP_SCALE = 1.012;
 
 function seedFor(artId: string): number {
   let h = 0;

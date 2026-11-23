@@ -91,10 +91,21 @@ export function VnDialogBox({
     <section
       role="region"
       aria-label={S.dialogueRegionLabel}
-      className={`vn-box ${showNameTab ? (isDosen ? 'vn-box--tail-left' : 'vn-box--tail-right') : ''} ${className ?? ''}`}
+      className={`vn-box vn-cloud ${showNameTab ? (isDosen ? 'vn-box--tail-left' : 'vn-box--tail-right') : ''} ${className ?? ''}`}
       data-testid="vn-dialog-box"
       onClick={onAdvance}
     >
+      {/* Tanda awan bicara bulat bertingkat mengarah ke pembicara (kiri: Dosen, kanan: Mahasiswa) */}
+      {showNameTab && (
+        <span
+          aria-hidden="true"
+          className={`vn-cloud-dots ${isDosen ? 'vn-cloud-dots--left' : 'vn-cloud-dots--right'}`}
+        >
+          <span className="vn-cloud-dot vn-cloud-dot--lg" />
+          <span className="vn-cloud-dot vn-cloud-dot--md" />
+          <span className="vn-cloud-dot vn-cloud-dot--sm" />
+        </span>
+      )}
       {showNameTab && (
         <div className={`vn-nametab ${isDosen ? 'vn-nametab--left' : 'vn-nametab--right'}`}>
           {!isDosen && <span aria-hidden="true" className="vn-nametab-line vn-nametab-line--right" />}

@@ -59,12 +59,11 @@ import { animationTick, shouldRedrawForAnimation } from '../characters/animation
 import {
   CameraTransform,
   ClickRippleState,
-  computeFitCamera,
   findZoneAtTile,
   renderLabCanvas,
   screenToTile,
 } from '../canvas/labRenderer';
-import { clampCamera, defaultScale, followCamera, zoomScale } from '../world/cameraFollow';
+import { clampCamera, coverFillScale, followCamera } from '../world/cameraFollow';
 import {
   IconBintang,
   IconEnergi,
@@ -139,11 +138,8 @@ import type { StoryOutcomeKind } from '../../engine/story/storyTypes';
 import {
   IconDoor,
   IconGrid,
-  IconResetView,
   IconSettings,
   IconTag,
-  IconZoomIn,
-  IconZoomOut,
 } from '../components/Icons';
 
 const HUD_ICON_COMPONENTS: Record<HudIconId, React.FC<{ className?: string }>> = {
@@ -484,30 +480,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     needsRedrawRef.current = true;
   }, []);
 
-  const handleFitView = useCallback(() => {
-    const { width, height } = stageSizeRef.current;
-    userMovedCameraRef.current = false;
-    setFollow(false);
-    cameraRef.current = computeFitCamera(width, height, LAB_MAP);
-    needsRedrawRef.current = true;
-  }, [setFollow]);
-
-  const handleZoomBy = useCallback((factor: number, anchorX?: number, anchorY?: number) => {
-    const cam = cameraRef.current;
-    const { width, height } = stageSizeRef.current;
-    const cx = anchorX ?? width / 2;
-    const cy = anchorY ?? height / 2;
-    const nextScale = zoomScale(cam.scale, factor);
-    const ratio = nextScale / cam.scale;
-    userMovedCameraRef.current = true;
-    cameraRef.current = {
-      scale: nextScale,
-      offsetX: cx - (cx - cam.offsetX) * ratio,
-      offsetY: cy - (cy - cam.offsetY) * ratio,
-    };
-    needsRedrawRef.current = true;
-  }, []);
-
   const handleRunPathTest = useCallback(() => {
     testRunCountRef.current += 1;
     const rng = mulberry32(seed + testRunCountRef.current * 97);
@@ -591,9 +563,9 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           y: (av.y + 0.5) * LAB_MAP.tileSizePx,
         };
       }
+      const scale = coverFillScale(vp, LAB_MAP);
       if (!cameraInitedRef.current) {
         cameraInitedRef.current = true;
-        const scale = defaultScale(vp, LAB_MAP);
         cameraRef.current = followCamera(
           { offsetX: 0, offsetY: 0, scale },
           avatarWorldPosRef.current,
@@ -604,7 +576,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         );
       } else if (followRef.current) {
         cameraRef.current = followCamera(
-          cameraRef.current,
+          { ...cameraRef.current, scale },
           avatarWorldPosRef.current,
           vp,
           LAB_MAP,
@@ -612,7 +584,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           true
         );
       } else {
-        cameraRef.current = clampCamera(cameraRef.current, vp, LAB_MAP);
+        cameraRef.current = clampCamera({ ...cameraRef.current, scale }, vp, LAB_MAP);
       }
       needsRedrawRef.current = true;
     };
@@ -849,17 +821,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     return () => cancelAnimationFrame(rafId);
   }, []);
 
-  const handleCanvasWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const localX = e.clientX - rect.left;
-    const localY = e.clientY - rect.top;
-    const factor = e.deltaY < 0 ? 1.12 : 0.89;
-    handleZoomBy(factor, localX, localY);
-  };
-
   const handleCanvasPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (e.button !== 0) return;
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -885,11 +846,15 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         userMovedCameraRef.current = true;
         if (followRef.current) setFollow(false);
       }
-      cameraRef.current = {
-        ...cameraRef.current,
-        offsetX: dragRef.current.origOffsetX + dx,
-        offsetY: dragRef.current.origOffsetY + dy,
-      };
+      cameraRef.current = clampCamera(
+        {
+          ...cameraRef.current,
+          offsetX: dragRef.current.origOffsetX + dx,
+          offsetY: dragRef.current.origOffsetY + dy,
+        },
+        stageSizeRef.current,
+        LAB_MAP
+      );
       needsRedrawRef.current = true;
       return;
     }
@@ -968,32 +933,24 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   const handleCanvasKeyDown = (e: React.KeyboardEvent<HTMLCanvasElement>) => {
     const step = 28;
     if (e.key.startsWith('Arrow') && followRef.current) setFollow(false);
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      cameraRef.current.offsetX += step;
-      needsRedrawRef.current = true;
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      cameraRef.current.offsetX -= step;
-      needsRedrawRef.current = true;
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      cameraRef.current.offsetY += step;
-      needsRedrawRef.current = true;
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      cameraRef.current.offsetY -= step;
-      needsRedrawRef.current = true;
-    } else if (e.key === '+' || e.key === '=') {
-      e.preventDefault();
-      handleZoomBy(1.12);
-    } else if (e.key === '-') {
-      e.preventDefault();
-      handleZoomBy(0.89);
-    } else if (e.key === '0') {
-      e.preventDefault();
-      handleFitView();
-    }
+    let dx = 0;
+    let dy = 0;
+    if (e.key === 'ArrowLeft') dx = step;
+    else if (e.key === 'ArrowRight') dx = -step;
+    else if (e.key === 'ArrowUp') dy = step;
+    else if (e.key === 'ArrowDown') dy = -step;
+    else return;
+    e.preventDefault();
+    cameraRef.current = clampCamera(
+      {
+        ...cameraRef.current,
+        offsetX: cameraRef.current.offsetX + dx,
+        offsetY: cameraRef.current.offsetY + dy,
+      },
+      stageSizeRef.current,
+      LAB_MAP
+    );
+    needsRedrawRef.current = true;
   };
 
   const selectedZone = useMemo(
@@ -1349,36 +1306,36 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       }}
     >
 
-      {/* HUD atas bergaya game cozy hand-inked melayang (membulat lembut, nol kotak tajam!) */}
+      {/* HUD atas 1 baris rapi bergaya game cozy hand-inked melayang (nol wrap di desktop!) */}
       <GameFrame
         as="header"
         variant="kayu"
         nails
         animateIn
-        className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 !rounded-[24px] px-4 py-2 lg:px-5"
+        className="flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1.5 !rounded-[22px] px-3 py-1.5 lg:flex-nowrap lg:px-3.5"
       >
         {/* Kiri: kembali & logo pita */}
-        <div className="flex items-center gap-3">
-          <GameButton variant="sekunder" size="sm" bounce onClick={() => { playSfx('klik'); onBackToStart(); }} className="whitespace-nowrap text-sm">
+        <div className="flex shrink-0 items-center gap-2">
+          <GameButton variant="sekunder" size="sm" bounce onClick={() => { playSfx('klik'); onBackToStart(); }} className="!min-h-[2rem] whitespace-nowrap !px-3 text-xs">
             {STRINGS.statusBar.backToStart}
           </GameButton>
-          <GameRibbon level={1} tone="merah" shine>
+          <GameRibbon level={1} tone="merah" shine className="!px-3.5 !py-1 !text-[0.74rem]">
             {STRINGS.app.name}
           </GameRibbon>
         </div>
 
-        {/* Tengah: empat lencana, tombol pop-up Hias Ruang BK, dan meter energi konselor */}
-        <div className="flex flex-wrap items-center gap-2 text-sm">
+        {/* Tengah: lencana status, nyawa kelas, tombol Hias Ruang BK, dan meter energi konselor */}
+        <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs lg:flex-nowrap">
           {hudBadges.map((b) => {
             const BadgeIcon = HUD_ICON_COMPONENTS[b.icon];
             return (
               <span
                 key={b.key}
                 data-testid={HUD_BADGE_TESTIDS[b.key]}
-                className={b.key === 'mahasiswa-aktif' ? 'hidden sm:inline-flex' : 'inline-flex'}
+                className={b.key === 'mahasiswa-aktif' ? 'hidden xl:inline-flex' : 'inline-flex'}
               >
                 <GameBadge
-                  icon={<BadgeIcon className="h-5 w-5" />}
+                  icon={<BadgeIcon className="h-4 w-4" />}
                   value={b.value}
                   animateValue={/^\d+$/.test(b.value)}
                   label={b.label}
@@ -1391,7 +1348,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           <span
             data-testid="survival-lives-badge"
             title={`Kalah bila ${MAX_LOST_STUDENTS} mahasiswa kehabisan energi (0%) dan hilang`}
-            className={`inline-flex items-center gap-1.5 rounded-full border-[2.5px] border-[#3e2517] px-3 py-1 font-['Fredoka'] text-xs font-bold shadow-[0_3px_0_#3e2517] ${
+            className={`inline-flex shrink-0 items-center gap-1 rounded-full border-[2.5px] border-[#3e2517] px-2.5 py-0.5 font-['Fredoka'] text-[11px] font-bold shadow-[0_3px_0_#3e2517] ${
               lostStudentIds.length >= 2
                 ? 'bg-[#d9463e] text-[#fffdf6]'
                 : lostStudentIds.length === 1
@@ -1404,7 +1361,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                 idx < lostStudentIds.length ? '🖤' : '❤️'
               ).join('')}
             </span>
-            <span>
+            <span className="whitespace-nowrap">
               Hilang {lostStudentIds.length}/{MAX_LOST_STUDENTS}
             </span>
           </span>
@@ -1415,7 +1372,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               playSfx('klik');
               setDecorShopOpen(true);
             }}
-            className="relative inline-flex items-center gap-1.5 rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#ffe694] to-[#f2b53b] px-3.5 py-1 font-['Fredoka'] text-xs font-bold text-[#3e2517] shadow-[inset_0_-2.5px_0_#c68616,0_3px_0_#3e2517] transition hover:-translate-y-0.5 hover:brightness-105"
+            className="relative inline-flex shrink-0 items-center gap-1 rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#ffe694] to-[#f2b53b] px-2.5 py-0.5 font-['Fredoka'] text-[11px] font-bold text-[#3e2517] shadow-[inset_0_-2.5px_0_#c68616,0_3px_0_#3e2517] transition hover:-translate-y-0.5 hover:brightness-105"
             title="Hias Ruang Konsultasi BK dengan Bintang Empati"
           >
             {canBuyAnyDecor && (
@@ -1427,11 +1384,12 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               </span>
             )}
             <span aria-hidden="true">🪴</span>
-            <span className="hidden md:inline">Hias Ruang</span>
-            <span>⭐ {availableStars}</span>
+            <span className="hidden 2xl:inline">Hias Ruang</span>
+            <span className="hidden lg:inline 2xl:hidden">Hias</span>
+            <span className="whitespace-nowrap">⭐ {availableStars}</span>
           </button>
           <span
-            className="hidden h-2.5 w-14 overflow-hidden rounded-full border-2 border-[#3e2517] bg-[#3e2517]/40 md:block"
+            className="hidden h-2 w-10 overflow-hidden rounded-full border-2 border-[#3e2517] bg-[#3e2517]/40 2xl:block"
             aria-hidden="true"
           >
             <span
@@ -1440,10 +1398,10 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
             />
           </span>
           {hudMeters.energy && (
-            <span className="inline-flex items-center rounded-full border-[2.5px] border-[#3e2517] bg-[#fffaf0] px-3 py-1 text-[#3e2517] shadow-[inset_0_-2px_0_#e5caa0,0_3px_0_#3e2517]">
+            <span className="inline-flex shrink-0 items-center rounded-full border-[2.5px] border-[#3e2517] bg-[#fffaf0] px-2.5 py-0.5 text-[#3e2517] shadow-[inset_0_-2px_0_#e5caa0,0_3px_0_#3e2517] [&_.game-meter]:!min-w-[3.4rem]">
               <GameMeter
                 label={hudMeters.energy.label}
-                icon={<IconEnergi className="h-5 w-5" />}
+                icon={<IconEnergi className="h-4 w-4" />}
                 value={hudMeters.energy.value}
                 max={hudMeters.energy.max}
                 higherIsBetter={hudMeters.energy.higherIsBetter}
@@ -1453,11 +1411,11 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         </div>
 
         {/* Kanan: tombol bulat timbul jeda/kecepatan dan pengaturan */}
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1">
           <div
             role="group"
             aria-label={STRINGS.speedControls.speedPrefix}
-            className="flex items-center gap-1.5"
+            className="flex items-center gap-1"
           >
             {speedControls.map((ctl) => {
               const CtlIcon = HUD_ICON_COMPONENTS[ctl.icon];
@@ -1469,6 +1427,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                   title={ctl.label}
                   aria-pressed={ctl.pressed}
                   bounce
+                  className="!h-[2.05rem] !w-[2.05rem]"
                   onClick={() => {
                     playSfx('klik');
                     if (ctl.value === null) handleTogglePause();
@@ -1476,9 +1435,9 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                   }}
                 >
                   <span className="flex flex-col items-center leading-none" aria-hidden="true">
-                    <CtlIcon className="h-4 w-4" />
+                    <CtlIcon className="h-3.5 w-3.5" />
                     {ctl.value !== null && (
-                      <span className="font-mono-data text-[10px] font-bold">{ctl.value}x</span>
+                      <span className="font-mono-data text-[9px] font-bold">{ctl.value}x</span>
                     )}
                   </span>
                 </GameButton>
@@ -1488,20 +1447,22 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           <GameButton
             variant="bulat-ikon"
             bounce
+            className="!h-[2.05rem] !w-[2.05rem]"
             onClick={() => { playSfx('klik'); setBriefingOpen(true); }}
             aria-label="Panduan Shift Pagi"
             title="Panduan Shift Pagi"
           >
-            <span className="font-['Fredoka'] text-sm font-bold" aria-hidden="true">?</span>
+            <span className="font-['Fredoka'] text-xs font-bold" aria-hidden="true">?</span>
           </GameButton>
           <GameButton
             variant="bulat-ikon"
             bounce
+            className="!h-[2.05rem] !w-[2.05rem]"
             onClick={() => { playSfx('klik'); onOpenSettings(); }}
             aria-label={STRINGS.statusBar.settingsQuick}
             title={STRINGS.statusBar.settingsQuick}
           >
-            <IconSettings className="h-5 w-5" />
+            <IconSettings className="h-4 w-4" />
           </GameButton>
         </div>
       </GameFrame>
@@ -1512,39 +1473,9 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           aria-label={STRINGS.canvasToolbar.mapLegendTitle}
           className="flex flex-col overflow-hidden rounded-[26px] border-[3.5px] border-[#3e2517] bg-[#fffdf5] shadow-[0_7px_0_#3e2517,0_14px_28px_rgba(62,37,23,0.18)] lg:min-h-0 lg:w-[68%] lg:flex-1"
         >
-          {/* Bilah kontrol peta (tinggi min-h-[54px] sejajar presisi dengan header Panel Konselor kanan!) */}
+          {/* Bilah kontrol peta (tanpa zoom — peta selalu penuh rapi tanpa tepi kosong!) */}
           <div className="flex min-h-[54px] shrink-0 flex-wrap items-center justify-between gap-2 border-b-[3px] border-[#3e2517] bg-gradient-to-b from-[#a76940] to-[#874f2d] px-3.5 py-2 text-[#fffdf6]">
             <div className="flex flex-wrap items-center gap-2">
-              <GameButton
-                variant="bulat-ikon"
-                bounce
-                onClick={() => { playSfx('klik'); handleZoomBy(1.15); }}
-                aria-label={STRINGS.canvasToolbar.zoomIn}
-                title={STRINGS.canvasToolbar.zoomIn}
-              >
-                <IconZoomIn className="h-5 w-5" />
-              </GameButton>
-              <GameButton
-                variant="bulat-ikon"
-                bounce
-                onClick={() => { playSfx('klik'); handleZoomBy(0.87); }}
-                aria-label={STRINGS.canvasToolbar.zoomOut}
-                title={STRINGS.canvasToolbar.zoomOut}
-              >
-                <IconZoomOut className="h-5 w-5" />
-              </GameButton>
-              <GameButton
-                variant="bulat-ikon"
-                bounce
-                onClick={() => { playSfx('klik'); handleFitView(); }}
-                aria-label={STRINGS.canvasToolbar.resetView}
-                title={STRINGS.canvasToolbar.resetView}
-              >
-                <IconResetView className="h-5 w-5" />
-              </GameButton>
-
-              <span className="mx-1 h-6 w-0.5 bg-white/20" aria-hidden="true" />
-
               <GameButton
                 variant="sekunder"
                 size="sm"
@@ -1586,6 +1517,10 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               >
                 <IconGrid className="h-5 w-5" />
               </GameButton>
+
+              <span className="hidden items-center gap-1 rounded-full border border-[#fffdf6]/25 bg-[#3e2517]/35 px-2.5 py-1 font-['Fredoka'] text-[11px] font-semibold text-[#fff3d6] xl:inline-flex">
+                🗺️ Peta Penuh · Geser untuk menjelajah
+              </span>
             </div>
 
             {/* Pengatur visibilitas pintu Ruang Konsultasi */}
@@ -1631,7 +1566,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               data-testid="lab-canvas"
               tabIndex={0}
               aria-label={STRINGS.canvasToolbar.mapLegendTitle}
-              onWheel={handleCanvasWheel}
               onPointerDown={handleCanvasPointerDown}
               onPointerMove={handleCanvasPointerMove}
               onPointerUp={handleCanvasPointerUp}

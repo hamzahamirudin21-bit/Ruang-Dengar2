@@ -63,33 +63,33 @@ export const RoomDecorOverlay: React.FC<RoomDecorOverlayProps> = ({
 
       {/* Pot Monstera & Kaktus hangat di sudut kiri bawah */}
       {has('tanaman-monstera') && (
-        <div className="absolute bottom-[23%] left-[2.5%] hidden sm:block">
+        <div className="absolute bottom-[2%] left-[1.5%] hidden sm:block">
           <DecorArtwork
             id="tanaman-monstera"
             reducedMotion={reducedMotion}
-            className="h-32 w-28 drop-shadow-[0_8px_14px_rgba(62,37,23,0.28)]"
+            className="h-28 w-24 drop-shadow-[0_8px_14px_rgba(62,37,23,0.28)]"
           />
         </div>
       )}
 
-      {/* Teko Teh Melati Hangat di bagian tengah-bawah di atas kotak dialog */}
+      {/* Teko Teh Melati Hangat di meja depan tengah-bawah (di bawah koridor percakapan) */}
       {has('set-teh-hangat') && (
-        <div className="absolute bottom-[23.5%] left-[44%] hidden lg:block">
+        <div className="absolute bottom-[1.5%] left-1/2 hidden -translate-x-1/2 lg:block">
           <DecorArtwork
             id="set-teh-hangat"
             reducedMotion={reducedMotion}
-            className="h-24 w-32 drop-shadow-[0_8px_14px_rgba(62,37,23,0.28)]"
+            className="h-20 w-28 drop-shadow-[0_8px_14px_rgba(62,37,23,0.28)]"
           />
         </div>
       )}
 
       {/* Patung Kucing Sapa Penenang di sudut kanan bawah (pesona maskot meja!) */}
       {has('kucing-penenang') && (
-        <div className="absolute bottom-[22.5%] right-[2.5%] hidden sm:block">
+        <div className="absolute bottom-[2%] right-[1.5%] hidden sm:block">
           <DecorArtwork
             id="kucing-penenang"
             reducedMotion={reducedMotion}
-            className="h-28 w-24 drop-shadow-[0_8px_14px_rgba(62,37,23,0.28)]"
+            className="h-24 w-20 drop-shadow-[0_8px_14px_rgba(62,37,23,0.28)]"
           />
         </div>
       )}

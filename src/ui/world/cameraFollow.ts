@@ -26,6 +26,15 @@ function clampScale(scale: number): number {
   return Math.min(MAX_SCALE, Math.max(MIN_SCALE, finiteOr(scale, MIN_SCALE)));
 }
 
+/** Skala penuh tanpa ruang kosong: peta selalu mengisi 100% lebar & tinggi viewport kanvas. */
+export function coverFillScale(viewport: Viewport, map: LabMapData): number {
+  const vp = safeViewport(viewport);
+  const worldW = Math.max(1, map.width * map.tileSizePx);
+  const worldH = Math.max(1, map.height * map.tileSizePx);
+  const cover = Math.max(vp.width / worldW, vp.height / worldH);
+  return clampScale(Math.max(cover * 1.03, 1.05));
+}
+
 /** Skala bawaan: lebih dekat daripada skala muat (fit), maksimum 2.2. */
 export function defaultScale(viewport: Viewport, map: LabMapData): number {
   const vp = safeViewport(viewport);

@@ -57,16 +57,20 @@ function getSharedManifest(): Promise<AssetManifest | null> {
 }
 
 function usePortraitAsset(studentId: string, expression: StoryExpression) {
-  const [state, setState] = useState<{ manifest: AssetManifest | null; version: number }>({
+  const [state, setState] = useState<{ manifest: AssetManifest | null; version: number; ready: boolean }>({
     manifest: null,
     version: 0,
+    ready: false,
   });
 
   useEffect(() => {
     let cancelled = false;
     void getSharedManifest().then(async (manifest) => {
       const entry = manifest?.characters[studentId];
-      if (!manifest || !entry) return;
+      if (!manifest || !entry) {
+        if (!cancelled) setState((prev) => ({ manifest, version: prev.version + 1, ready: true }));
+        return;
+      }
       const names = [entry.portrait, ...Object.values(entry.expressions ?? {})].filter(
         (n): n is string => typeof n === 'string',
       );
@@ -79,18 +83,19 @@ function usePortraitAsset(studentId: string, expression: StoryExpression) {
         });
       }
       if (cancelled) return;
-      setState((prev) => ({ manifest, version: prev.version + 1 }));
+      setState((prev) => ({ manifest, version: prev.version + 1, ready: true }));
     });
     return () => {
       cancelled = true;
     };
   }, [studentId]);
 
-  return useMemo(
+  const source = useMemo(
     () => resolvePortraitSource(studentId, expression, state.manifest, loadedAssetUrls),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [studentId, expression, state.manifest, state.version],
   );
+  return { source, ready: state.ready };
 }
 
 function createSurface(w: number, h: number): Surface | null {
@@ -159,12 +164,12 @@ export function LivingPortrait({
     () => ({ id: studentId, fallback: demographicLabel }),
     [studentId, demographicLabel],
   );
-  const assetSource = usePortraitAsset(studentId, expression);
+  const { source: assetSource, ready: assetReady } = usePortraitAsset(studentId, expression);
   const key = `${frameKey(studentId, expression, pose.eyesClosed, pose.mouth)}|${facing}`;
   const frame = useMemo(
-    () => (assetSource.kind === 'aset' ? null : frames.get(key, () => renderFrame(look, expression, pose.eyesClosed, pose.mouth, facing))),
+    () => (!assetReady || assetSource.kind === 'aset' ? null : frames.get(key, () => renderFrame(look, expression, pose.eyesClosed, pose.mouth, facing))),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [key, look, assetSource.kind],
+    [key, look, assetSource.kind, assetReady],
   );
 
   useEffect(() => {
@@ -222,6 +227,16 @@ export function LivingPortrait({
           draggable={false}
         />
       </div>
+    );
+  }
+
+  if (!assetReady) {
+    return (
+      <div
+        className={className}
+        style={{ width: fluid ? '100%' : width, height: fluid ? '100%' : height }}
+        aria-hidden="true"
+      />
     );
   }
 

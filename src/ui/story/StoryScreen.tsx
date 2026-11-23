@@ -583,10 +583,37 @@ export function StoryScreen({
     onEndSession();
   };
 
+  // Animasi reaksi singkat saat memilih respons (+12% kilau bintang tepat / -14% getar lembut salah)
+  const [reactionFx, setReactionFx] = useState<{ kind: 'tepat' | 'salah'; key: number } | null>(null);
+  const lastFeedbackTurnRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!lastChoiceFeedback) {
+      lastFeedbackTurnRef.current = null;
+      setReactionFx(null);
+      return;
+    }
+    if (lastFeedbackTurnRef.current === lastChoiceFeedback.turn) return;
+    lastFeedbackTurnRef.current = lastChoiceFeedback.turn;
+    if (reducedMotion) return;
+    const fxKey = Date.now();
+    setReactionFx({ kind: lastChoiceFeedback.kind, key: fxKey });
+    const timer = window.setTimeout(
+      () => setReactionFx((cur) => (cur?.key === fxKey ? null : cur)),
+      lastChoiceFeedback.kind === 'tepat' ? 1150 : 420,
+    );
+    return () => window.clearTimeout(timer);
+  }, [lastChoiceFeedback, reducedMotion]);
+
+  const isWarmRoom =
+    scene?.setting === 'ruang-konsultasi' ||
+    startZoneId === 'diskusi' ||
+    startZoneId === 'istirahat' ||
+    startZoneId === 'konsultasi';
+
   return (
     <div
       ref={rootRef}
-      className={`vn-stage fixed inset-0 z-40 ${className ?? ''}`}
+      className={`vn-stage ${reactionFx?.kind === 'salah' ? 'vn-stage--shake' : ''} ${className ?? ''}`}
       data-mood={stageMood}
       data-testid="story-screen"
     >
@@ -603,19 +630,21 @@ export function StoryScreen({
       </div>
       {/* 1b. Pencahayaan emosi panggung halus berbasis ekspresi terlihat */}
       <div className="vn-mood-layer" aria-hidden="true" />
-      {/* 1b2. Partikel debu sinar matahari hangat melayang di Ruang Konsultasi */}
-      {!reducedMotion && scene?.setting === 'ruang-konsultasi' && (
+      {/* 1b2. Partikel atmosfer melayang lembut di seluruh ruangan (hangat di Ruang BK/Diskusi, lembut bercahaya di Lab) */}
+      {!reducedMotion && (
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[1] overflow-hidden">
           {[
-            { left: '16%', top: '28%', size: 7, delay: '0s' },
-            { left: '34%', top: '22%', size: 5, delay: '1.6s' },
-            { left: '52%', top: '34%', size: 8, delay: '3.1s' },
-            { left: '68%', top: '24%', size: 6, delay: '4.5s' },
-            { left: '82%', top: '38%', size: 7, delay: '2.2s' },
+            { left: '14%', top: '26%', size: 7, delay: '0s' },
+            { left: '32%', top: '20%', size: 5, delay: '1.5s' },
+            { left: '49%', top: '32%', size: 8, delay: '3.0s' },
+            { left: '66%', top: '22%', size: 6, delay: '4.4s' },
+            { left: '84%', top: '34%', size: 7, delay: '2.1s' },
+            { left: '24%', top: '58%', size: 5, delay: '3.7s' },
+            { left: '76%', top: '62%', size: 6, delay: '1.1s' },
           ].map((mote, idx) => (
             <span
               key={idx}
-              className="fx-dust absolute"
+              className={`fx-dust absolute ${isWarmRoom ? 'vn-mote--warm' : 'vn-mote--lab'}`}
               style={{
                 left: mote.left,
                 top: mote.top,
@@ -634,7 +663,7 @@ export function StoryScreen({
         reducedMotion={reducedMotion}
       />
 
-      {/* 2. Dua karakter simetris saling berhadapan: Dosen (kiri -> menghadap kanan), Mahasiswa (kanan -> menghadap kiri) */}
+      {/* 2. Dua karakter simetris berdiri penuh di tepi kiri & kanan (tidak pernah terhalang dialog maupun pilihan!) */}
       <div className="vn-cast">
         <div
           className={`vn-char vn-char--left ${counselorSpeaking ? 'vn-char--active' : 'vn-char--idle'}`}
@@ -658,6 +687,27 @@ export function StoryScreen({
           <div className="absolute left-1/2 top-2 z-10 -translate-x-1/2">
             <EmoteBubble emote={emoteState.id} triggerKey={emoteState.key} reducedMotion={reducedMotion} />
           </div>
+          {/* Kilau bintang ceria mengelilingi mahasiswa saat konselor memilih jawaban tepat (+12%) */}
+          {reactionFx?.kind === 'tepat' && !reducedMotion && (
+            <div key={reactionFx.key} aria-hidden="true" className="vn-sparkle-burst">
+              {[
+                { left: '16%', top: '20%', ch: '✦', delay: '0ms' },
+                { left: '80%', top: '16%', ch: '★', delay: '80ms' },
+                { left: '10%', top: '44%', ch: '✨', delay: '140ms' },
+                { left: '86%', top: '40%', ch: '✦', delay: '110ms' },
+                { left: '48%', top: '8%', ch: '★', delay: '40ms' },
+                { left: '66%', top: '28%', ch: '✦', delay: '180ms' },
+              ].map((sp, idx) => (
+                <span
+                  key={idx}
+                  className="vn-sparkle-star"
+                  style={{ left: sp.left, top: sp.top, animationDelay: sp.delay }}
+                >
+                  {sp.ch}
+                </span>
+              ))}
+            </div>
+          )}
           <StoryPortrait
             role="mahasiswa"
             studentId={agent.id}
@@ -812,11 +862,41 @@ export function StoryScreen({
         </div>
       </header>
 
-      {/* 4. Lapisan pilihan simetris di tengah layar (dengan scrim di bawah kotak dialog) */}
-      {atChoices && (
-        <div className="vn-choice-layer">
-          <div className="vn-scrim" aria-hidden="true" />
-          <VnChoices ref={choicesRef} choices={choices} onChoose={onChoose} />
+      {/* 4. Koridor percakapan tengah: Awan Bicara + 2 Pilihan di ruang terbuka antara Dosen (kiri) & Mahasiswa (kanan) */}
+      {!showSummary && (
+        <div className="vn-center-corridor" data-testid="vn-center-corridor">
+          <VnDialogBox
+            key={`cloud-${arrivalKey}-${safeIndex}`}
+            speakerName={beat ? speakerName : ''}
+            text={beat ? typing.visible : ''}
+            fullText={beat?.text}
+            speakerSide={speakerSideOf(
+              studentSpeaking ? 'mahasiswa' : counselorSpeaking ? 'dosen' : 'selingan',
+              counselorSpeaking,
+            )}
+            isSpeaking={!typing.done && (counselorSpeaking || studentSpeaking)}
+            cueText={inlineCueText}
+            italic={!!beat?.italic}
+            canContinue={(hasNextBeat || !typing.done) && !state.ended}
+            auto={auto}
+            endDisabled={state.ended}
+            onAdvance={advance}
+            onSkip={typing.skip}
+            onToggleAuto={() => setAuto((v) => !v)}
+            onOpenHistory={() => setHistoryOpen(true)}
+            onSave={onSave}
+            onLoad={onLoad}
+            onEndSession={() => setConfirmEnd(true)}
+          />
+
+          {atChoices && (
+            <div className="vn-choice-dock">
+              <div className="vn-choice-prompt" aria-hidden="true">
+                <span>💬 Pilih respons Ibu Dosen</span>
+              </div>
+              <VnChoices ref={choicesRef} choices={choices} onChoose={onChoose} />
+            </div>
+          )}
         </div>
       )}
 
@@ -834,30 +914,6 @@ export function StoryScreen({
           </div>
         </div>
       )}
-
-      {/* 6. Kotak dialog VN di tengah bawah */}
-      <VnDialogBox
-        speakerName={beat ? speakerName : ''}
-        text={beat ? typing.visible : ''}
-        fullText={beat?.text}
-        speakerSide={speakerSideOf(
-          studentSpeaking ? 'mahasiswa' : counselorSpeaking ? 'dosen' : 'selingan',
-          counselorSpeaking,
-        )}
-        isSpeaking={!typing.done && (counselorSpeaking || studentSpeaking)}
-        cueText={inlineCueText}
-        italic={!!beat?.italic}
-        canContinue={(hasNextBeat || !typing.done) && !state.ended}
-        auto={auto}
-        endDisabled={state.ended}
-        onAdvance={advance}
-        onSkip={typing.skip}
-        onToggleAuto={() => setAuto((v) => !v)}
-        onOpenHistory={() => setHistoryOpen(true)}
-        onSave={onSave}
-        onLoad={onLoad}
-        onEndSession={() => setConfirmEnd(true)}
-      />
 
       {/* 7. Laci melayang simetris (Daftar Mahasiswa / Kartu Profil) */}
       {drawer && (
