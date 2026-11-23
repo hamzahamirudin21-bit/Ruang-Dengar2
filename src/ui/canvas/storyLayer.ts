@@ -4,8 +4,7 @@ import { companionPosition, type AvatarState } from '../../engine/story/avatar';
 import type { CameraTransform } from './labRenderer';
 import { drawSprite } from '../characters/spriteCanvas';
 import { phaseOffsetFor, selectFrame } from '../characters/animation';
-import type { Direction, PixelGrid } from '../characters/pixelGrid';
-import { paintPlaque } from '../world/plaque';
+import type { Direction } from '../characters/pixelGrid';
 import {
   SPRITE_WORLD_H,
   SPRITE_WORLD_W,
@@ -35,7 +34,6 @@ export interface StoryRenderOptions {
 
 /** Id sprite untuk avatar Dosen BK. */
 export const DOSEN_SPRITE_ID = 'dosen';
-const PLAQUE_SCALE = 2;
 
 function clamp01(v: number): number {
   return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0;
@@ -49,23 +47,6 @@ function pulse(opts: StoryRenderOptions, periodSeconds: number): number {
 
 function toWorld(p: { x: number; y: number }, t: number): { x: number; y: number } {
   return { x: (p.x + 0.5) * t, y: (p.y + 0.5) * t };
-}
-
-function paintGrid(
-  ctx: CanvasRenderingContext2D,
-  grid: PixelGrid,
-  left: number,
-  top: number,
-  scale: number
-): void {
-  for (let y = 0; y < grid.height; y++) {
-    for (let x = 0; x < grid.width; x++) {
-      const color = grid.cells[y * grid.width + x];
-      if (!color) continue;
-      ctx.fillStyle = color;
-      ctx.fillRect(left + x * scale, top + y * scale, scale, scale);
-    }
-  }
 }
 
 function directionToward(
@@ -411,17 +392,29 @@ export function drawAvatar(ctx: CanvasRenderingContext2D, opts: StoryRenderOptio
     fallback: { hairStyle: 'pendek', avatarHue: 190 },
   });
 
-  // Plakat pixel "Dosen BK" di atas kepala
-  const plaque = paintPlaque('Dosen BK', { highlighted: false });
-  const pw = plaque.width * PLAQUE_SCALE;
-  const ph = plaque.height * PLAQUE_SCALE;
-  paintGrid(
-    ctx,
-    plaque,
-    Math.round(feet.x - pw / 2),
-    Math.round(feet.y - SPRITE_WORLD_H - ph - 2),
-    PLAQUE_SCALE
-  );
+  // Lencana kapsul ilustrasi "Ibu Dosen" bersih di atas kepala (bebas piksel kotak-kotak!)
+  const label = 'Ibu Dosen';
+  ctx.font = '700 10px Fredoka, Plus Jakarta Sans, ui-sans-serif, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const tw = ctx.measureText(label).width;
+  const bw = tw + 14;
+  const bh = 17;
+  const bx = feet.x - bw / 2;
+  const by = feet.y - SPRITE_WORLD_H - bh - 4;
+  ctx.fillStyle = 'rgba(62, 37, 23, 0.28)';
+  ctx.beginPath();
+  ctx.roundRect(bx, by + 2, bw, bh, 8.5);
+  ctx.fill();
+  ctx.fillStyle = '#267769';
+  ctx.strokeStyle = '#3e2517';
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 8.5);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#fffdf6';
+  ctx.fillText(label, feet.x, by + bh / 2 + 0.5);
 
   ctx.restore();
 }

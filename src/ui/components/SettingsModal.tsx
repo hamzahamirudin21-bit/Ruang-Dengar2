@@ -3,8 +3,8 @@ import { STRINGS } from '../../data/strings';
 import { AppSettings, SimulationSpeed, TextSizeOption } from '../../types';
 import { DEFAULT_SETTINGS } from '../../utils/storage';
 
-const SOUND_LABEL = 'Efek Suara';
-const SOUND_HELP = 'Bunyi lembut saat memilih, membalas, dan saat misi selesai.';
+const SOUND_LABEL = 'Musik Kampus & Efek Suara';
+const SOUND_HELP = 'Alunan musik kampus hangat (offline) serta bunyi lembut saat memilih, membalik kartu, & misi selesai.';
 
 interface SettingsModalProps {
   isOpen: boolean;

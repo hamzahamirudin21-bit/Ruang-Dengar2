@@ -6,7 +6,7 @@ import { PixelPortrait } from '../characters/PixelPortrait';
 import { SPRITE_H, SPRITE_W } from '../characters/pixelGrid';
 import type { RosterCardModel } from '../characters/rosterModel';
 import { drawSprite, onSpriteAssetsReady } from '../characters/spriteCanvas';
-import { playSfx } from '../motion/sfx';
+import { playFeedbackSfx } from '../motion/sfx';
 
 export interface RosterCardProps {
   model: RosterCardModel;
@@ -117,7 +117,7 @@ export const RosterCard: React.FC<RosterCardProps> = ({
   const bgInfo = getStudentBackground(model.studentId);
 
   const handleToggle = () => {
-    playSfx('klik');
+    playFeedbackSfx('flip');
     if (onToggleFlip) onToggleFlip();
     else setInternalFlipped((prev) => !prev);
   };
@@ -146,7 +146,9 @@ export const RosterCard: React.FC<RosterCardProps> = ({
           data-flipped={isFlipped ? 'true' : 'false'}
         >
           {/* SISI DEPAN: Potret Setengah Badan + Nama + Minat + Mini Chibi */}
-          <div className="roster-flip-face roster-flip-front roster-card-chamfer grid grid-cols-[52%_48%] overflow-hidden bg-gradient-to-br from-[#fffdf6] via-[#f8edd5] to-[#f0dec0]">
+          <div className="roster-flip-face roster-flip-front roster-card-chamfer yearbook-card grid grid-cols-[52%_48%] overflow-hidden bg-gradient-to-br from-[#fffdf6] via-[#f8edd5] to-[#f0dec0]">
+            {/* Pin papan buku tahunan mungil di tengah atas kartu */}
+            <span aria-hidden="true" className="yearbook-pin" />
             {/* Kolom Kiri (52%): Potret Setengah Badan Utuh */}
             <div className="relative h-full overflow-hidden border-r-[2.5px] border-[#3e2517]/25 bg-gradient-to-b from-[#cbe6fb] via-[#eaf4f8] to-[#f7e5c6]">
               <div

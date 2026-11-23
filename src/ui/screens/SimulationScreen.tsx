@@ -32,7 +32,6 @@ import {
   AnecdotalRecord,
   CanvasViewOptions,
   ClockState,
-  ConsultationDoorMode,
   CounselorHypothesis,
   CounselorState,
   CounselorTabId,
@@ -67,30 +66,24 @@ import { wholeMapCamera } from '../world/cameraFollow';
 import {
   IconBintang,
   IconEnergi,
-  IconJam,
   IconJeda,
-  IconKalender,
   IconKecepatan,
   IconLog,
-  IconObrolan,
-  IconOrang,
   IconPutar,
   IconRelasi,
   IconStres,
   IconTelinga,
 } from '../components/GameIcons';
 import {
-  GameBadge,
   GameButton,
-  GameFrame,
   GameMeter,
   GameRibbon,
   GameTab,
 } from '../components/game';
-import type { HudBadgeKey, HudIconId } from '../components/game/hudIcons';
+import type { HudIconId } from '../components/game/hudIcons';
 import { PixelPortrait } from '../characters/PixelPortrait';
-import { playSfx } from '../motion/sfx';
-import { buildHudBadges, buildSelectedMeters, buildSpeedControls } from './hudModel';
+import { playFeedbackSfx, playSfx } from '../motion/sfx';
+import { buildSelectedMeters, buildSpeedControls } from './hudModel';
 import { DevPanel } from '../components/DevPanel';
 import { ObservationPanel } from '../ObservationPanel';
 import {
@@ -141,18 +134,10 @@ import {
   IconTag,
 } from '../components/Icons';
 
-const HUD_ICON_COMPONENTS: Record<HudIconId, React.FC<{ className?: string }>> = {
-  bintang: IconBintang,
-  jam: IconJam,
-  kalender: IconKalender,
-  orang: IconOrang,
-  energi: IconEnergi,
+const SPEED_ICON_COMPONENTS: Partial<Record<HudIconId, React.FC<{ className?: string }>>> = {
   jeda: IconJeda,
   putar: IconPutar,
   kecepatan: IconKecepatan,
-  telinga: IconTelinga,
-  obrolan: IconObrolan,
-  stres: IconStres,
 };
 
 const TAB_ICON_COMPONENTS: Record<CounselorTabId, React.FC<{ className?: string }>> = {
@@ -162,25 +147,12 @@ const TAB_ICON_COMPONENTS: Record<CounselorTabId, React.FC<{ className?: string 
   misi: IconBintang,
 };
 
-const HUD_BADGE_TONES: Partial<Record<HudBadgeKey, 'emas' | 'merah' | 'navy' | 'krem'>> = {
-  hari: 'emas',
-  'jam-lab': 'krem',
-  'misi-selesai': 'merah',
-  'mahasiswa-aktif': 'navy',
-};
-
-const HUD_BADGE_TESTIDS: Partial<Record<HudBadgeKey, string>> = {
-  hari: 'sim-day',
-  'jam-lab': 'sim-time',
-  'misi-selesai': 'mission-progress',
-  'mahasiswa-aktif': 'active-students-count',
-};
-
-
 interface SimulationScreenProps {
   initialClock: ClockState;
   seed: number;
   reducedMotion: boolean;
+  audioEnabled?: boolean;
+  onToggleAudio?: () => void;
   onChangeSeed: (nextSeed: number) => void;
   onOpenSettings: () => void;
   onBackToStart: () => void;
@@ -190,6 +162,8 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   initialClock,
   seed,
   reducedMotion,
+  audioEnabled = false,
+  onToggleAudio,
   onChangeSeed,
   onOpenSettings,
   onBackToStart,
@@ -228,7 +202,8 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     Record<string, AgentMemoryRecord>
   >(() => loadAgentMemoryMap());
 
-  const [activeTab, setActiveTab] = useState<CounselorTabId>('misi');
+  // Laci Panel Konselor mengambang on-demand (tertutup bawaan agar 100% layar adalah dunia kampus hidup!)
+  const [activeDrawer, setActiveDrawer] = useState<CounselorTabId | null>(null);
   const [briefingOpen, setBriefingOpen] = useState<boolean>(true);
   const briefingOpenRef = useRef<boolean>(true);
   const [journalOpen, setJournalOpen] = useState<boolean>(false);
@@ -305,12 +280,14 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   useEffect(() => {
     briefingOpenRef.current = briefingOpen;
   }, [briefingOpen]);
+
   const [viewOptions, setViewOptions] = useState<CanvasViewOptions>({
     showGrid: false,
     showZoneLabels: true,
     consultationDoorMode: 'lab',
   });
-  const [selectedZoneId, setSelectedZoneId] = useState<ZoneType | null>('konsultasi');
+  // Mulai tanpa kartu zona terbuka agar pemandangan kampus 11 ruangan langsung utuh & lapang
+  const [selectedZoneId, setSelectedZoneId] = useState<ZoneType | null>(null);
   const [hoveredZoneId, setHoveredZoneId] = useState<ZoneType | null>(null);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [hoveredAgentId, setHoveredAgentId] = useState<string | null>(null);
@@ -340,7 +317,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   const selectedAgentRef = useRef<string | null>(selectedAgentId);
   const hoveredAgentRef = useRef<string | null>(hoveredAgentId);
   const reducedMotionRef = useRef<boolean>(reducedMotion);
-  // Lapisan cerita: diperbarui tiap render, dibaca oleh loop frame.
   const storyRef = useRef<ReturnType<typeof useStoryMission> | null>(null);
   const storyMarkerIdsRef = useRef<string[]>([]);
   const storyBadgesRef = useRef<Record<string, StoryOutcomeKind>>({});
@@ -416,18 +392,18 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     saveAgentMemoryMap(agentMemoryMap);
   }, [agentMemoryMap]);
 
-  // Sinkronkan dataset.state pada body untuk pemantauan status & pengujian
   useEffect(() => {
     document.body.dataset.state = clock.paused ? 'paused' : 'playing';
   }, [clock.paused]);
 
-  // Pintasan keyboard Ctrl+Shift+D untuk membuka/menutup Panel Dev & Esc menutup modal
+  // Pintasan keyboard Ctrl+Shift+D untuk Panel Dev & Esc menutup laci/modal
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'd') {
         e.preventDefault();
         setDevPanelOpen((prev) => !prev);
       } else if (e.key === 'Escape') {
+        setActiveDrawer(null);
         setJournalOpen(false);
         setShiftReportOpen(false);
         setDecorShopOpen(false);
@@ -451,6 +427,11 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
 
   const handleUpdateViewOptions = useCallback((patch: Partial<CanvasViewOptions>) => {
     setViewOptions((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  const toggleDrawer = useCallback((tab: CounselorTabId) => {
+    playFeedbackSfx('drawer');
+    setActiveDrawer((cur) => (cur === tab ? null : tab));
   }, []);
 
   const handleRunPathTest = useCallback(() => {
@@ -489,7 +470,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     needsRedrawRef.current = true;
   }, []);
 
-  // Jika mode pintu berubah saat ada jejak uji aktif, hitung ulang A* dari posisi saat ini
   useEffect(() => {
     const activeTest = devPathTestRef.current;
     if (!activeTest || !activeTest.active) return;
@@ -512,7 +492,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     needsRedrawRef.current = true;
   }, [viewOptions.consultationDoorMode]);
 
-  // ResizeObserver untuk menjaga ketajaman DPI kanvas tanpa memicu remount
+  // ResizeObserver menjaga ketajaman HD kanvas 100vw × 100vh penuh
   useEffect(() => {
     const container = stageRef.current;
     const canvas = canvasRef.current;
@@ -529,7 +509,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       stageSizeRef.current = { width, height };
 
       const vp = { width, height };
-      // Kunci kamera agar seluruh 11 ruangan terlihat utuh sekaligus dalam 1 layar (nol geser / nol zoom!)
       cameraRef.current = wholeMapCamera(vp, LAB_MAP);
       needsRedrawRef.current = true;
     };
@@ -540,7 +519,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     return () => observer.disconnect();
   }, []);
 
-  // Loop simulasi utama (dunia seluruh agen mahasiswa + jam + animasi jejak uji + render Canvas 2D)
+  // Loop simulasi utama (seluruh agen mahasiswa + jam + animasi kanvas HD)
   useEffect(() => {
     let rafId = 0;
     let lastTimestamp = performance.now();
@@ -551,7 +530,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       lastTimestamp = now;
       const dt = Math.min(Math.max(rawDt, 0), 0.05);
 
-      // 1. Majukan dunia seluruh agen mahasiswa & jam simulasi (waktu tetap berjalan saat mengobrol; jeda hanya saat briefing/hasil akhir)
       const prevWorld = worldRef.current;
       let walkingDirty = false;
       if (!prevWorld.clock.paused && !briefingOpenRef.current && !survivalOverRef.current) {
@@ -562,7 +540,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         });
         worldRef.current = nextWorld;
 
-        // Deteksi mahasiswa yang baru saja kehabisan energi (0%) -> hilang dari kelas
         if (nextWorld.tickCount !== prevWorld.tickCount) {
           const newlyLost = detectNewlyLostAgentIds(
             nextWorld.agents,
@@ -575,7 +552,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           }
         }
 
-        // Gambar ulang saat tick berubah (langsung) atau saat ada agen berjalan (dibatasi ~30fps)
         if (nextWorld.tickCount !== prevWorld.tickCount) {
           needsRedrawRef.current = true;
         } else if (nextWorld.agents.some((a) => a.status === 'berpindah')) {
@@ -590,8 +566,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           nextWorld.tickCount !== prevWorld.tickCount
         ) {
           if (nextWorld.clock.day > prevWorld.clock.day) {
-            // Mode misi: tanpa modal ringkasan hari dan tanpa pause; janji yang
-            // lewat tenggat kedaluwarsa pada pergantian hari.
             const newDay = nextWorld.clock.day;
             setAgentMemoryMap((prev) => expireOverduePromisesForDay(prev, newDay));
           }
@@ -619,7 +593,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         }
       }
 
-      // 1b. Majukan avatar Dosen BK (menuju mahasiswa / berdua ke Ruang BK)
       const storyApi = storyRef.current;
       if (storyApi) {
         const modeBefore = storyApi.avatarRef.current.mode;
@@ -628,11 +601,10 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           walkingDirty = true;
         }
         if (storyMarkerIdsRef.current.length > 0 && !reducedMotionRef.current) {
-          walkingDirty = true; // penanda misi naik turun halus
+          walkingDirty = true;
         }
       }
 
-      // 2. Majukan penanda uji A* jika aktif
       const test = devPathTestRef.current;
       if (test && test.active && test.reachable && test.path.length > 1) {
         if (test.stepIndex < test.path.length - 1) {
@@ -685,7 +657,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         }
       }
       lastAnimTick = animTick;
-      // 3. Render Canvas 2D hanya saat diperlukan (~30fps saat berjalan, instan saat interaksi)
+
       const shouldDraw =
         needsRedrawRef.current ||
         (walkingDirty && now - lastDrawTimeRef.current >= 33);
@@ -796,9 +768,10 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         worldRef.current.agents.filter((a) => !lostIdsRef.current.has(a.id))
       );
       if (hitAgent) {
+        playSfx('klik');
         setSelectedAgentId(hitAgent.id);
         setSelectedZoneId(hitAgent.currentZoneId);
-        setActiveTab('misi');
+        setActiveDrawer(null);
         storyRef.current?.requestApproach(hitAgent.id);
         return;
       }
@@ -812,7 +785,10 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         LAB_MAP.tileSizePx
       );
       const zone = findZoneAtTile(LAB_MAP, tile.x, tile.y);
-      setSelectedZoneId(zone ? zone.id : null);
+      setSelectedZoneId((prev) => {
+        const next = zone ? zone.id : null;
+        return prev === next ? null : next;
+      });
     }
   };
 
@@ -907,7 +883,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     needsRedrawRef.current = true;
   }, []);
 
-  // Mode misi berbasis cerita (avatar Dosen BK, StoryScreen, Debrief cerita)
   const story = useStoryMission({
     worldRef,
     navGridRef,
@@ -922,7 +897,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   });
   storyRef.current = story;
 
-  // Sinkronkan himpunan mahasiswa stabil & yang sedang dalam sesi percakapan ke ref loop frame
   useEffect(() => {
     const stab = new Set<string>();
     for (const [id, rec] of Object.entries(story.missions)) {
@@ -953,7 +927,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     needsRedrawRef.current = true;
   }, [story.avatarMode, story.storyVisible]);
 
-  // Varian latar dihitung sekali per graf/mahasiswa: sesi lanjutan bernuansa sore.
   const storyGraphForVariant = story.graph;
   const storyAgentIdForVariant = story.agent?.id;
   const storySceneVariant: SceneVariant = useMemo(
@@ -1021,7 +994,9 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     setLostAlertToast(null);
     setVictoryDismissed(false);
     setSelectedAgentId(null);
+    setSelectedZoneId(null);
     setSelectedAgentSnapshot(null);
+    setActiveDrawer(null);
     story.resetAllMissions();
     syncWorldUiState(rebuilt);
   }, [seed, initialClock.speed, story, syncWorldUiState]);
@@ -1049,7 +1024,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     [roomDecor.ownedIds, availableStars]
   );
 
-  // Toast perayaan hangat saat baru saja menuntaskan cerita mahasiswa
   const [celebrationToast, setCelebrationToast] = useState<string | null>(null);
   const prevMissionsDoneRef = useRef<number>(missionsDone);
   useEffect(() => {
@@ -1080,7 +1054,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     setRoomDecor((prev) => toggleEquipRoomDecor(prev, itemId));
   }, []);
 
-  // Tampilkan Kartu Hasil Shift satu kali tepat saat target 3 kisah baru tercapai dan kembali ke lab
   useEffect(() => {
     if (shiftCelebratedRef.current === null) {
       shiftCelebratedRef.current = missionsDone >= SHIFT_TARGET_STORIES;
@@ -1136,21 +1109,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     console.groupEnd();
   }, [seed]);
 
-  const hudBadges = buildHudBadges(
-    {
-      day: clock.day,
-      clockText: formattedTime,
-      missionsDone,
-      missionsTotal: STUDENT_COUNT,
-      activeStudents: Math.max(0, worldSummary.totalAgents - lostStudentIds.length),
-    },
-    STRINGS.hud
-  );
   const speedControls = buildSpeedControls(speeds, clock, STRINGS.speedControls);
-  const hudMeters = buildSelectedMeters(
-    { energy: counselorRef.current.energy, max: counselorRef.current.maxEnergy },
-    STRINGS.meters
-  );
   const selectedMeters = buildSelectedMeters(
     selectedAgentSnapshot
       ? { energy: selectedAgentSnapshot.energy * 100, stress: selectedAgentSnapshot.stress * 100, max: 100 }
@@ -1158,466 +1117,421 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     STRINGS.meters
   );
 
+  const activeStudentsCount = Math.max(0, worldSummary.totalAgents - lostStudentIds.length);
+  const skyEmoji = clock.minutesOfDay < 660 ? '🌅' : clock.minutesOfDay >= 870 ? '🌇' : '☀️';
+  const showFirstTimePrompt =
+    !briefingOpen &&
+    missionsDone === 0 &&
+    !story.storyVisible &&
+    !activeDrawer &&
+    !selectedAgentSnapshot &&
+    story.avatarMode === 'idle';
 
   return (
-    <div
-      className="flex min-h-screen flex-col gap-2.5 bg-[#e8d8be] p-2.5 lg:h-screen lg:overflow-hidden"
-      style={{
-        backgroundImage:
-          'radial-gradient(rgba(62, 37, 23, 0.09) 1.2px, transparent 1.2px), linear-gradient(180deg, #efe2ca 0%, #e2cfa9 100%)',
-        backgroundSize: '20px 20px, 100% 100%',
-      }}
-    >
-
-      {/* HUD atas 1 baris rapi bergaya game cozy hand-inked melayang (nol wrap di desktop!) */}
-      <GameFrame
-        as="header"
-        variant="kayu"
-        nails
-        animateIn
-        className="flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1.5 !rounded-[22px] px-3 py-1.5 lg:flex-nowrap lg:px-3.5"
+    <div className="relative h-screen w-screen overflow-hidden bg-[#7fb479]">
+      {/* =====================================================================
+          1. DUNIA KAMPUS HIDUP 100% FULL-SCREEN (11 RUANGAN + TAMAN KAMPUS HD)
+         ===================================================================== */}
+      <div
+        ref={stageRef}
+        data-testid="lab-canvas-stage"
+        className="absolute inset-0 h-full w-full"
       >
-        {/* Kiri: kembali & logo pita */}
-        <div className="flex shrink-0 items-center gap-2">
-          <GameButton variant="sekunder" size="sm" bounce onClick={() => { playSfx('klik'); onBackToStart(); }} className="!min-h-[2rem] whitespace-nowrap !px-3 text-xs">
-            {STRINGS.statusBar.backToStart}
-          </GameButton>
-          <GameRibbon level={1} tone="merah" shine className="!px-3.5 !py-1 !text-[0.74rem]">
-            {STRINGS.app.name}
-          </GameRibbon>
-        </div>
+        <canvas
+          ref={canvasRef}
+          data-testid="lab-canvas"
+          tabIndex={0}
+          aria-label={STRINGS.canvasToolbar.mapLegendTitle}
+          onPointerDown={handleCanvasPointerDown}
+          onPointerMove={handleCanvasPointerMove}
+          onPointerUp={handleCanvasPointerUp}
+          onPointerCancel={() => {
+            pointerDownRef.current = false;
+          }}
+          className={`block h-full w-full ${
+            hoveredAgentId || hoveredZoneId ? 'cursor-pointer' : 'cursor-default'
+          }`}
+        />
+      </div>
 
-        {/* Tengah: lencana status, nyawa kelas, tombol Hias Ruang BK, dan meter energi konselor */}
-        <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs lg:flex-nowrap">
-          {hudBadges.map((b) => {
-            const BadgeIcon = HUD_ICON_COMPONENTS[b.icon];
-            return (
+      {/* =====================================================================
+          2. FLOATING TOP GAME HUD (Ramping, Jernih, Melayang di Atas Taman)
+         ===================================================================== */}
+      <header className="pointer-events-none absolute inset-x-3 top-2.5 z-20 flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
+        {/* Kiri Atas: Beranda, Waktu & Hari, 3-Nyawa, Progres Kisah, & Kecepatan */}
+        <div className="pointer-events-auto flex shrink-0 flex-wrap items-center gap-1.5 lg:flex-nowrap">
+          <button
+            type="button"
+            onClick={() => {
+              playSfx('klik');
+              onBackToStart();
+            }}
+            aria-label={STRINGS.statusBar.backToStart}
+            title={STRINGS.statusBar.backToStart}
+            className="game-btn-round !h-9 !w-9 text-sm"
+          >
+            <span aria-hidden="true">🏠</span>
+          </button>
+
+          {/* Pil Hari & Jam Kampus dengan garis progres hari mungil */}
+          <div className="hud-pill relative overflow-hidden">
+            <span aria-hidden="true">{skyEmoji}</span>
+            <span data-testid="sim-day" className="font-bold">
+              Hari {clock.day}
+            </span>
+            <span className="opacity-40">·</span>
+            <span data-testid="sim-time" className="font-mono-data font-bold text-[#9c4c1b]">
+              {formattedTime}
+            </span>
+            <span
+              aria-hidden="true"
+              className="absolute inset-x-0 bottom-0 h-[3px] bg-[#3e2517]/15"
+            >
               <span
-                key={b.key}
-                data-testid={HUD_BADGE_TESTIDS[b.key]}
-                className={b.key === 'mahasiswa-aktif' ? 'hidden xl:inline-flex' : 'inline-flex'}
-              >
-                <GameBadge
-                  icon={<BadgeIcon className="h-4 w-4" />}
-                  value={b.value}
-                  animateValue={/^\d+$/.test(b.value)}
-                  label={b.label}
-                  tone={HUD_BADGE_TONES[b.key]}
-                />
-              </span>
-            );
-          })}
-          {/* Lencana Nyawa Kelas / Batas Mahasiswa Hilang (3 = Kalah) */}
-          <span
+                className="block h-full bg-[#e8a730]"
+                style={{ width: `${Math.round(dayRatio * 100)}%` }}
+              />
+            </span>
+          </div>
+
+          {/* Lencana 3-Nyawa Kelas (Kalah bila 3 mahasiswa hilang 0%) */}
+          <div
             data-testid="survival-lives-badge"
             title={`Kalah bila ${MAX_LOST_STUDENTS} mahasiswa kehabisan energi (0%) dan hilang`}
-            className={`inline-flex shrink-0 items-center gap-1 rounded-full border-[2.5px] border-[#3e2517] px-2.5 py-0.5 font-['Fredoka'] text-[11px] font-bold shadow-[0_3px_0_#3e2517] ${
+            className={`hud-pill ${
               lostStudentIds.length >= 2
-                ? 'bg-[#d9463e] text-[#fffdf6]'
+                ? '!bg-gradient-to-b !from-[#e5594f] !to-[#c23b32] !text-[#fffdf6]'
                 : lostStudentIds.length === 1
-                  ? 'bg-[#f5b63b] text-[#3e2517]'
-                  : 'bg-[#fffaf0] text-[#3e2517]'
+                  ? '!bg-gradient-to-b !from-[#ffe28a] !to-[#f3b53b] !text-[#3e2517]'
+                  : ''
             }`}
           >
-            <span aria-hidden="true">
+            <span aria-hidden="true" className="tracking-tight">
               {Array.from({ length: MAX_LOST_STUDENTS }, (_, idx) =>
                 idx < lostStudentIds.length ? '🖤' : '❤️'
               ).join('')}
             </span>
-            <span className="whitespace-nowrap">
-              Hilang {lostStudentIds.length}/{MAX_LOST_STUDENTS}
+            <span className="hidden sm:inline">
+              {lostStudentIds.length}/{MAX_LOST_STUDENTS}
             </span>
-          </span>
+          </div>
+
+          {/* Pil Progres Kisah & Mahasiswa Aktif (klik langsung buka Jurnal) */}
           <button
             type="button"
-            data-testid="open-decor-shop-btn"
+            data-testid="mission-progress"
             onClick={() => {
               playSfx('klik');
-              setDecorShopOpen(true);
+              setJournalOpen(true);
             }}
-            className="relative inline-flex shrink-0 items-center gap-1 rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#ffe694] to-[#f2b53b] px-2.5 py-0.5 font-['Fredoka'] text-[11px] font-bold text-[#3e2517] shadow-[inset_0_-2.5px_0_#c68616,0_3px_0_#3e2517] transition hover:-translate-y-0.5 hover:brightness-105"
-            title="Hias Ruang Konsultasi BK dengan Bintang Empati"
+            title="Buka Jurnal Koleksi Kisah Mahasiswa"
+            className="hud-pill cursor-pointer !bg-gradient-to-b !from-[#3ba08e] !to-[#257466] !text-[#fffdf6] hover:brightness-105"
           >
-            {canBuyAnyDecor && (
-              <span
-                aria-hidden="true"
-                className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full border-[1.5px] border-[#3e2517] bg-[#e56256] text-[9px] font-bold text-white"
-              >
-                !
-              </span>
-            )}
-            <span aria-hidden="true">🪴</span>
-            <span className="hidden 2xl:inline">Hias Ruang</span>
-            <span className="hidden lg:inline 2xl:hidden">Hias</span>
-            <span className="whitespace-nowrap">⭐ {availableStars}</span>
-          </button>
-          <span
-            className="hidden h-2 w-10 overflow-hidden rounded-full border-2 border-[#3e2517] bg-[#3e2517]/40 2xl:block"
-            aria-hidden="true"
-          >
-            <span
-              className="block h-full rounded-full bg-[#ffe285]"
-              style={{ width: `${Math.round(dayRatio * 100)}%` }}
-            />
-          </span>
-          {hudMeters.energy && (
-            <span className="inline-flex shrink-0 items-center rounded-full border-[2.5px] border-[#3e2517] bg-[#fffaf0] px-2.5 py-0.5 text-[#3e2517] shadow-[inset_0_-2px_0_#e5caa0,0_3px_0_#3e2517] [&_.game-meter]:!min-w-[3.4rem]">
-              <GameMeter
-                label={hudMeters.energy.label}
-                icon={<IconEnergi className="h-4 w-4" />}
-                value={hudMeters.energy.value}
-                max={hudMeters.energy.max}
-                higherIsBetter={hudMeters.energy.higherIsBetter}
-              />
+            <span aria-hidden="true">📖</span>
+            <span>
+              {missionsDone}/{STUDENT_COUNT}
             </span>
-          )}
-        </div>
+            <span className="hidden opacity-60 xl:inline">·</span>
+            <span data-testid="active-students-count" className="hidden xl:inline">
+              👥 {activeStudentsCount}
+            </span>
+          </button>
 
-        {/* Kanan: tombol bulat timbul jeda/kecepatan dan pengaturan */}
-        <div className="flex shrink-0 items-center gap-1">
+          {/* Kapsul Kecepatan Simulasi */}
           <div
             role="group"
             aria-label={STRINGS.speedControls.speedPrefix}
-            className="flex items-center gap-1"
+            className="hud-speed-group"
           >
             {speedControls.map((ctl) => {
-              const CtlIcon = HUD_ICON_COMPONENTS[ctl.icon];
+              const CtlIcon = SPEED_ICON_COMPONENTS[ctl.icon];
               return (
-                <GameButton
+                <button
                   key={ctl.id}
-                  variant="bulat-ikon"
+                  type="button"
                   aria-label={ctl.label}
                   title={ctl.label}
                   aria-pressed={ctl.pressed}
-                  bounce
-                  className="!h-[2.05rem] !w-[2.05rem]"
                   onClick={() => {
                     playSfx('klik');
                     if (ctl.value === null) handleTogglePause();
                     else handleChangeSpeed(ctl.value as SimulationSpeed);
                   }}
+                  className={`hud-speed-btn ${ctl.pressed ? 'hud-speed-btn--active' : ''}`}
                 >
-                  <span className="flex flex-col items-center leading-none" aria-hidden="true">
-                    <CtlIcon className="h-3.5 w-3.5" />
-                    {ctl.value !== null && (
-                      <span className="font-mono-data text-[9px] font-bold">{ctl.value}x</span>
-                    )}
-                  </span>
-                </GameButton>
+                  {ctl.value === null ? (
+                    CtlIcon ? <CtlIcon className="h-3.5 w-3.5" /> : '⏸'
+                  ) : (
+                    <span>{ctl.value}x</span>
+                  )}
+                </button>
               );
             })}
           </div>
-          <GameButton
-            variant="bulat-ikon"
-            bounce
-            className="!h-[2.05rem] !w-[2.05rem]"
-            onClick={() => { playSfx('klik'); setBriefingOpen(true); }}
+        </div>
+
+        {/* Tengah Atas: Radar Sinyal Prioritas / Status Energi Lab */}
+        <div className="pointer-events-auto order-3 flex min-w-0 flex-1 justify-center lg:order-2">
+          {campusMission.topPriorityAgent ? (
+            <button
+              type="button"
+              disabled={story.avatarMode !== 'idle'}
+              onClick={() => {
+                const target = campusMission.topPriorityAgent;
+                if (!target) return;
+                playSfx('klik');
+                setSelectedAgentId(target.id);
+                setSelectedZoneId(target.currentZoneId);
+                setActiveDrawer(null);
+                story.requestApproach(target.id);
+              }}
+              className="mission-alert-pill max-w-full cursor-pointer text-left disabled:cursor-not-allowed disabled:opacity-75"
+              data-status={campusMission.campusStatus}
+              data-testid="isolation-radar-alert"
+              title={signalForStudent(campusMission.topPriorityAgent.id).clue}
+            >
+              <span className="shrink-0">
+                {campusMission.campusStatus === 'darurat' ? '⚠ KRITIS' : '🔔 SINYAL'}
+              </span>
+              <span className="shrink-0 opacity-55">·</span>
+              <span className="shrink-0">
+                {campusMission.topPriorityAgent.name.split(' ')[0]} (
+                {Math.round(campusMission.topPriorityAgent.energy * 100)}%)
+              </span>
+              <span className="hidden truncate font-normal italic opacity-95 2xl:inline">
+                “{signalForStudent(campusMission.topPriorityAgent.id).clue}”
+              </span>
+              <span className="shrink-0 underline decoration-2 underline-offset-2">Hampiri →</span>
+            </button>
+          ) : (
+            <div
+              className="mission-alert-pill"
+              data-status="terjaga"
+              data-testid="isolation-radar-alert"
+            >
+              <span>✦ Energi Lab {campusMission.averageEnergyPct}%</span>
+              <span className="opacity-55">·</span>
+              <span>Semua Terjaga</span>
+            </div>
+          )}
+        </div>
+
+        {/* Kanan Atas: Mode Pintu Konsultasi, Musik Kampus, Label, Grid, Panduan, Pengaturan */}
+        <div className="pointer-events-auto order-2 flex shrink-0 items-center gap-1.5 lg:order-3">
+          <button
+            type="button"
+            onClick={() => {
+              playSfx('klik');
+              handleUpdateViewOptions({
+                consultationDoorMode: viewOptions.consultationDoorMode === 'lab' ? 'samping' : 'lab',
+              });
+            }}
+            title={
+              viewOptions.consultationDoorMode === 'lab'
+                ? `${STRINGS.canvasToolbar.doorVisibilityHintLab} (Klik untuk ganti ke Pintu Samping)`
+                : `${STRINGS.canvasToolbar.doorVisibilityHintSide} (Klik untuk ganti ke Pintu Lab)`
+            }
+            className={`hud-pill cursor-pointer transition hover:-translate-y-0.5 ${
+              viewOptions.consultationDoorMode === 'samping'
+                ? '!bg-gradient-to-b !from-[#3ba08e] !to-[#257466] !text-[#fffdf6]'
+                : '!bg-gradient-to-b !from-[#ffe799] !to-[#f3b83c] !text-[#3e2517]'
+            }`}
+          >
+            <IconDoor className="h-3.5 w-3.5 shrink-0" />
+            <span className="hidden sm:inline">
+              {viewOptions.consultationDoorMode === 'lab' ? 'Pintu Lab' : 'Pintu Samping'}
+            </span>
+          </button>
+
+          {onToggleAudio && (
+            <button
+              type="button"
+              onClick={onToggleAudio}
+              aria-pressed={audioEnabled}
+              aria-label={audioEnabled ? 'Matikan musik kampus & suara' : 'Nyalakan musik kampus & suara'}
+              title={audioEnabled ? 'Musik Kampus & Suara Aktif' : 'Nyalakan Musik Kampus & Suara'}
+              className="game-btn-round !h-9 !w-9 text-sm"
+            >
+              <span aria-hidden="true">{audioEnabled ? '🔊' : '🔇'}</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            aria-pressed={viewOptions.showZoneLabels}
+            aria-label={STRINGS.canvasToolbar.toggleLabels}
+            title={STRINGS.canvasToolbar.toggleLabels}
+            onClick={() => {
+              playSfx('klik');
+              handleUpdateViewOptions({ showZoneLabels: !viewOptions.showZoneLabels });
+            }}
+            className="game-btn-round !h-9 !w-9"
+          >
+            <IconTag className="h-4 w-4" />
+          </button>
+
+          <button
+            type="button"
+            aria-pressed={viewOptions.showGrid}
+            aria-label={STRINGS.canvasToolbar.toggleGrid}
+            title={STRINGS.canvasToolbar.toggleGrid}
+            onClick={() => {
+              playSfx('klik');
+              handleUpdateViewOptions({ showGrid: !viewOptions.showGrid });
+            }}
+            className="game-btn-round hidden !h-9 !w-9 sm:inline-flex"
+          >
+            <IconGrid className="h-4 w-4" />
+          </button>
+
+          <button
+            type="button"
             aria-label="Panduan Shift Pagi"
             title="Panduan Shift Pagi"
+            onClick={() => {
+              playSfx('klik');
+              setBriefingOpen(true);
+            }}
+            className="game-btn-round !h-9 !w-9 font-['Fredoka'] text-xs font-bold"
           >
-            <span className="font-['Fredoka'] text-xs font-bold" aria-hidden="true">?</span>
-          </GameButton>
-          <GameButton
-            variant="bulat-ikon"
-            bounce
-            className="!h-[2.05rem] !w-[2.05rem]"
-            onClick={() => { playSfx('klik'); onOpenSettings(); }}
+            ?
+          </button>
+
+          <button
+            type="button"
             aria-label={STRINGS.statusBar.settingsQuick}
             title={STRINGS.statusBar.settingsQuick}
+            onClick={() => {
+              playSfx('klik');
+              onOpenSettings();
+            }}
+            className="game-btn-round !h-9 !w-9"
           >
             <IconSettings className="h-4 w-4" />
-          </GameButton>
+          </button>
         </div>
-      </GameFrame>
-      {/* Ruang kerja utama: kiri 73-74% Papan Peta 11 Ruangan Utuh + kanan 26-27% Panel Konselor ramping! */}
-      <div className="flex min-h-0 flex-1 flex-col gap-2.5 lg:flex-row lg:items-stretch">
-        {/* Kolom kiri: Papan Peta Lab 2D Horizontal (seluruh 11 ruangan tampak dalam 1 layar tanpa geser!) */}
-        <section
-          aria-label={STRINGS.canvasToolbar.mapLegendTitle}
-          className="flex flex-col overflow-hidden rounded-[26px] border-[3.5px] border-[#3e2517] bg-[#fffdf5] shadow-[0_7px_0_#3e2517,0_14px_28px_rgba(62,37,23,0.18)] lg:min-h-0 lg:w-[73%] lg:flex-1 xl:w-[74%]"
+      </header>
+
+      {/* =====================================================================
+          3. FLOATING BOTTOM-CENTER TOASTS, WALKING BANNER & ONBOARDING TIP
+         ===================================================================== */}
+      {lostAlertToast && (
+        <div
+          role="alert"
+          className="fx-panel-in absolute bottom-24 left-1/2 z-30 flex max-w-[92%] -translate-x-1/2 items-center gap-2 rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#e05248] to-[#b8322a] px-4 py-1.5 font-['Fredoka'] text-xs font-bold text-[#fffdf6] shadow-[0_4px_0_#3e2517]"
         >
-          {/* Bilah kontrol peta (seluruh 11 ruangan tampil penuh dalam 1 layar, nol geser & nol zoom!) */}
-          <div className="flex min-h-[54px] shrink-0 flex-wrap items-center justify-between gap-2 border-b-[3px] border-[#3e2517] bg-gradient-to-b from-[#a76940] to-[#874f2d] px-3.5 py-2 text-[#fffdf6]">
-            <div className="flex flex-wrap items-center gap-2">
-              <GameButton
-                variant="bulat-ikon"
-                aria-pressed={viewOptions.showZoneLabels}
-                aria-label={STRINGS.canvasToolbar.toggleLabels}
-                title={STRINGS.canvasToolbar.toggleLabels}
-                bounce
-                onClick={() => {
-                  playSfx('klik');
-                  handleUpdateViewOptions({ showZoneLabels: !viewOptions.showZoneLabels });
-                }}
-              >
-                <IconTag className="h-5 w-5" />
-              </GameButton>
+          <span>{lostAlertToast}</span>
+        </div>
+      )}
 
-              <GameButton
-                variant="bulat-ikon"
-                aria-pressed={viewOptions.showGrid}
-                aria-label={STRINGS.canvasToolbar.toggleGrid}
-                title={STRINGS.canvasToolbar.toggleGrid}
-                bounce
-                onClick={() => {
-                  playSfx('klik');
-                  handleUpdateViewOptions({ showGrid: !viewOptions.showGrid });
-                }}
-              >
-                <IconGrid className="h-5 w-5" />
-              </GameButton>
-
-              <span className="inline-flex items-center gap-1 rounded-full border border-[#fffdf6]/30 bg-[#3e2517]/40 px-3 py-1 font-['Fredoka'] text-[11px] font-semibold text-[#fff3d6]">
-                🗺️ Seluruh {LAB_MAP.zones.length} Ruangan · Klik mahasiswa untuk menghampiri
-              </span>
-            </div>
-
-            {/* Pengatur visibilitas pintu Ruang Konsultasi */}
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 text-xs font-bold text-[var(--game-cream-paper)]">
-                <IconDoor className="h-4 w-4" />
-                <span>{STRINGS.canvasToolbar.doorModeLabel}</span>
-              </span>
-              <div className="flex items-center gap-1.5">
-                {(['lab', 'samping'] as ConsultationDoorMode[]).map((mode) => {
-                  const active = viewOptions.consultationDoorMode === mode;
-                  return (
-                    <GameButton
-                      key={mode}
-                      variant="sekunder"
-                      size="sm"
-                      aria-pressed={active}
-                      bounce
-                      onClick={() => {
-                        playSfx('klik');
-                        handleUpdateViewOptions({ consultationDoorMode: mode });
-                      }}
-                      className="whitespace-nowrap text-xs"
-                    >
-                      {mode === 'lab'
-                        ? STRINGS.canvasToolbar.doorModeLab
-                        : STRINGS.canvasToolbar.doorModeSide}
-                    </GameButton>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Stage HTML5 Canvas 2D */}
-          <div
-            ref={stageRef}
-            data-testid="lab-canvas-stage"
-            className="relative h-[320px] shrink-0 overflow-hidden bg-[var(--lab-void)] sm:h-[400px] lg:h-auto lg:min-h-[260px] lg:flex-1"
+      {celebrationToast && (
+        <div
+          role="status"
+          className="fx-panel-in absolute bottom-20 left-1/2 z-30 flex max-w-[92%] -translate-x-1/2 items-center gap-2 rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#ffe799] to-[#f4b93c] px-4 py-1.5 font-['Fredoka'] text-xs font-bold text-[#3e2517] shadow-[0_4px_0_#3e2517]"
+        >
+          <span>{celebrationToast}</span>
+          <button
+            type="button"
+            onClick={() => {
+              playSfx('klik');
+              setCelebrationToast(null);
+              setDecorShopOpen(true);
+            }}
+            className="cursor-pointer rounded-full border border-[#3e2517] bg-[#fffdf6] px-2.5 py-0.5 text-[11px] font-bold text-[#3e2517] hover:bg-[#fff4d4]"
           >
-            <canvas
-              ref={canvasRef}
-              data-testid="lab-canvas"
-              tabIndex={0}
-              aria-label={STRINGS.canvasToolbar.mapLegendTitle}
-              onPointerDown={handleCanvasPointerDown}
-              onPointerMove={handleCanvasPointerMove}
-              onPointerUp={handleCanvasPointerUp}
-              onPointerCancel={() => {
-                pointerDownRef.current = false;
-              }}
-              className={`absolute inset-0 block h-full w-full ${
-                hoveredAgentId || hoveredZoneId ? 'cursor-pointer' : 'cursor-default'
-              }`}
-            />
-            {/* Lencana atmosfer waktu & status berjalan melayang non-intrusif */}
-            <div
-              aria-hidden="true"
-              className="map-hud-pill pointer-events-none absolute left-3 top-3 z-10"
-            >
-              <span
-                className={`inline-block h-2.5 w-2.5 rounded-full border border-[#3e2517] ${
-                  clock.minutesOfDay < 660
-                    ? 'bg-[#f5be42]'
-                    : clock.minutesOfDay >= 870
-                      ? 'bg-[#e56256]'
-                      : 'bg-[#3aa08e]'
-                }`}
-              />
-              <span className="text-[#b8463c]">
-                {clock.minutesOfDay < 660
-                  ? 'Pagi Cerah'
-                  : clock.minutesOfDay >= 870
-                    ? 'Sore Hangat'
-                    : 'Siang Terang'}
-              </span>
-              <span className="opacity-45">·</span>
-              <span>
-                {story.avatarMode === 'menuju-mahasiswa'
-                  ? 'Menghampiri mahasiswa...'
-                  : story.avatarMode === 'berdua-ke-bk'
-                    ? 'Menuju Ruang Konsultasi...'
-                    : selectedZone?.shortLabel ?? 'Lab Vokasi'}
-              </span>
-            </div>
-            {/* Radar Sinyal Perilaku & Energi di sudut kanan atas peta */}
-            <div className="absolute right-3 top-3 z-10 flex max-w-[66%] items-center gap-2">
-              {campusMission.topPriorityAgent ? (
-                <button
-                  type="button"
-                  disabled={story.avatarMode !== 'idle'}
-                  onClick={() => {
-                    const target = campusMission.topPriorityAgent;
-                    if (!target) return;
-                    playSfx('klik');
-                    setSelectedAgentId(target.id);
-                    setSelectedZoneId(target.currentZoneId);
-                    setActiveTab('misi');
-                    story.requestApproach(target.id);
-                  }}
-                  className="mission-alert-pill max-w-full cursor-pointer text-left disabled:cursor-not-allowed disabled:opacity-70"
-                  data-status={campusMission.campusStatus}
-                  data-testid="isolation-radar-alert"
-                  title={signalForStudent(campusMission.topPriorityAgent.id).clue}
-                >
-                  <span className="shrink-0">
-                    {campusMission.campusStatus === 'darurat' ? '⚠ KRITIS' : '🔔 SINYAL'}
-                  </span>
-                  <span className="shrink-0 opacity-55">·</span>
-                  <span className="shrink-0">
-                    {campusMission.topPriorityAgent.name.split(' ')[0]} (
-                    {Math.round(campusMission.topPriorityAgent.energy * 100)}%)
-                  </span>
-                  <span className="hidden truncate font-normal italic opacity-90 xl:inline">
-                    “{signalForStudent(campusMission.topPriorityAgent.id).clue}”
-                  </span>
-                  <span className="shrink-0 underline decoration-2 underline-offset-2">Hampiri →</span>
-                </button>
-              ) : (
-                <div
-                  className="mission-alert-pill pointer-events-none"
-                  data-status="terjaga"
-                  data-testid="isolation-radar-alert"
-                >
-                  <span>✦ Energi Lab {campusMission.averageEnergyPct}%</span>
-                  <span className="opacity-55">·</span>
-                  <span>Semua Terjaga</span>
-                </div>
-              )}
-            </div>
-            {/* Toast Peringatan Mahasiswa Hilang (0%) */}
-            {lostAlertToast && (
+            Hias →
+          </button>
+        </div>
+      )}
+
+      {(story.avatarMode === 'menuju-mahasiswa' || story.avatarMode === 'berdua-ke-bk') && (
+        <div
+          role="status"
+          data-testid="story-status"
+          className="hud-onboarding-tip absolute bottom-4 left-1/2 z-20 -translate-x-1/2"
+        >
+          <span>
+            {story.avatarMode === 'menuju-mahasiswa'
+              ? '🚶 Ibu Dosen sedang menghampiri mahasiswa...'
+              : '🤝 Berjalan bersama menuju Ruang Konsultasi...'}
+          </span>
+        </div>
+      )}
+
+      {showFirstTimePrompt && (
+        <div
+          role="status"
+          className="hud-onboarding-tip pointer-events-none absolute bottom-4 left-1/2 z-20 hidden -translate-x-1/2 md:inline-flex"
+        >
+          <span>✨ Klik mahasiswa bertanda (!) di peta untuk menghampiri &amp; mulai sesi!</span>
+        </div>
+      )}
+
+      {/* =====================================================================
+          4. FLOATING BOTTOM-LEFT CONTEXTUAL INSPECTOR CARD (OR SLIM LEGEND)
+         ===================================================================== */}
+      <div className="pointer-events-none absolute bottom-3.5 left-3.5 z-20 max-w-[min(31rem,calc(100vw-18rem))]">
+        {selectedAgentSnapshot ? (
+          <div
+            className="hud-inspector-card fx-panel-in pointer-events-auto"
+            data-testid="agent-inspector-bar"
+          >
+            <div className="flex items-center gap-3">
+              {/* Potret mahasiswa */}
               <div
-                role="alert"
-                className="fx-panel-in absolute bottom-24 left-1/2 z-20 flex max-w-[92%] -translate-x-1/2 items-center gap-2 rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#e05248] to-[#b8322a] px-4 py-1.5 font-['Fredoka'] text-xs font-bold text-[#fffdf6] shadow-[0_4px_0_#3e2517]"
+                className="relative h-[76px] w-[60px] shrink-0 overflow-hidden rounded-2xl border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#d8ecfa] via-[#f0f5e8] to-[#f8e6c8] shadow-[0_3px_0_#3e2517]"
+                style={{ lineHeight: 0 }}
               >
-                <span>{lostAlertToast}</span>
+                <div className="h-full w-full [&>canvas]:!h-full [&>canvas]:!w-full [&>canvas]:object-contain [&>canvas]:object-bottom [&>img]:!h-full [&>img]:!w-full">
+                  <PixelPortrait
+                    studentId={selectedAgentSnapshot.id}
+                    name={selectedAgentSnapshot.name}
+                    expression="netral"
+                    scale={1}
+                    reducedMotion={reducedMotion}
+                    demographicLabel={selectedAgentSnapshot.demographicLabel}
+                  />
+                </div>
               </div>
-            )}
-            {/* Toast Perayaan Bintang Empati melayang saat kisah baru terungkap */}
-            {celebrationToast && (
-              <div
-                role="status"
-                className="fx-panel-in absolute bottom-12 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#ffe799] to-[#f4b93c] px-4 py-1.5 font-['Fredoka'] text-xs font-bold text-[#3e2517] shadow-[0_4px_0_#3e2517]"
-              >
-                <span>{celebrationToast}</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    playSfx('klik');
-                    setCelebrationToast(null);
-                    setDecorShopOpen(true);
-                  }}
-                  className="rounded-full border border-[#3e2517] bg-[#fffdf6] px-2.5 py-0.5 text-[11px] font-bold text-[#3e2517] hover:bg-[#fff4d4]"
-                >
-                  Hias →
-                </button>
-              </div>
-            )}
-            {/* Legenda Mini Energi di sudut kiri bawah kanvas (jelas dalam 2 detik!) */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute bottom-3 left-3 z-10 hidden flex-wrap items-center gap-2 rounded-full border-2 border-[#3e2517] bg-[#fffdf6]/92 px-3 py-1 font-['Fredoka'] text-[11px] font-bold text-[#3e2517] shadow-[0_3px_0_#3e2517] sm:inline-flex"
-            >
-              <span className="inline-flex items-center gap-1">
-                <span className="h-2.5 w-2.5 rounded-full border border-[#3e2517] bg-[#36ab81]" />
-                Mengobrol (+)
-              </span>
-              <span className="opacity-35">·</span>
-              <span className="inline-flex items-center gap-1">
-                <span className="h-2.5 w-2.5 rounded-full border border-[#3e2517] bg-[#f2ae30]" />
-                Waspada
-              </span>
-              <span className="opacity-35">·</span>
-              <span className="inline-flex items-center gap-1">
-                <span className="h-2.5 w-2.5 rounded-full border border-[#3e2517] bg-[#e5534b]" />
-                Terisolasi (&lt;35%)
-              </span>
-            </div>
-            {/* Bingkai viewport hangat hand-inked */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 border-[3px] border-[#3e2517]/25"
-            />
-          </div>
 
-          {/* Bilah info mahasiswa atau zona terpilih — Grid 3-Kolom Simetris Kompak (nol ruang kosong!) */}
-          <div className="shrink-0 border-t-[3px] border-[#3e2517] bg-gradient-to-b from-[#fffdf6] to-[#f6e6c8] px-3.5 py-2.5 text-xs shadow-[inset_0_2px_0_rgba(255,255,255,0.8)]">
-            {selectedAgentSnapshot ? (
-              <div
-                className="grid grid-cols-1 items-center gap-3 md:grid-cols-[auto_minmax(0,1fr)_auto]"
-                data-testid="agent-inspector-bar"
-              >
-                {/* Kolom 1: Potret mahasiswa proporsional & tidak melar */}
-                <div
-                  className="relative h-[78px] w-[62px] shrink-0 overflow-hidden rounded-2xl border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#d8ecfa] via-[#f0f5e8] to-[#f8e6c8] shadow-[0_3px_0_#3e2517]"
-                  style={{ lineHeight: 0 }}
-                >
-                  <div className="h-full w-full [&>canvas]:!h-full [&>canvas]:!w-full [&>canvas]:object-contain [&>canvas]:object-bottom [&>img]:!h-full [&>img]:!w-full">
-                    <PixelPortrait
-                      studentId={selectedAgentSnapshot.id}
-                      name={selectedAgentSnapshot.name}
-                      expression="netral"
-                      scale={1}
-                      reducedMotion={reducedMotion}
-                      demographicLabel={selectedAgentSnapshot.demographicLabel}
-                    />
+              {/* Info + Meter + Aksi */}
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="truncate font-['Fredoka'] text-sm font-bold text-[#3e2517]">
+                        {selectedAgentSnapshot.name}
+                      </span>
+                      <span className="rounded-full border border-[#3e2517]/35 bg-[#e6f7f2] px-2 py-0.5 font-['Fredoka'] text-[10px] font-bold text-[#1e6a5d]">
+                        {STRINGS.agentInspector.activityNames[selectedAgentSnapshot.status]}
+                      </span>
+                      <span className="rounded-full border border-[#3e2517]/35 bg-[#fff2d2] px-2 py-0.5 font-['Fredoka'] text-[10px] font-bold text-[#8a4f16]">
+                        {STRINGS.agentInspector.socialNames[selectedAgentSnapshot.socialStatus]}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 line-clamp-1 text-[11px] italic text-[#6b482e]">
+                      🔔 “{signalForStudent(selectedAgentSnapshot.id).clue}”
+                    </p>
                   </div>
+                  <button
+                    type="button"
+                    aria-label={STRINGS.agentInspector.closeAgent}
+                    onClick={() => {
+                      playSfx('klik');
+                      setSelectedAgentId(null);
+                    }}
+                    className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-[#3e2517] bg-[#fff5dc] font-['Fredoka'] text-xs font-bold text-[#3e2517] hover:bg-[#ffe199]"
+                  >
+                    ✕
+                  </button>
                 </div>
 
-                {/* Kolom 2: Identitas + status pil + potensi & sinyal mengisi ruang tengah penuh */}
-                <div className="min-w-0 space-y-1">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="font-['Fredoka'] text-[0.95rem] font-bold text-[#3e2517]">
-                      {STRINGS.agentInspector.selectedPrefix} {selectedAgentSnapshot.name}
-                    </span>
-                    <span className="rounded-full border border-[#3e2517]/40 bg-[#fffdf7] px-2 py-0.5 font-['Fredoka'] text-[11px] font-bold text-[#2e8274]">
-                      {STRINGS.agentInspector.activityNames[selectedAgentSnapshot.status]}
-                    </span>
-                    <span className="rounded-full border border-[#3e2517]/40 bg-[#fff3d6] px-2 py-0.5 font-['Fredoka'] text-[11px] font-bold text-[#8a4f16]">
-                      {STRINGS.agentInspector.socialLabel}:{' '}
-                      {STRINGS.agentInspector.socialNames[selectedAgentSnapshot.socialStatus]}
-                    </span>
-                    <span className="hidden rounded-full bg-[#3e2517]/10 px-2 py-0.5 text-[11px] font-semibold text-[#5d3d26] xl:inline-block">
-                      {STRINGS.agentInspector.cohortPrefix} {selectedAgentSnapshot.cohort} ·{' '}
-                      {selectedAgentSnapshot.demographicLabel.originLabel}
-                    </span>
-                  </div>
-
-                  <p className="line-clamp-1 text-[11.5px] leading-snug text-[#4e321e]">
-                    <strong className="text-[#3e2517]">{STRINGS.agentInspector.potentialLabel}:</strong>{' '}
-                    {selectedAgentSnapshot.uniquePotential}
-                    <span aria-hidden="true"> · </span>
-                    <span className="text-[#6b482e]">{selectedAgentSnapshot.activityGoal}</span>
-                  </p>
-
-                  <p className="line-clamp-1 rounded-xl border border-[#3e2517]/20 bg-[#fffdf7]/85 px-2.5 py-1 text-[11px] italic text-[#6b482e]">
-                    🔔 Sinyal teramati: “{signalForStudent(selectedAgentSnapshot.id).clue}”
-                  </p>
-                </div>
-
-                {/* Kolom 3: Meter Energi/Stres di atas & Tombol Aksi sejajar rapi di bawah */}
-                <div className="flex shrink-0 flex-col items-stretch justify-between gap-2 md:items-end">
-                  <div className="flex flex-wrap items-center gap-2 rounded-2xl border-2 border-[#3e2517]/30 bg-[#fffdf7] px-2.5 py-1.5 shadow-[inset_0_-2px_0_#edd9b4]">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 rounded-xl border border-[#3e2517]/25 bg-[#fffdf7] px-2 py-1 text-[11px]">
                     {selectedMeters.energy && (
                       <GameMeter
                         label={STRINGS.agentInspector.energyLabel}
-                        icon={<IconEnergi className="h-4 w-4" />}
+                        icon={<IconEnergi className="h-3.5 w-3.5" />}
                         value={selectedMeters.energy.value}
                         max={selectedMeters.energy.max}
                         higherIsBetter={selectedMeters.energy.higherIsBetter}
@@ -1626,64 +1540,41 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                     {selectedMeters.stress && (
                       <GameMeter
                         label={STRINGS.agentInspector.stressLabel}
-                        icon={<IconStres className="h-4 w-4" />}
+                        icon={<IconStres className="h-3.5 w-3.5" />}
                         value={selectedMeters.stress.value}
                         max={selectedMeters.stress.max}
                         higherIsBetter={selectedMeters.stress.higherIsBetter}
                       />
                     )}
                   </div>
-                  <div className="flex items-center justify-end gap-2">
-                    <GameButton
-                      variant="primer"
-                      size="sm"
-                      bounce
-                      onClick={() => { playSfx('klik'); story.requestApproach(selectedAgentSnapshot.id); }}
-                      aria-label={STRINGS.story.approachAria(selectedAgentSnapshot.name)}
-                      className="!min-h-[2rem] whitespace-nowrap !px-4 text-xs"
-                    >
-                      {STRINGS.story.approachBtn}
-                    </GameButton>
-                    <GameButton
-                      variant="sekunder"
-                      size="sm"
-                      bounce
-                      onClick={() => { playSfx('klik'); setSelectedAgentId(null); }}
-                      className="!min-h-[2rem] whitespace-nowrap !px-3.5 text-xs"
-                    >
-                      {STRINGS.agentInspector.closeAgent}
-                    </GameButton>
-                  </div>
+                  <GameButton
+                    variant="primer"
+                    size="sm"
+                    bounce
+                    onClick={() => {
+                      playSfx('klik');
+                      setActiveDrawer(null);
+                      story.requestApproach(selectedAgentSnapshot.id);
+                    }}
+                    aria-label={STRINGS.story.approachAria(selectedAgentSnapshot.name)}
+                    className="!min-h-[1.95rem] whitespace-nowrap !px-3.5 text-xs"
+                  >
+                    {STRINGS.story.approachBtn} →
+                  </GameButton>
                 </div>
               </div>
-            ) : selectedZone ? (
-              <div className="grid grid-cols-1 items-center gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border-2 border-[#3e2517] bg-[#ffe694] px-2.5 py-0.5 font-['Fredoka'] text-xs font-bold text-[#3e2517]">
-                      📍 {STRINGS.canvasToolbar.selectedZonePrefix} {selectedZone.label}
-                    </span>
-                    {story.statusMessage && (
-                      <span
-                        role="status"
-                        data-testid="story-status"
-                        className="truncate rounded-full border border-[#2e8274]/40 bg-[#e4f7f1] px-2.5 py-0.5 text-[11px] font-semibold text-[#1e6457]"
-                      >
-                        {story.statusMessage}
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-1 line-clamp-1 text-[11.5px] text-[#5d3d26]">
-                    {selectedZone.id === 'konsultasi'
-                      ? viewOptions.consultationDoorMode === 'lab'
-                        ? STRINGS.canvasToolbar.doorVisibilityHintLab
-                        : STRINGS.canvasToolbar.doorVisibilityHintSide
-                      : selectedZone.description}
-                  </p>
-                </div>
-                <div className="flex shrink-0 flex-wrap items-center gap-1.5 font-['Fredoka'] text-[11px] font-bold">
-                  <span className="rounded-full border-2 border-[#3e2517]/35 bg-[#fffdf7] px-2.5 py-1 text-[#3e2517]">
-                    🔒 {STRINGS.canvasToolbar.privacyLabel}{' '}
+            </div>
+          </div>
+        ) : selectedZone ? (
+          <div className="hud-inspector-card fx-panel-in pointer-events-auto">
+            <div className="flex items-start justify-between gap-2.5">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="rounded-full border-2 border-[#3e2517] bg-[#ffe694] px-2.5 py-0.5 font-['Fredoka'] text-xs font-bold text-[#3e2517]">
+                    📍 {selectedZone.label}
+                  </span>
+                  <span className="rounded-full border border-[#3e2517]/30 bg-[#fffdf7] px-2 py-0.5 font-['Fredoka'] text-[10px] font-bold text-[#3e2517]">
+                    🔒 Privasi{' '}
                     {Math.round(
                       getEffectiveZonePrivacy(
                         selectedZone.id,
@@ -1693,301 +1584,441 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                     )}
                     %
                   </span>
-                  <span className="rounded-full border-2 border-[#3e2517]/35 bg-[#fffdf7] px-2.5 py-1 text-[#3e2517]">
-                    👥 {STRINGS.canvasToolbar.capacityLabel} {selectedZone.capacity}
-                  </span>
-                  <span className="rounded-full border-2 border-[#3e2517]/35 bg-[#fffdf7] px-2.5 py-1 text-[#3e2517]">
-                    🪑 {STRINGS.canvasToolbar.slotsLabel} {selectedZone.standingSlots.length}
+                  <span className="rounded-full border border-[#3e2517]/30 bg-[#fffdf7] px-2 py-0.5 font-['Fredoka'] text-[10px] font-bold text-[#3e2517]">
+                    👥 Kapasitas {selectedZone.capacity}
                   </span>
                 </div>
+                <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-[#5d3d26]">
+                  {selectedZone.id === 'konsultasi'
+                    ? viewOptions.consultationDoorMode === 'lab'
+                      ? STRINGS.canvasToolbar.doorVisibilityHintLab
+                      : STRINGS.canvasToolbar.doorVisibilityHintSide
+                    : selectedZone.description}
+                </p>
               </div>
-            ) : (
-              <p className="text-[#6b482e]">{STRINGS.canvasToolbar.noZoneSelected}</p>
-            )}
-            {selectedAgentSnapshot && story.statusMessage && (
-              <p
-                role="status"
-                data-testid="story-status"
-                className="mt-1.5 border-t border-dashed border-[#3e2517]/20 pt-1 text-[11px] font-semibold text-[#6b482e]"
+              <button
+                type="button"
+                aria-label="Tutup info ruangan"
+                onClick={() => {
+                  playSfx('klik');
+                  setSelectedZoneId(null);
+                }}
+                className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-[#3e2517] bg-[#fff5dc] font-['Fredoka'] text-xs font-bold text-[#3e2517] hover:bg-[#ffe199]"
               >
-                💡 {story.statusMessage}
-              </p>
-            )}
+                ✕
+              </button>
+            </div>
           </div>
-        </section>
-
-        {/* Kolom kanan: Panel Konselor ramping (26-27%) agar peta 11 ruangan di kiri lebar horizontal! */}
-        <GameFrame
-          as="aside"
-          variant="krem"
-          animateIn
-          aria-label="Panel Konselor"
-          className="relative flex min-h-0 w-full flex-col overflow-hidden !rounded-[26px] !border-[3.5px] !border-[#3e2517] !shadow-[0_7px_0_#3e2517,0_14px_28px_rgba(62,37,23,0.18)] lg:w-[27%] xl:w-[26%]"
-        >
-          {/* Header kayu hangat min-h-[54px] — sejajar presisi dengan Bilah Kontrol Peta di kiri! */}
-          <div className="flex min-h-[54px] shrink-0 items-center justify-center border-b-[3px] border-[#3e2517] bg-gradient-to-b from-[#a76940] to-[#874f2d] px-3 py-1.5">
-            <GameRibbon level={2} tone="navy" shine>
-              Panel Konselor
-            </GameRibbon>
-          </div>
+        ) : (
           <div
-            role="tablist"
-            aria-label="Menu Panel Konselor"
-            className="grid shrink-0 grid-cols-4 items-end gap-1 border-b-[3px] border-[#3e2517] bg-[#f4e4c5] px-1.5 pt-2 [&>button]:min-w-0 [&>button]:justify-center [&>button]:!px-1 [&>button]:!text-[0.66rem]"
+            aria-hidden="true"
+            className="hud-pill pointer-events-none hidden text-[11px] sm:inline-flex"
           >
-            {STRINGS.tabs.list.map((tab) => {
-              const TabIcon = TAB_ICON_COMPONENTS[tab.id];
-              return (
-                <GameTab
-                  key={tab.id}
-                  id={`tab-${tab.id}`}
-                  controls={`panel-${tab.id}`}
-                  selected={activeTab === tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  icon={<TabIcon className="h-3.5 w-3.5 shrink-0" />}
-                >
-                  {STRINGS.gameTabs[tab.id]}
-                </GameTab>
-              );
-            })}
+            <span className="inline-flex items-center gap-1">
+              <span className="h-2.5 w-2.5 rounded-full border border-[#3e2517] bg-[#36ab81]" />
+              Mengobrol (+)
+            </span>
+            <span className="opacity-35">·</span>
+            <span className="inline-flex items-center gap-1">
+              <span className="h-2.5 w-2.5 rounded-full border border-[#3e2517] bg-[#f2ae30]" />
+              Waspada
+            </span>
+            <span className="opacity-35">·</span>
+            <span className="inline-flex items-center gap-1">
+              <span className="h-2.5 w-2.5 rounded-full border border-[#3e2517] bg-[#e5534b]" />
+              Terisolasi (&lt;35%)
+            </span>
           </div>
-
-          <div
-            id={`panel-${activeTab}`}
-            role="tabpanel"
-            aria-labelledby={`tab-${activeTab}`}
-            className="flex-1 overflow-y-auto p-2.5"
-          >
-            {activeTab === 'pengamatan' ? (
-              <ObservationPanel
-                agents={agentsSnapshot}
-                observationLog={observationLog}
-                currentDay={clock.day}
-                currentTimeFormatted={formattedTime}
-                selectedAgentId={selectedAgentId}
-                onSelectAgent={(id) => {
-                  setSelectedAgentId(id);
-                  if (id) {
-                    const found = worldRef.current.agents.find((a) => a.id === id);
-                    if (found) setSelectedZoneId(found.currentZoneId);
-                  }
-                }}
-                anecdotalRecords={anecdotalRecords}
-                onAddAnecdotalRecord={handleAddAnecdotalRecord}
-              />
-            ) : activeTab === 'sosiogram' ? (
-              <SociogramPanel
-                agents={agentsSnapshot}
-                snapshots={sociometrySnapshots}
-                livePreviewSnapshot={livePreviewSnapshot}
-                observationLog={observationLog}
-                currentDay={clock.day}
-                currentTimeFormatted={formattedTime}
-                selectedAgentId={selectedAgentId}
-                onSelectAgent={(id) => {
-                  setSelectedAgentId(id);
-                  if (id) {
-                    const found = worldRef.current.agents.find((a) => a.id === id);
-                    if (found) setSelectedZoneId(found.currentZoneId);
-                  }
-                }}
-                hypotheses={hypotheses}
-                onAddHypothesis={handleAddHypothesis}
-              />
-            ) : activeTab === 'misi' ? (
-              <MissionPanel
-                agents={agentsSnapshot}
-                missions={story.missions}
-                avatarMode={story.avatarMode}
-                activeAgentId={story.activeAgentId}
-                observationLog={observationLog}
-                currentDay={clock.day}
-                availableStars={availableStars}
-                lostAgentIds={lostStudentSet}
-                onOpenDecorShop={() => {
-                  playSfx('klik');
-                  setDecorShopOpen(true);
-                }}
-                onOpenJournal={() => {
-                  playSfx('klik');
-                  setJournalOpen(true);
-                }}
-                onOpenShiftReport={() => {
-                  playSfx('klik');
-                  setShiftReportOpen(true);
-                }}
-                onApproach={(id) => {
-                  setSelectedAgentId(id);
-                  story.requestApproach(id);
-                }}
-                onFollowUp={(id) => {
-                  setSelectedAgentId(id);
-                  story.startFollowUp(id);
-                }}
-              />
-            ) : (
-              <div className="space-y-3.5 text-xs text-[#3e2517]" data-testid="counselor-notes-panel">
-                <div className="rounded-2xl border-2 border-[#3e2517] bg-gradient-to-b from-[#fffdf7] to-[#f8ecd2] p-3.5 shadow-[0_4px_0_#3e2517]">
-                  <h2 className="font-['Fredoka'] text-sm font-bold text-[#3e2517]">
-                    📓 {STRINGS.tabs.placeholders[activeTab].title}
-                  </h2>
-                  <p className="mt-1 leading-relaxed text-[#6b482e]">
-                    Ringkasan lengkap seluruh kisah terungkap, catatan anekdot, dan hipotesis relasi mahasiswa di laboratorium.
-                  </p>
-                  <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                    <div className="rounded-xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-2">
-                      <div className="font-['Fredoka'] text-base font-bold text-[#2e8274]">
-                        {missionsDone}/{STUDENT_COUNT}
-                      </div>
-                      <div className="text-[10px] font-semibold text-[#6b482e]">Kisah</div>
-                    </div>
-                    <div className="rounded-xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-2">
-                      <div className="font-['Fredoka'] text-base font-bold text-[#c6453c]">
-                        {anecdotalRecords.length}
-                      </div>
-                      <div className="text-[10px] font-semibold text-[#6b482e]">Anekdot</div>
-                    </div>
-                    <div className="rounded-xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-2">
-                      <div className="font-['Fredoka'] text-base font-bold text-[#b87314]">
-                        {hypotheses.length}
-                      </div>
-                      <div className="text-[10px] font-semibold text-[#6b482e]">Hipotesis</div>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <GameButton
-                      variant="primer"
-                      size="sm"
-                      onClick={() => {
-                        playSfx('klik');
-                        setJournalOpen(true);
-                      }}
-                    >
-                      📖 Buka Jurnal ({missionsDone}/{STUDENT_COUNT})
-                    </GameButton>
-                    <GameButton
-                      variant="sekunder"
-                      size="sm"
-                      onClick={() => {
-                        playSfx('klik');
-                        setDecorShopOpen(true);
-                      }}
-                    >
-                      🪴 Hias Ruang · ⭐ {availableStars}
-                    </GameButton>
-                  </div>
-                </div>
-
-                {/* Daftar Kisah Terungkap */}
-                <section className="rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffdf7] p-3">
-                  <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
-                    ✦ Kisah Mahasiswa Terungkap ({missionsDone})
-                  </h3>
-                  {missionsDone === 0 ? (
-                    <p className="mt-1.5 text-[11px] text-[#6b482e]">
-                      Belum ada kisah yang terbuka. Hampiri mahasiswa di peta atau lewat tab Misi untuk mulai mendengarkan.
-                    </p>
-                  ) : (
-                    <ul className="mt-2 space-y-1.5">
-                      {agentsSnapshot
-                        .filter((a) => story.missions[a.id]?.status === 'selesai')
-                        .map((a) => (
-                          <li
-                            key={a.id}
-                            className="rounded-xl border border-[#3e2517]/20 bg-[#fff7de] px-2.5 py-2"
-                          >
-                            <div className="font-['Fredoka'] font-bold text-[#3e2517]">{a.name}</div>
-                            <div className="text-[11px] font-semibold text-[#7a4b10]">
-                              “{signalForStudent(a.id).unlockedTitle}”
-                            </div>
-                          </li>
-                        ))}
-                    </ul>
-                  )}
-                </section>
-
-                {/* Catatan Anekdot Terbaru */}
-                <section className="rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffdf7] p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
-                      📝 Catatan Anekdot ({anecdotalRecords.length})
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('pengamatan')}
-                      className="font-['Fredoka'] text-[11px] font-bold text-[#2e8274] underline"
-                    >
-                      Tambah di Pengamatan →
-                    </button>
-                  </div>
-                  {anecdotalRecords.length === 0 ? (
-                    <p className="mt-1.5 text-[11px] text-[#6b482e]">
-                      Belum ada catatan anekdot tersimpan.
-                    </p>
-                  ) : (
-                    <ul className="mt-2 space-y-1.5">
-                      {anecdotalRecords.slice(0, 5).map((rec) => (
-                        <li
-                          key={rec.id}
-                          className="rounded-xl border border-[#3e2517]/15 bg-[#fffaf0] px-2.5 py-1.5 text-[11px]"
-                        >
-                          <div className="font-bold text-[#3e2517]">
-                            {rec.agentName}{' '}
-                            <span className="font-normal text-[#7a5234]">
-                              ({rec.dateLabel} · {rec.timeLabel})
-                            </span>
-                          </div>
-                          <p className="mt-0.5 text-[#5c3d26]">{rec.observedFact}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </section>
-
-                {/* Hipotesis Relasi Terbaru */}
-                <section className="rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffdf7] p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
-                      🔎 Hipotesis Sosiometri ({hypotheses.length})
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('sosiogram')}
-                      className="font-['Fredoka'] text-[11px] font-bold text-[#2e8274] underline"
-                    >
-                      Buka Sosiogram →
-                    </button>
-                  </div>
-                  {hypotheses.length === 0 ? (
-                    <p className="mt-1.5 text-[11px] text-[#6b482e]">
-                      Belum ada hipotesis relasi yang dicatat.
-                    </p>
-                  ) : (
-                    <ul className="mt-2 space-y-1.5">
-                      {hypotheses.slice(0, 5).map((h) => (
-                        <li
-                          key={h.id}
-                          className="rounded-xl border border-[#3e2517]/15 bg-[#fffaf0] px-2.5 py-1.5 text-[11px]"
-                        >
-                          <div className="font-bold text-[#3e2517]">
-                            {h.agentName}{' '}
-                            <span className="font-normal text-[#7a5234]">
-                              · Keyakinan {h.confidence}
-                            </span>
-                          </div>
-                          <p className="mt-0.5 text-[#5c3d26]">{h.hypothesisText}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </section>
-              </div>
-            )}
-          </div>
-        </GameFrame>
+        )}
       </div>
 
-      {/* StoryScreen (mode misi); disembunyikan saat Walk_Together, Debrief, atau Game Over */}
+      {/* =====================================================================
+          5. FLOATING BOTTOM-RIGHT PLAY-STORE ICON DOCK (4 TOMBOL TAKTIL)
+         ===================================================================== */}
+      <nav
+        aria-label="Dok Menu Konselor"
+        className="pointer-events-auto absolute bottom-3.5 right-3.5 z-20 flex items-end gap-2"
+      >
+        <button
+          type="button"
+          aria-pressed={activeDrawer === 'misi'}
+          onClick={() => toggleDrawer('misi')}
+          className={`hud-dock-btn ${activeDrawer === 'misi' ? 'hud-dock-btn--active' : ''}`}
+        >
+          {campusMission.criticalAgents.length > 0 ? (
+            <span className="hud-dock-badge hud-dock-badge--danger">
+              {campusMission.criticalAgents.length}
+            </span>
+          ) : campusMission.warningAgents.length > 0 ? (
+            <span className="hud-dock-badge hud-dock-badge--warn">
+              {campusMission.warningAgents.length}
+            </span>
+          ) : null}
+          <span aria-hidden="true" className="text-xl leading-none">
+            🎯
+          </span>
+          <span className="hud-dock-label">Misi</span>
+        </button>
+
+        <button
+          type="button"
+          aria-pressed={activeDrawer === 'sosiogram'}
+          onClick={() => toggleDrawer('sosiogram')}
+          className={`hud-dock-btn ${activeDrawer === 'sosiogram' ? 'hud-dock-btn--active' : ''}`}
+        >
+          <span aria-hidden="true" className="text-xl leading-none">
+            🕸️
+          </span>
+          <span className="hud-dock-label">Relasi</span>
+        </button>
+
+        <button
+          type="button"
+          aria-pressed={activeDrawer === 'catatan' || activeDrawer === 'pengamatan'}
+          onClick={() =>
+            toggleDrawer(
+              activeDrawer === 'catatan' || activeDrawer === 'pengamatan' ? activeDrawer : 'catatan'
+            )
+          }
+          className={`hud-dock-btn ${
+            activeDrawer === 'catatan' || activeDrawer === 'pengamatan'
+              ? 'hud-dock-btn--active'
+              : ''
+          }`}
+        >
+          <span className="hud-dock-badge hud-dock-badge--teal">
+            {missionsDone}/{STUDENT_COUNT}
+          </span>
+          <span aria-hidden="true" className="text-xl leading-none">
+            📓
+          </span>
+          <span className="hud-dock-label">Buku</span>
+        </button>
+
+        <button
+          type="button"
+          data-testid="open-decor-shop-btn"
+          onClick={() => {
+            playSfx('klik');
+            setDecorShopOpen(true);
+          }}
+          title="Hias Ruang Konsultasi BK dengan Bintang Empati"
+          className="hud-dock-btn hud-dock-btn--gold"
+        >
+          <span
+            className={`hud-dock-badge ${
+              canBuyAnyDecor ? 'hud-dock-badge--danger' : 'hud-dock-badge--gold'
+            }`}
+          >
+            ⭐{availableStars}
+          </span>
+          <span aria-hidden="true" className="text-xl leading-none">
+            🪴
+          </span>
+          <span className="hud-dock-label">Hias</span>
+        </button>
+      </nav>
+
+      {/* =====================================================================
+          6. ON-DEMAND FLOATING COUNSELOR DRAWER (HANYA MUNCUL SAAT DOK DIKLIK)
+         ===================================================================== */}
+      {activeDrawer && (
+        <>
+          <div
+            aria-hidden="true"
+            onClick={() => setActiveDrawer(null)}
+            className="fixed inset-0 z-[25] bg-[#2c1a0e]/24"
+          />
+          <aside
+            aria-label="Panel Konselor"
+            className="hud-drawer fx-panel-in fixed bottom-[5.8rem] right-3.5 top-[4.4rem] z-30 flex w-[min(25rem,92vw)] flex-col overflow-hidden"
+          >
+            {/* Header kayu hangat + tombol tutup */}
+            <div className="flex shrink-0 items-center justify-between border-b-[3px] border-[#3e2517] bg-gradient-to-b from-[#a76940] to-[#874f2d] px-3.5 py-2">
+              <GameRibbon level={2} tone="navy" shine>
+                Panel Konselor
+              </GameRibbon>
+              <button
+                type="button"
+                aria-label="Tutup Panel Konselor"
+                onClick={() => {
+                  playSfx('klik');
+                  setActiveDrawer(null);
+                }}
+                className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 border-[#3e2517] bg-[#fff5dc] font-['Fredoka'] text-xs font-bold text-[#3e2517] shadow-[0_2px_0_#3e2517] hover:bg-[#ffe199]"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* 4 Tab Buku Konselor */}
+            <div
+              role="tablist"
+              aria-label="Menu Panel Konselor"
+              className="grid shrink-0 grid-cols-4 items-end gap-1 border-b-[3px] border-[#3e2517] bg-[#f4e4c5] px-1.5 pt-2 [&>button]:min-w-0 [&>button]:justify-center [&>button]:!px-1 [&>button]:!text-[0.68rem]"
+            >
+              {STRINGS.tabs.list.map((tab) => {
+                const TabIcon = TAB_ICON_COMPONENTS[tab.id];
+                return (
+                  <GameTab
+                    key={tab.id}
+                    id={`tab-${tab.id}`}
+                    controls={`panel-${tab.id}`}
+                    selected={activeDrawer === tab.id}
+                    onClick={() => {
+                      playSfx('klik');
+                      setActiveDrawer(tab.id);
+                    }}
+                    icon={<TabIcon className="h-3.5 w-3.5 shrink-0" />}
+                  >
+                    {STRINGS.gameTabs[tab.id]}
+                  </GameTab>
+                );
+              })}
+            </div>
+
+            {/* Konten Tab */}
+            <div
+              id={`panel-${activeDrawer}`}
+              role="tabpanel"
+              aria-labelledby={`tab-${activeDrawer}`}
+              className="flex-1 overflow-y-auto bg-[#fffdf5] p-2.5"
+            >
+              {activeDrawer === 'pengamatan' ? (
+                <ObservationPanel
+                  agents={agentsSnapshot}
+                  observationLog={observationLog}
+                  currentDay={clock.day}
+                  currentTimeFormatted={formattedTime}
+                  selectedAgentId={selectedAgentId}
+                  onSelectAgent={(id) => {
+                    setSelectedAgentId(id);
+                    if (id) {
+                      const found = worldRef.current.agents.find((a) => a.id === id);
+                      if (found) setSelectedZoneId(found.currentZoneId);
+                    }
+                  }}
+                  anecdotalRecords={anecdotalRecords}
+                  onAddAnecdotalRecord={handleAddAnecdotalRecord}
+                />
+              ) : activeDrawer === 'sosiogram' ? (
+                <SociogramPanel
+                  agents={agentsSnapshot}
+                  snapshots={sociometrySnapshots}
+                  livePreviewSnapshot={livePreviewSnapshot}
+                  observationLog={observationLog}
+                  currentDay={clock.day}
+                  currentTimeFormatted={formattedTime}
+                  selectedAgentId={selectedAgentId}
+                  onSelectAgent={(id) => {
+                    setSelectedAgentId(id);
+                    if (id) {
+                      const found = worldRef.current.agents.find((a) => a.id === id);
+                      if (found) setSelectedZoneId(found.currentZoneId);
+                    }
+                  }}
+                  hypotheses={hypotheses}
+                  onAddHypothesis={handleAddHypothesis}
+                />
+              ) : activeDrawer === 'misi' ? (
+                <MissionPanel
+                  agents={agentsSnapshot}
+                  missions={story.missions}
+                  avatarMode={story.avatarMode}
+                  activeAgentId={story.activeAgentId}
+                  observationLog={observationLog}
+                  currentDay={clock.day}
+                  availableStars={availableStars}
+                  lostAgentIds={lostStudentSet}
+                  onOpenDecorShop={() => {
+                    playSfx('klik');
+                    setDecorShopOpen(true);
+                  }}
+                  onOpenJournal={() => {
+                    playSfx('klik');
+                    setJournalOpen(true);
+                  }}
+                  onOpenShiftReport={() => {
+                    playSfx('klik');
+                    setShiftReportOpen(true);
+                  }}
+                  onApproach={(id) => {
+                    setSelectedAgentId(id);
+                    setActiveDrawer(null);
+                    story.requestApproach(id);
+                  }}
+                  onFollowUp={(id) => {
+                    setSelectedAgentId(id);
+                    setActiveDrawer(null);
+                    story.startFollowUp(id);
+                  }}
+                />
+              ) : (
+                <div className="space-y-3.5 text-xs text-[#3e2517]" data-testid="counselor-notes-panel">
+                  <div className="rounded-2xl border-2 border-[#3e2517] bg-gradient-to-b from-[#fffdf7] to-[#f8ecd2] p-3.5 shadow-[0_4px_0_#3e2517]">
+                    <h2 className="font-['Fredoka'] text-sm font-bold text-[#3e2517]">
+                      📓 {STRINGS.tabs.placeholders[activeDrawer].title}
+                    </h2>
+                    <p className="mt-1 leading-relaxed text-[#6b482e]">
+                      Ringkasan lengkap seluruh kisah terungkap, catatan anekdot, dan hipotesis relasi mahasiswa di laboratorium.
+                    </p>
+                    <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                      <div className="rounded-xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-2">
+                        <div className="font-['Fredoka'] text-base font-bold text-[#2e8274]">
+                          {missionsDone}/{STUDENT_COUNT}
+                        </div>
+                        <div className="text-[10px] font-semibold text-[#6b482e]">Kisah</div>
+                      </div>
+                      <div className="rounded-xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-2">
+                        <div className="font-['Fredoka'] text-base font-bold text-[#c6453c]">
+                          {anecdotalRecords.length}
+                        </div>
+                        <div className="text-[10px] font-semibold text-[#6b482e]">Anekdot</div>
+                      </div>
+                      <div className="rounded-xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-2">
+                        <div className="font-['Fredoka'] text-base font-bold text-[#b87314]">
+                          {hypotheses.length}
+                        </div>
+                        <div className="text-[10px] font-semibold text-[#6b482e]">Hipotesis</div>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <GameButton
+                        variant="primer"
+                        size="sm"
+                        onClick={() => {
+                          playSfx('klik');
+                          setJournalOpen(true);
+                        }}
+                      >
+                        📖 Buka Jurnal ({missionsDone}/{STUDENT_COUNT})
+                      </GameButton>
+                      <GameButton
+                        variant="sekunder"
+                        size="sm"
+                        onClick={() => {
+                          playSfx('klik');
+                          setDecorShopOpen(true);
+                        }}
+                      >
+                        🪴 Hias Ruang · ⭐ {availableStars}
+                      </GameButton>
+                    </div>
+                  </div>
+
+                  {/* Daftar Kisah Terungkap */}
+                  <section className="rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffdf7] p-3">
+                    <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
+                      ✦ Kisah Mahasiswa Terungkap ({missionsDone})
+                    </h3>
+                    {missionsDone === 0 ? (
+                      <p className="mt-1.5 text-[11px] text-[#6b482e]">
+                        Belum ada kisah yang terbuka. Hampiri mahasiswa di peta atau lewat tab Misi untuk mulai mendengarkan.
+                      </p>
+                    ) : (
+                      <ul className="mt-2 space-y-1.5">
+                        {agentsSnapshot
+                          .filter((a) => story.missions[a.id]?.status === 'selesai')
+                          .map((a) => (
+                            <li
+                              key={a.id}
+                              className="rounded-xl border border-[#3e2517]/20 bg-[#fff7de] px-2.5 py-2"
+                            >
+                              <div className="font-['Fredoka'] font-bold text-[#3e2517]">{a.name}</div>
+                              <div className="text-[11px] font-semibold text-[#7a4b10]">
+                                “{signalForStudent(a.id).unlockedTitle}”
+                              </div>
+                            </li>
+                          ))}
+                      </ul>
+                    )}
+                  </section>
+
+                  {/* Catatan Anekdot Terbaru */}
+                  <section className="rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffdf7] p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
+                        📝 Catatan Anekdot ({anecdotalRecords.length})
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => setActiveDrawer('pengamatan')}
+                        className="cursor-pointer font-['Fredoka'] text-[11px] font-bold text-[#2e8274] underline"
+                      >
+                        Tambah di Pengamatan →
+                      </button>
+                    </div>
+                    {anecdotalRecords.length === 0 ? (
+                      <p className="mt-1.5 text-[11px] text-[#6b482e]">
+                        Belum ada catatan anekdot tersimpan.
+                      </p>
+                    ) : (
+                      <ul className="mt-2 space-y-1.5">
+                        {anecdotalRecords.slice(0, 5).map((rec) => (
+                          <li
+                            key={rec.id}
+                            className="rounded-xl border border-[#3e2517]/15 bg-[#fffaf0] px-2.5 py-1.5 text-[11px]"
+                          >
+                            <div className="font-bold text-[#3e2517]">
+                              {rec.agentName}{' '}
+                              <span className="font-normal text-[#7a5234]">
+                                ({rec.dateLabel} · {rec.timeLabel})
+                              </span>
+                            </div>
+                            <p className="mt-0.5 text-[#5c3d26]">{rec.observedFact}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+
+                  {/* Hipotesis Relasi Terbaru */}
+                  <section className="rounded-2xl border-2 border-[#3e2517]/25 bg-[#fffdf7] p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="font-['Fredoka'] text-xs font-bold text-[#3e2517]">
+                        🔎 Hipotesis Sosiometri ({hypotheses.length})
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => setActiveDrawer('sosiogram')}
+                        className="cursor-pointer font-['Fredoka'] text-[11px] font-bold text-[#2e8274] underline"
+                      >
+                        Buka Sosiogram →
+                      </button>
+                    </div>
+                    {hypotheses.length === 0 ? (
+                      <p className="mt-1.5 text-[11px] text-[#6b482e]">
+                        Belum ada hipotesis relasi yang dicatat.
+                      </p>
+                    ) : (
+                      <ul className="mt-2 space-y-1.5">
+                        {hypotheses.slice(0, 5).map((h) => (
+                          <li
+                            key={h.id}
+                            className="rounded-xl border border-[#3e2517]/15 bg-[#fffaf0] px-2.5 py-1.5 text-[11px]"
+                          >
+                            <div className="font-bold text-[#3e2517]">
+                              {h.agentName}{' '}
+                              <span className="font-normal text-[#7a5234]">
+                                · Keyakinan {h.confidence}
+                              </span>
+                            </div>
+                            <p className="mt-0.5 text-[#5c3d26]">{h.hypothesisText}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+                </div>
+              )}
+            </div>
+          </aside>
+        </>
+      )}
+
+      {/* =====================================================================
+          7. OVERLAYS & MODALS (StoryScreen VN, Survival, Debrief, Briefing, dll.)
+         ===================================================================== */}
       {story.storyState &&
         story.graph &&
         story.agent &&
@@ -2017,11 +2048,12 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               otherCriticalAgent={otherCriticalAgent}
               lostCount={lostStudentIds.length}
               maxLost={MAX_LOST_STUDENTS}
+              audioEnabled={audioEnabled}
+              onToggleAudio={onToggleAudio}
             />
           </div>
         )}
 
-      {/* Modal Kalah (3 Mahasiswa Hilang) atau Menang (Semua Mahasiswa Tersisa Stabil) */}
       {(survivalSummary.status === 'kalah' ||
         (survivalSummary.status === 'menang' && !victoryDismissed)) && (
         <SurvivalResultModal
@@ -2035,7 +2067,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         />
       )}
 
-      {/* Debrief mode cerita */}
       {story.debriefProps && (
         <div
           role="dialog"
@@ -2052,7 +2083,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         </div>
       )}
 
-      {/* Briefing Pagi 1-kartu saat baru masuk ke laboratorium */}
       {briefingOpen && (
         <MorningBriefingModal
           onStartShift={() => {
@@ -2062,7 +2092,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         />
       )}
 
-      {/* Jurnal Koleksi 15 Kisah Lab */}
       {journalOpen && (
         <StoryJournalModal
           agents={agentsSnapshot}
@@ -2071,14 +2100,13 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           canApproach={story.avatarMode === 'idle'}
           onApproach={(id) => {
             setSelectedAgentId(id);
-            setActiveTab('misi');
+            setActiveDrawer(null);
             story.requestApproach(id);
           }}
           onClose={() => setJournalOpen(false)}
         />
       )}
 
-      {/* Kartu Hasil Shift Dosen BK (muncul saat 3 kisah terungkap, bisa disalin untuk dibagikan) */}
       {shiftReportOpen && (
         <ShiftReportModal
           report={shiftReport}
@@ -2089,7 +2117,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         />
       )}
 
-      {/* Pop-Up Hias Ruang Konsultasi BK (tukar ⭐ Bintang Empati -> tampil nyata di ruangan!) */}
       {decorShopOpen && (
         <RoomDecorModal
           decor={roomDecor}
@@ -2100,7 +2127,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         />
       )}
 
-      {/* Panel Pengembang (Ctrl+Shift+D) */}
       <DevPanel
         isOpen={devPanelOpen}
         seed={seed}
@@ -2126,5 +2152,3 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     </div>
   );
 };
-
-

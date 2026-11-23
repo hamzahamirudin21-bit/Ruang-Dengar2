@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Latar adegan 384×216 (lukisan logis 192×108 diperbesar 2× + lapisan detail) bergaya visual novel, dibuat sebagai `PixelGrid` murni.
  * Setiap `SceneArtId` memiliki komposisi, palet, dan prop khas sendiri.
  */

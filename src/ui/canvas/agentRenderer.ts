@@ -10,7 +10,6 @@ import {
 } from '../world/worldMetrics';
 import {
   bubbleFor,
-  paintBubble,
   selectBubbles,
   type BubbleSpec,
 } from '../world/speechBubble';
@@ -25,9 +24,6 @@ export interface AgentRenderOptions {
   /** Posisi tile avatar bila sedang idle; dipakai untuk balon sapaan "Hi!". */
   avatarIdlePosition?: { x: number; y: number } | null;
 }
-
-/** Piksel dunia per sel piksel balon ucapan. */
-const BUBBLE_CELL = 2;
 
 function drawStatusIndicator(
   ctx: CanvasRenderingContext2D,
@@ -215,20 +211,46 @@ function drawBubble(
   tileSizePx: number,
   spec: BubbleSpec
 ): void {
-  const grid = paintBubble(spec);
   const feet = spriteFeet(agent.position, tileSizePx);
-  const w = grid.width * BUBBLE_CELL;
-  const h = grid.height * BUBBLE_CELL;
-  const x0 = Math.round(feet.x - w / 2);
-  const y0 = Math.round(feet.y - SPRITE_WORLD_H - 8 - h - spec.hopPx * BUBBLE_CELL);
-  for (let y = 0; y < grid.height; y++) {
-    for (let x = 0; x < grid.width; x++) {
-      const color = grid.cells[y * grid.width + x];
-      if (!color) continue;
-      ctx.fillStyle = color;
-      ctx.fillRect(x0 + x * BUBBLE_CELL, y0 + y * BUBBLE_CELL, BUBBLE_CELL, BUBBLE_CELL);
-    }
-  }
+  const text = spec.text;
+  ctx.save();
+  ctx.font = '700 9.5px Fredoka, Plus Jakarta Sans, ui-sans-serif, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const tw = ctx.measureText(text).width;
+  const bw = Math.max(24, tw + 14);
+  const bh = 18;
+  const bx = feet.x - bw / 2;
+  const by = feet.y - SPRITE_WORLD_H - 12 - bh - spec.hopPx * 2;
+
+  // Bayangan gelembung
+  ctx.fillStyle = 'rgba(62, 37, 23, 0.22)';
+  ctx.beginPath();
+  ctx.roundRect(bx, by + 2, bw, bh, 9);
+  ctx.fill();
+
+  // Awan bicara vektor halus berbingkai tinta espresso
+  ctx.fillStyle = '#fffdf7';
+  ctx.strokeStyle = '#3e2517';
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 9);
+  ctx.fill();
+  ctx.stroke();
+
+  // Ekor awan kecil
+  ctx.fillStyle = '#fffdf7';
+  ctx.beginPath();
+  ctx.moveTo(feet.x - 3.5, by + bh - 1);
+  ctx.lineTo(feet.x, by + bh + 4.5);
+  ctx.lineTo(feet.x + 3.5, by + bh - 1);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#3e2517';
+  ctx.fillText(text, feet.x, by + bh / 2 + 0.5);
+  ctx.restore();
 }
 
 /** Garis interaksi sosial antar-agen aktif (digambar di bawah sprite). */

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { STRINGS } from './data/strings';
 import { createInitialClock } from './engine/clock';
 import { AppScreen, AppSettings } from './types';
-import { setSfxEnabled } from './ui/motion/sfx';
+import { playSfx, setSfxEnabled } from './ui/motion/sfx';
 import { SettingsModal } from './ui/components/SettingsModal';
 import { CharacterRosterScreen } from './ui/screens/CharacterRosterScreen';
 import { SimulationScreen } from './ui/screens/SimulationScreen';
@@ -27,6 +27,8 @@ export default function App() {
     shouldAutostart() ? 'simulation' : 'start'
   );
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  const [transitioning, setTransitioning] = useState<boolean>(false);
+  const transitionTimerRef = useRef<number | null>(null);
 
   // Terapkan ukuran teks, opsi kurangi gerak, dan status layar ke root DOM
   useEffect(() => {
@@ -45,11 +47,50 @@ export default function App() {
     }
   }, [screen]);
 
-  const handleSaveSettings = (next: AppSettings) => {
+  useEffect(() => {
+    return () => {
+      if (transitionTimerRef.current !== null) {
+        window.clearTimeout(transitionTimerRef.current);
+      }
+    };
+  }, []);
+
+  const navigateScreen = useCallback(
+    (next: AppScreen) => {
+      if (next === screen) return;
+      if (settings.reducedMotion) {
+        setScreen(next);
+        return;
+      }
+      playSfx('ganti-adegan');
+      setTransitioning(true);
+      if (transitionTimerRef.current !== null) {
+        window.clearTimeout(transitionTimerRef.current);
+      }
+      transitionTimerRef.current = window.setTimeout(() => {
+        setScreen(next);
+        transitionTimerRef.current = window.setTimeout(() => {
+          setTransitioning(false);
+          transitionTimerRef.current = null;
+        }, 160);
+      }, 150);
+    },
+    [screen, settings.reducedMotion],
+  );
+
+  const handleSaveSettings = useCallback((next: AppSettings) => {
     setSettings(next);
     const result = saveSettings(next, STRINGS.errors.storageWriteFailed);
     setStorageNotice(result.error);
-  };
+  }, []);
+
+  const handleToggleAudio = useCallback(() => {
+    const nextSound = settings.soundEnabled !== true;
+    const updated: AppSettings = { ...settings, soundEnabled: nextSound };
+    setSfxEnabled(nextSound);
+    if (nextSound) playSfx('pilih');
+    handleSaveSettings(updated);
+  }, [settings, handleSaveSettings]);
 
   const handleChangeSeedFromDev = (nextSeed: number) => {
     const updated = { ...settings, seed: nextSeed };
@@ -77,14 +118,18 @@ export default function App() {
       {screen === 'start' ? (
         <StartScreen
           isSettingsOpen={settingsOpen}
-          onStart={() => setScreen('roster')}
+          audioEnabled={settings.soundEnabled === true}
+          onToggleAudio={handleToggleAudio}
+          onStart={() => navigateScreen('roster')}
           onOpenSettings={() => setSettingsOpen(true)}
         />
       ) : screen === 'roster' ? (
         <CharacterRosterScreen
           reducedMotion={settings.reducedMotion}
-          onContinue={() => setScreen('simulation')}
-          onBack={() => setScreen('start')}
+          audioEnabled={settings.soundEnabled === true}
+          onToggleAudio={handleToggleAudio}
+          onContinue={() => navigateScreen('simulation')}
+          onBack={() => navigateScreen('start')}
           onOpenSettings={() => setSettingsOpen(true)}
         />
       ) : (
@@ -92,11 +137,19 @@ export default function App() {
           initialClock={createInitialClock(settings.defaultSpeed, false)}
           seed={settings.seed}
           reducedMotion={settings.reducedMotion}
+          audioEnabled={settings.soundEnabled === true}
+          onToggleAudio={handleToggleAudio}
           onChangeSeed={handleChangeSeedFromDev}
           onOpenSettings={() => setSettingsOpen(true)}
-          onBackToStart={() => setScreen('start')}
+          onBackToStart={() => navigateScreen('start')}
         />
       )}
+
+      {/* Tirai transisi layar cozy (nonaktif otomatis saat reducedMotion) */}
+      <div
+        aria-hidden="true"
+        className={`cozy-curtain ${transitioning ? 'cozy-curtain--active' : ''}`}
+      />
 
       <SettingsModal
         isOpen={settingsOpen}

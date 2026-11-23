@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Lapisan detail latar adegan. Lukisan logis 192×108 diperbesar 2× (nearest),
  * lalu lapisan ini menambah kontur tipis, tekstur lantai/dinding, sorotan
  * kaca/logam, dan benda kecil khas tiap adegan pada kisi 384×216.

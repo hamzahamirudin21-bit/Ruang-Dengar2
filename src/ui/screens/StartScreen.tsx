@@ -13,6 +13,8 @@ import { buildTitleMenu, titleBackdrop, titleKeyAction, type TitleMenuItem } fro
 
 interface StartScreenProps {
   isSettingsOpen: boolean;
+  audioEnabled?: boolean;
+  onToggleAudio?: () => void;
   onStart: () => void;
   onOpenSettings: () => void;
 }
@@ -25,9 +27,11 @@ const SPARKLES = sparkleSpecs(7, 8);
 const FEATURED_CAST = [
   { id: 'mhs-01', name: 'Raka Pratama', tag: 'Lab Elektronika · Pemimpin Tim' },
   { id: 'mhs-03', name: 'Tania Wijaya', tag: 'Riset & Desain · Perfeksionis' },
+  { id: 'mhs-16', name: 'Farhan Alfarizi', tag: 'Studio Desain · Kreatif & Ekspresif' },
+  { id: 'mhs-17', name: 'Sekar Kinanti', tag: 'Pojok Baca · Penulis Reflektif' },
   { id: 'mhs-05', name: 'Ayu Permata', tag: 'Pemrograman · Penggerak Kelas' },
+  { id: 'mhs-18', name: 'Bagas Prasetyo', tag: 'Bengkel Las & Cetak 3D · Tangguh' },
   { id: 'mhs-13', name: 'Nisa Nurhaliza', tag: 'Sensor IoT · Peka Sesama' },
-  { id: 'mhs-10', name: 'Teguh Santosa', tag: 'Praktikum · Tekun & Fokus' },
 ] as const;
 
 function prefersReducedMotion(): boolean {
@@ -47,6 +51,8 @@ function MenuIcon({ id }: { id: TitleMenuItem['id'] }) {
 
 export const StartScreen: React.FC<StartScreenProps> = ({
   isSettingsOpen,
+  audioEnabled = false,
+  onToggleAudio,
   onStart,
   onOpenSettings,
 }) => {
@@ -161,6 +167,24 @@ export const StartScreen: React.FC<StartScreenProps> = ({
       <div className="title-shade" aria-hidden="true" />
       <div className="title-border" aria-hidden="true" />
 
+      {/* Tombol cepat Musik Kampus Cozy di kanan atas Layar Judul */}
+      {onToggleAudio && (
+        <button
+          type="button"
+          onClick={onToggleAudio}
+          aria-pressed={audioEnabled}
+          aria-label={audioEnabled ? 'Matikan musik kampus & suara' : 'Nyalakan musik kampus & suara'}
+          className={`absolute right-6 top-6 z-20 inline-flex cursor-pointer items-center gap-1.5 rounded-full border-[2.5px] border-[#3e2517] px-3.5 py-1.5 font-['Fredoka'] text-xs font-bold shadow-[0_4px_0_#3e2517] transition hover:-translate-y-0.5 ${
+            audioEnabled
+              ? 'bg-gradient-to-b from-[#ffe694] to-[#f2b53b] text-[#3e2517]'
+              : 'bg-[#fffdf6]/92 text-[#3e2517] hover:bg-[#fff4d4]'
+          }`}
+        >
+          <span aria-hidden="true">{audioEnabled ? '🔊' : '🔇'}</span>
+          <span>{audioEnabled ? 'Musik Aktif' : 'Nyalakan Musik'}</span>
+        </button>
+      )}
+
       <div className="title-stage">
         {/* Kolom Kiri: Identitas Game Orisinal + Menu Kinetik + Papan Etika */}
         <div className="title-content">
@@ -203,7 +227,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({
                   <span />
                   <span />
                 </span>
-                <span>15 Kisah · Kampus Vokasi</span>
+                <span>18 Kisah · 11 Ruangan Kampus</span>
               </span>
             </div>
 

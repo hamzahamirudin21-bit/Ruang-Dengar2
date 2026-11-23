@@ -8,7 +8,7 @@ import type { StoryExpression, StoryGraph, StoryScene } from '../../engine/story
 import type { MissionRecord } from '../../engine/story/saveSlot';
 import type { StudentAgent, ZoneType } from '../../types';
 import { dosenExpressionFor } from '../characters/dosenPortrait';
-import { playSfx } from '../motion/sfx';
+import { playFeedbackSfx, playSfx } from '../motion/sfx';
 import { IconProfil, IconRelasi } from '../components/GameIcons';
 import { classifyAgentWellbeing } from '../../engine/isolationMission';
 import type { RoomDecorId } from '../../engine/roomDecor';
@@ -83,6 +83,9 @@ export interface StoryScreenProps {
   /** Jumlah mahasiswa yang sudah hilang (batas kalah = maxLost). */
   lostCount?: number;
   maxLost?: number;
+  /** Kontrol cepat musik & efek suara (opsional). */
+  audioEnabled?: boolean;
+  onToggleAudio?: () => void;
   className?: string;
 }
 
@@ -317,6 +320,8 @@ export function StoryScreen({
   otherCriticalAgent,
   lostCount = 0,
   maxLost = 3,
+  audioEnabled,
+  onToggleAudio,
   className,
 }: StoryScreenProps) {
   const S = STRINGS.story;
@@ -596,6 +601,7 @@ export function StoryScreen({
     if (lastFeedbackTurnRef.current === lastChoiceFeedback.turn) return;
     lastFeedbackTurnRef.current = lastChoiceFeedback.turn;
     const fxKey = Date.now();
+    playFeedbackSfx(lastChoiceFeedback.kind);
     setReactionFx({ kind: lastChoiceFeedback.kind, key: fxKey });
     const timer = window.setTimeout(
       () => setReactionFx((cur) => (cur?.key === fxKey ? null : cur)),
@@ -685,7 +691,9 @@ export function StoryScreen({
         )}
 
         <div
-          className={`vn-char vn-char--left ${counselorSpeaking ? 'vn-char--active' : 'vn-char--idle'}`}
+          className={`vn-char vn-char--left ${
+            counselorSpeaking ? 'vn-char--active vn-char--lean-right' : 'vn-char--idle'
+          }`}
         >
           <ExpressionOverlay
             role="dosen"
@@ -709,7 +717,9 @@ export function StoryScreen({
         </div>
 
         <div
-          className={`vn-char vn-char--right ${studentSpeaking ? 'vn-char--active' : 'vn-char--idle'}`}
+          className={`vn-char vn-char--right ${
+            studentSpeaking ? 'vn-char--active vn-char--lean-left' : 'vn-char--idle'
+          }`}
         >
           <div className="absolute left-1/2 top-2 z-10 -translate-x-1/2">
             <EmoteBubble emote={emoteState.id} triggerKey={emoteState.key} reducedMotion={reducedMotion} />
@@ -758,6 +768,70 @@ export function StoryScreen({
             scale={4}
           />
         </div>
+      </div>
+
+      {/* 2b. Lapisan tepi meja depan (foreground tabletop depth): membumikan karakter tanpa menutupi wajah/dialog */}
+      <div className="vn-tabletop" aria-hidden="true">
+        <div className="vn-tabletop-rim" />
+        {/* Buku catatan konselor terbuka mungil di sisi kiri depan */}
+        <svg
+          className="vn-tabletop-prop vn-tabletop-prop--left"
+          viewBox="0 0 120 56"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M10 46 L24 14 L60 20 L96 14 L110 46 Z" fill="#8b5a34" stroke="#3e2517" strokeWidth="2.6" strokeLinejoin="round" />
+          <path d="M16 42 L28 18 L59 23 L59 44 Z" fill="#fffdf5" stroke="#3e2517" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M104 42 L92 18 L61 23 L61 44 Z" fill="#fbf2dc" stroke="#3e2517" strokeWidth="2" strokeLinejoin="round" />
+          <line x1="29" y1="26" x2="52" y2="29" stroke="#b9976f" strokeWidth="1.8" strokeLinecap="round" />
+          <line x1="27" y1="32" x2="51" y2="35" stroke="#b9976f" strokeWidth="1.8" strokeLinecap="round" />
+          <line x1="68" y1="29" x2="90" y2="26" stroke="#b9976f" strokeWidth="1.8" strokeLinecap="round" />
+          <line x1="69" y1="35" x2="88" y2="33" stroke="#b9976f" strokeWidth="1.8" strokeLinecap="round" />
+          {/* Pena emas konselor */}
+          <path d="M84 44 L108 26" stroke="#2e8274" strokeWidth="4" strokeLinecap="round" />
+          <path d="M84 44 L108 26" stroke="#3e2517" strokeWidth="1.2" strokeLinecap="round" />
+        </svg>
+
+        {/* Cangkir teh hangat mengepul (ruang nyaman) atau termos kopi kampus (lab teknis) di sisi kanan depan */}
+        <svg
+          className="vn-tabletop-prop vn-tabletop-prop--right"
+          viewBox="0 0 92 64"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {/* Uap teh lembut */}
+          <path
+            className={reducedMotion ? '' : 'cozy-steam'}
+            d="M36 22 C34 15 40 13 38 7"
+            stroke="#fffdf5"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            opacity="0.82"
+          />
+          <path
+            className={reducedMotion ? '' : 'cozy-steam'}
+            d="M48 20 C46 13 52 11 50 5"
+            stroke="#fffdf5"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            opacity="0.72"
+            style={reducedMotion ? undefined : { animationDelay: '0.6s' }}
+          />
+          {/* Tatakan kayu & piring kecil */}
+          <ellipse cx="44" cy="52" rx="30" ry="8" fill="#d9b784" stroke="#3e2517" strokeWidth="2.4" />
+          {/* Cangkir porselen hangat */}
+          <path
+            d="M24 30 H62 V43 C62 49 54 53 43 53 C32 53 24 49 24 43 Z"
+            fill={isWarmRoom ? '#fffdf5' : '#e6f2f6'}
+            stroke="#3e2517"
+            strokeWidth="2.6"
+            strokeLinejoin="round"
+          />
+          <path d="M62 34 C71 34 71 45 61 45" stroke="#3e2517" strokeWidth="2.8" strokeLinecap="round" />
+          <ellipse cx="43" cy="30" rx="19" ry="4.5" fill={isWarmRoom ? '#c97e3d' : '#7b5031'} stroke="#3e2517" strokeWidth="2.2" />
+          {/* Motif daun kecil di cangkir */}
+          <circle cx="43" cy="42" r="4" fill={isWarmRoom ? '#3aa08e' : '#e56256'} opacity="0.85" />
+        </svg>
       </div>
 
       {/* 3. Bilah atas 3 kolom simetris yang bersih dan imersif (tanpa label teori!) */}
@@ -881,6 +955,18 @@ export function StoryScreen({
             <IconProfil className="h-4 w-4" />
             <span>{agent.name.split(' ')[0]}</span>
           </button>
+          {onToggleAudio && (
+            <button
+              type="button"
+              className="vn-topbtn !w-9 !px-0"
+              aria-label={audioEnabled ? 'Matikan musik & suara' : 'Nyalakan musik & suara'}
+              aria-pressed={audioEnabled === true}
+              title={audioEnabled ? 'Musik & Suara Aktif (klik untuk mematikan)' : 'Nyalakan Musik Kampus & Suara'}
+              onClick={onToggleAudio}
+            >
+              <span aria-hidden="true">{audioEnabled ? '🔊' : '🔇'}</span>
+            </button>
+          )}
           <button
             type="button"
             className="vn-topbtn !w-9 !px-0"

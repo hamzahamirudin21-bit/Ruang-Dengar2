@@ -35,6 +35,12 @@ import {
   type FurnitureSprite,
 } from '../world/furnitureArt';
 import { paintPlaque } from '../world/plaque';
+import {
+  drawIllustratedFurniture,
+  drawIllustratedZoneLabel,
+  drawOutdoorCampusCourtyard,
+  getIllustratedLabBackdrop,
+} from '../world/illustratedLab';
 import { buildDrawList, spriteFeet } from '../world/worldMetrics';
 
 export interface CameraTransform {
@@ -534,40 +540,28 @@ export function renderLabCanvas(
   const worldH = map.height * t;
   const doorMode: ConsultationDoorMode = viewOptions.consultationDoorMode;
 
-  // 1. Latar meja kampus hangat berbingkai halus (nol ruang abu-abu hampa di tepi peta!)
-  const bgGrad = ctx.createLinearGradient(0, 0, 0, heightCss);
-  bgGrad.addColorStop(0, '#efe1c6');
-  bgGrad.addColorStop(1, '#e1cea8');
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, widthCss, heightCss);
+  const timeSec = input.timeSeconds ?? 0;
+  const reduced = input.reducedMotion ?? false;
 
-  // Pola titik kertas gambar halus pada latar sekeliling gedung
-  ctx.fillStyle = 'rgba(62, 37, 23, 0.08)';
-  for (let gy = 10; gy < heightCss; gy += 18) {
-    for (let gx = 10; gx < widthCss; gx += 18) {
-      ctx.fillRect(gx, gy, 1.5, 1.5);
-    }
-  }
+  // 1. Halaman Kampus Hidup 2.5D di luar gedung (rumput sunlit, jalan batu, pohon bergoyang)
+  drawOutdoorCampusCourtyard(ctx, widthCss, heightCss, camera, map, timeSec, reduced);
 
   ctx.save();
   ctx.translate(camera.offsetX, camera.offsetY);
   ctx.scale(camera.scale, camera.scale);
 
-  // Bayangan gedung lembut + bingkai luar espresso agar denah 11 ruangan tampak menyatu rapi
-  ctx.save();
-  ctx.fillStyle = 'rgba(62, 37, 23, 0.22)';
-  ctx.fillRect(6, 7, worldW, worldH);
-  ctx.strokeStyle = '#3e2517';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(-2, -2, worldW + 4, worldH + 4);
-  ctx.restore();
-
-  // 2. Tilemap pixel art (lantai, dinding, pintu, dekor dinding); cadangan lantai datar
-  const tilemap = getTilemapCanvas(map, doorMode);
-  if (tilemap) {
-    drawTilemap(ctx, tilemap, map);
+  // 2. Denah gedung 2.5D Ilustrasi HD (bebas pixel kasar!); cadangan tilemap/datar jika offscreen tidak ada
+  const illustratedBg = getIllustratedLabBackdrop(map, doorMode);
+  if (illustratedBg) {
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(illustratedBg, 0, 0, worldW, worldH);
   } else {
-    drawFlatBackdrop(ctx, map, palette, doorMode);
+    const tilemap = getTilemapCanvas(map, doorMode);
+    if (tilemap) {
+      drawTilemap(ctx, tilemap, map);
+    } else {
+      drawFlatBackdrop(ctx, map, palette, doorMode);
+    }
   }
 
   // 3. Sorot zona (terpilih/hover) dan slot berdiri (hanya saat grid aktif)
@@ -714,8 +708,9 @@ export function renderLabCanvas(
     t
   );
 
-  // Dekor lantai disisipkan ke urutan y; seri: dekor lebih dulu daripada yang lain.
-  const floorDecor = floorDecorFor(map, doorMode);
+  // Dekor & perabot digambar dengan gaya Ilustrasi 2.5D HD menyatu bersama chibi!
+  const useIllustrated = Boolean(illustratedBg);
+  const floorDecor = useIllustrated ? [] : floorDecorFor(map, doorMode);
   type Entry =
     | { type: 'draw'; baseY: number; item: (typeof drawList)[number] }
     | { type: 'decor'; baseY: number; decor: DecorItem };
@@ -741,19 +736,23 @@ export function renderLabCanvas(
     if (item.kind === 'perabot') {
       const f = furnitureById.get(item.id);
       if (!f) continue;
-      const art = furnitureArtFor(f);
-      const fx = f.rect.x * t;
-      const fy = (f.rect.y + f.rect.h) * t - art.grid.height * ART_SCALE;
-      blitArt(ctx, art, fx, fy, ART_SCALE);
-      if (f.kind === 'printer-3d') {
-        const led = PRINTER_LED_RECT;
-        ctx.fillStyle = printerLedColor(clockMinutesOfDay, printerUnitIndex(f.id));
-        ctx.fillRect(
-          fx + led.x * ART_SCALE,
-          fy + led.y * ART_SCALE,
-          led.w * ART_SCALE,
-          led.h * ART_SCALE
-        );
+      if (useIllustrated) {
+        drawIllustratedFurniture(ctx, f, t, timeSec, reduced);
+      } else {
+        const art = furnitureArtFor(f);
+        const fx = f.rect.x * t;
+        const fy = (f.rect.y + f.rect.h) * t - art.grid.height * ART_SCALE;
+        blitArt(ctx, art, fx, fy, ART_SCALE);
+        if (f.kind === 'printer-3d') {
+          const led = PRINTER_LED_RECT;
+          ctx.fillStyle = printerLedColor(clockMinutesOfDay, printerUnitIndex(f.id));
+          ctx.fillRect(
+            fx + led.x * ART_SCALE,
+            fy + led.y * ART_SCALE,
+            led.w * ART_SCALE,
+            led.h * ART_SCALE
+          );
+        }
       }
     } else if (item.kind === 'agen') {
       const agent = agentById.get(item.id);
@@ -777,30 +776,34 @@ export function renderLabCanvas(
     for (const agent of overlayOrder) drawAgentMarkers(ctx, agent, storyOpts);
   }
 
-  // 8. Plakat zona pixel dan lencana pintu Konsultasi
+  // 8. Plakat zona ilustrasi bersih & lencana pintu Konsultasi
   if (viewOptions.showZoneLabels) {
     for (const zone of map.zones) {
-      const art = plaqueArtFor(zone.shortLabel, selectedZoneId === zone.id);
-      const pw = art.grid.width * PLAQUE_SCALE;
-      const ph = art.grid.height * PLAQUE_SCALE;
-      const cx = (zone.bounds.x + zone.bounds.w / 2) * t;
-      const cy = (zone.bounds.y + zone.bounds.h - 0.55) * t;
-      const px = Math.min(Math.max(0, Math.round(cx - pw / 2)), Math.max(0, worldW - pw));
-      blitArt(ctx, art, px, Math.round(cy - ph / 2), PLAQUE_SCALE);
+      if (useIllustrated) {
+        drawIllustratedZoneLabel(ctx, zone, t, selectedZoneId === zone.id);
+      } else {
+        const art = plaqueArtFor(zone.shortLabel, selectedZoneId === zone.id);
+        const pw = art.grid.width * PLAQUE_SCALE;
+        const ph = art.grid.height * PLAQUE_SCALE;
+        const cx = (zone.bounds.x + zone.bounds.w / 2) * t;
+        const cy = (zone.bounds.y + zone.bounds.h - 0.55) * t;
+        const px = Math.min(Math.max(0, Math.round(cx - pw / 2)), Math.max(0, worldW - pw));
+        blitArt(ctx, art, px, Math.round(cy - ph / 2), PLAQUE_SCALE);
+      }
     }
 
-    ctx.font = '600 9.5px ui-sans-serif, system-ui, sans-serif';
+    ctx.font = '700 9.5px Fredoka, ui-sans-serif, system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const doorBadgeText = doorMode === 'lab' ? 'Pintu Lab' : 'Pintu Samping';
+    const doorBadgeText = doorMode === 'lab' ? '🚪 Pintu Lab' : '🚪 Pintu Samping';
     const doorBadgeX = doorMode === 'lab' ? 28.4 * t : 35.8 * t;
     const doorBadgeY = doorMode === 'lab' ? 13.5 * t : 16.5 * t;
-    const bw = ctx.measureText(doorBadgeText).width + 10;
-    ctx.fillStyle = doorMode === 'lab' ? '#fef3c7' : '#ccfbf1';
-    ctx.strokeStyle = doorMode === 'lab' ? palette.doorVisible : palette.doorSide;
-    ctx.lineWidth = 1;
+    const bw = ctx.measureText(doorBadgeText).width + 12;
+    ctx.fillStyle = doorMode === 'lab' ? '#fff3cc' : '#dcfbf3';
+    ctx.strokeStyle = '#3e2517';
+    ctx.lineWidth = 1.4;
     ctx.beginPath();
-    ctx.roundRect(doorBadgeX - bw / 2, doorBadgeY - 8, bw, 16, 3);
+    ctx.roundRect(doorBadgeX - bw / 2, doorBadgeY - 8.5, bw, 17, 8.5);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = doorMode === 'lab' ? '#78350f' : '#134e4a';
@@ -808,8 +811,6 @@ export function renderLabCanvas(
   }
 
   // 9. Cahaya matahari dinamis (pagi/siang/sore), debu cahaya, & riak klik kanvas
-  const timeSec = input.timeSeconds ?? 0;
-  const reduced = input.reducedMotion ?? false;
   drawDaylightAtmosphere(ctx, worldW, worldH, clockMinutesOfDay, timeSec, reduced);
   drawClickRipple(ctx, input.clickRipple, timeSec, reduced);
 

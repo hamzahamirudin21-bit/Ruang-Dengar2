@@ -6,6 +6,7 @@
 import type { SceneArtId, SceneVariant } from './sceneArt'
 
 const paintedCache = new Map<string, HTMLCanvasElement>()
+const externalStyledCache = new Map<string, HTMLCanvasElement>()
 const externalScenes = new Map<string, HTMLImageElement>()
 const externalRequested = new Set<string>()
 const sceneListeners = new Set<() => void>()
@@ -469,13 +470,86 @@ function paintToCanvas(id: SceneArtId, variant: SceneVariant): HTMLCanvasElement
   return canvas
 }
 
+/**
+ * Memadukan seluruh latar ruangan (PNG & SVG) ke dalam satu gaya pencahayaan studio anime hangat:
+ * berkas cahaya matahari diagonal, bloom atmosfer lembut, dan gradasi kedalaman lantai.
+ */
+function styleExternalScene(
+  img: HTMLImageElement,
+  id: SceneArtId,
+  variant: SceneVariant,
+): HTMLCanvasElement | null {
+  if (typeof document === 'undefined') return null
+  const canvas = document.createElement('canvas')
+  canvas.width = PAINTED_W
+  canvas.height = PAINTED_H
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const w = PAINTED_W
+  const h = PAINTED_H
+  const iw = img.naturalWidth || img.width || w
+  const ih = img.naturalHeight || img.height || h
+  const scale = Math.max(w / iw, h / ih)
+  const sw = w / scale
+  const sh = h / scale
+  const sx = (iw - sw) / 2
+  const sy = (ih - sh) / 2
+
+  ctx.imageSmoothingEnabled = true
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h)
+
+  const isSunset = variant === 'sore'
+  const isWarmRoom =
+    id === 'ruang-bk' || id === 'ruang-dosen' || id === 'diskusi' || id === 'istirahat' || id === 'pojok-baca'
+
+  // 1. Berkas cahaya matahari lembut dari jendela atas
+  drawSunbeams(ctx, w, h, isSunset)
+
+  // 2. Bloom hangat halus dari sudut kanan-atas menyatukan palet SVG & PNG
+  const glow = ctx.createRadialGradient(w * 0.64, h * 0.18, 24, w * 0.64, h * 0.18, w * 0.68)
+  if (isSunset) {
+    glow.addColorStop(0, 'rgba(255, 214, 146, 0.24)')
+    glow.addColorStop(0.55, 'rgba(246, 174, 108, 0.08)')
+    glow.addColorStop(1, 'rgba(0, 0, 0, 0)')
+  } else if (isWarmRoom) {
+    glow.addColorStop(0, 'rgba(255, 247, 214, 0.22)')
+    glow.addColorStop(0.55, 'rgba(255, 232, 180, 0.06)')
+    glow.addColorStop(1, 'rgba(0, 0, 0, 0)')
+  } else {
+    glow.addColorStop(0, 'rgba(255, 250, 230, 0.16)')
+    glow.addColorStop(0.55, 'rgba(218, 238, 255, 0.05)')
+    glow.addColorStop(1, 'rgba(0, 0, 0, 0)')
+  }
+  ctx.fillStyle = glow
+  ctx.fillRect(0, 0, w, h)
+
+  // 3. Gradasi kedalaman bawah agar karakter berdiri menyatu natural dengan latar
+  const depthGrad = ctx.createLinearGradient(0, h * 0.72, 0, h)
+  depthGrad.addColorStop(0, 'rgba(44, 24, 13, 0)')
+  depthGrad.addColorStop(1, 'rgba(44, 24, 13, 0.20)')
+  ctx.fillStyle = depthGrad
+  ctx.fillRect(0, h * 0.72, w, h * 0.28)
+
+  return canvas
+}
+
 export function getPaintedSceneCanvas(
   id: SceneArtId,
   variant: SceneVariant,
 ): HTMLCanvasElement | HTMLImageElement | null {
   const ext = requestExternalScene(id, variant)
-  if (ext) return ext
   const key = `${id}|${variant}`
+  if (ext) {
+    const styledHit = externalStyledCache.get(key)
+    if (styledHit) return styledHit
+    const styled = styleExternalScene(ext, id, variant)
+    if (styled) {
+      externalStyledCache.set(key, styled)
+      return styled
+    }
+    return ext
+  }
   const hit = paintedCache.get(key)
   if (hit) return hit
   const made = paintToCanvas(id, variant)
