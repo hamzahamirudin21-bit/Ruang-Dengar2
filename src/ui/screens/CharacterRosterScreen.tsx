@@ -68,6 +68,7 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
     );
   };
   const rootRef = useRef<HTMLElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [viewport, setViewport] = useState(() => ({
     width: typeof window === 'undefined' ? 1366 : window.innerWidth,
     height: typeof window === 'undefined' ? 768 : window.innerHeight,
@@ -75,8 +76,11 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
 
   useEffect(() => {
     const el = rootRef.current;
+    const inner = containerRef.current;
     const measure = () => {
-      const w = el?.clientWidth || window.innerWidth;
+      // Gunakan lebar aktual kontainer dalam (+40 untuk kompensasi PAD_X di computeRosterLayout) agar tidak pernah melebihi batas kanan
+      const innerW = inner?.clientWidth;
+      const w = innerW ? innerW + 40 : (el?.clientWidth || window.innerWidth);
       const h = el?.clientHeight || window.innerHeight;
       setViewport((v) => (v.width === w && v.height === h ? v : { width: w, height: h }));
     };
@@ -84,6 +88,7 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
     if (typeof ResizeObserver !== 'undefined' && el) {
       const ro = new ResizeObserver(measure);
       ro.observe(el);
+      if (inner) ro.observe(inner);
       return () => ro.disconnect();
     }
     window.addEventListener('resize', measure);
@@ -123,10 +128,13 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
   return (
     <main
       ref={rootRef}
-      className={`yearbook-pinboard flex h-screen flex-col px-5 py-3 ${layout.fitsOneScreen ? 'overflow-hidden' : 'overflow-y-auto'}`}
+      className={`yearbook-pinboard flex h-screen flex-col px-4 py-2.5 sm:px-6 ${layout.fitsOneScreen ? 'overflow-hidden' : 'overflow-y-auto'}`}
     >
-      <div className="mx-auto flex min-h-0 w-full max-w-[92rem] flex-1 flex-col">
-        <header className="game-panel-wood game-nails mb-3 flex shrink-0 flex-wrap items-center justify-between gap-2.5 px-4 py-2 text-[#fffdf6]">
+      <div
+        ref={containerRef}
+        className="mx-auto flex min-h-0 w-full max-w-[92rem] flex-1 flex-col justify-between gap-2"
+      >
+        <header className="game-panel-wood game-nails flex shrink-0 flex-wrap items-center justify-between gap-2.5 px-4 py-2 text-[#fffdf6]">
           <div className="flex min-w-0 items-center gap-3">
             <span className="title-wave-bars" aria-hidden="true">
               <span />
@@ -139,7 +147,7 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
             </h1>
             <span aria-hidden="true" className="hidden h-4 w-0.5 bg-[#ffe694]/45 lg:block" />
             <p className="hidden truncate text-xs font-medium text-[#fff3dc] lg:block">
-              Buku Tahunan {models.length} Mahasiswa — klik kartu untuk membalik &amp; kenali latar belakangnya!
+              Galeri Kartu Lencana {models.length} Mahasiswa — klik kartu untuk membalik &amp; kenali latar belakangnya!
             </p>
           </div>
           <div className="flex items-center gap-1.5">
@@ -174,10 +182,10 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
         </header>
 
         <ul
-          className="mx-auto grid min-h-0 flex-1 content-start justify-center"
+          className="grid min-h-0 w-full flex-1 content-center items-stretch px-0.5 py-1"
           style={{
-            gridTemplateColumns: `repeat(${layout.columns}, ${layout.cardWidth}px)`,
-            gap: layout.gap,
+            gridTemplateColumns: `repeat(${layout.columns}, minmax(0, 1fr))`,
+            gap: `${Math.max(11, layout.gap + 2)}px`,
           }}
         >
           {visibleModels.map((m) => (
@@ -185,15 +193,14 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
               key={m.studentId}
               model={m}
               reducedMotion={reducedMotion}
-              width={layout.cardWidth}
-              height={layout.cardHeight}
+              height={Math.max(146, layout.cardHeight - 4)}
               flipped={flippedIds.has(m.studentId)}
               onToggleFlip={() => toggleFlipCard(m.studentId)}
             />
           ))}
         </ul>
 
-        <footer className="mt-2.5 flex shrink-0 flex-wrap items-center justify-between gap-2.5 border-t-2 border-[#3e2517]/20 pt-2.5">
+        <footer className="flex shrink-0 flex-wrap items-center justify-between gap-2.5 border-t-2 border-[#3e2517]/20 pt-2">
           {/* Filter cepat minat praktikum terintegrasi rapi di footer agar 18 kartu tetap 100% muat 1 layar */}
           <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Saring minat praktikum">
             {ROSTER_FILTERS.map((f) => {

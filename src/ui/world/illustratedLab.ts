@@ -24,17 +24,17 @@ interface FloorPalette {
 }
 
 const FLOOR_STYLE: Record<ZoneType, FloorPalette> = {
-  las: { style: 'beton', base: '#cfd5dc', alt: '#c4cbd4', accent: '#f0b835' },
-  'cetak-3d': { style: 'keramik', base: '#e2eff5', alt: '#d5e6ef', accent: '#48a9c5' },
-  'elektronik-iot': { style: 'keramik', base: '#e4f0e8', alt: '#d7e7dd', accent: '#36a382' },
-  'gudang-alat': { style: 'beton', base: '#d9d3c7', alt: '#cfc8ba', accent: '#a87d4b' },
-  pemrograman: { style: 'karpet', base: '#d8e4f2', alt: '#ccd9eb', accent: '#5a7cc2', rug: '#c4d4ea', rugTrim: '#8ca6d6' },
-  diskusi: { style: 'kayu', base: '#e6c896', alt: '#dcb982', accent: '#b9894e', rug: '#d2e2c8', rugTrim: '#88b07b' },
-  istirahat: { style: 'karpet', base: '#f3d8c6', alt: '#ebd0bc', accent: '#d68259', rug: '#f7e6cf', rugTrim: '#de9a72' },
-  konsultasi: { style: 'kayu', base: '#e9cfa4', alt: '#dfbf8e', accent: '#c9884a', rug: '#d8eadf', rugTrim: '#63a68c' },
-  'ruang-dosen': { style: 'kayu', base: '#d4b388', alt: '#c9a476', accent: '#8e5e38', rug: '#dfd9ec', rugTrim: '#9889bd' },
-  'studio-desain': { style: 'kayu', base: '#eadff5', alt: '#e0d2ef', accent: '#9975c7', rug: '#f6ecff', rugTrim: '#b392de' },
-  'pojok-baca': { style: 'karpet', base: '#d3e8da', alt: '#c5dfce', accent: '#3e8e6e', rug: '#efe3c6', rugTrim: '#c5a268' },
+  las: { style: 'beton', base: '#c4ccd5', alt: '#b8c1cc', accent: '#e8ae2d' },
+  'cetak-3d': { style: 'keramik', base: '#d2e4ee', alt: '#c4d9e6', accent: '#3c9ab6' },
+  'elektronik-iot': { style: 'keramik', base: '#d3e5db', alt: '#c5dacf', accent: '#2f9574' },
+  'gudang-alat': { style: 'beton', base: '#cfc7b8', alt: '#c3baa9', accent: '#9c7240' },
+  pemrograman: { style: 'karpet', base: '#cad8ea', alt: '#bdcde2', accent: '#4e6fb5', rug: '#b7c9e2', rugTrim: '#7b97ca' },
+  diskusi: { style: 'kayu', base: '#DFBE88', alt: '#d3b077', accent: '#ad7d42', rug: '#c4d9b8', rugTrim: '#7aa36d' },
+  istirahat: { style: 'karpet', base: '#eacbb6', alt: '#e0bfa8', accent: '#c9744b', rug: '#f0dcc2', rugTrim: '#d18c64' },
+  konsultasi: { style: 'kayu', base: '#e2c494', alt: '#d6b582', accent: '#be7c3e', rug: '#c9e0d3', rugTrim: '#56997f' },
+  'ruang-dosen': { style: 'kayu', base: '#cca97c', alt: '#c09a6b', accent: '#83542f', rug: '#d3cce3', rugTrim: '#8b7cb0' },
+  'studio-desain': { style: 'kayu', base: '#dfd2ee', alt: '#d3c4e6', accent: '#8b67b8', rug: '#ece0fa', rugTrim: '#a583d1' },
+  'pojok-baca': { style: 'karpet', base: '#c5ded0', alt: '#b7d3c3', accent: '#348060', rug: '#e5d7b7', rugTrim: '#b8945a' },
 };
 
 export const ZONE_BADGE_META: Record<ZoneType, { icon: string; accent: string; bg: string }> = {
@@ -190,11 +190,11 @@ export function drawOutdoorCampusCourtyard(
   ctx.fillStyle = sun.shadowColor;
   ctx.fill();
 
-  // Kolam Ikan Koi & Air Mancur Taman Kampus (Shader Caustics & Riak Air Hidup) di halaman selatan-barat
+  // Kolam Ikan Koi & Air Mancur Taman Kampus (Shader Caustics & Riak Air Hidup) di halaman selatan-tengah-kanan (bebas dari HUD kiri & dok kanan!)
   if (southH >= 34 * camera.scale) {
-    const pondW = 108 * camera.scale;
-    const pondH = Math.min(42 * camera.scale, Math.max(24 * camera.scale, southH - 12 * camera.scale));
-    const pondX = bx + bw * 0.19 - pondW / 2;
+    const pondW = 104 * camera.scale;
+    const pondH = Math.min(40 * camera.scale, Math.max(24 * camera.scale, southH - 12 * camera.scale));
+    const pondX = bx + bw * 0.66 - pondW / 2;
     const pondY = southStartY + 8 * camera.scale;
 
     // Bingkai batu alam kolam
@@ -441,18 +441,31 @@ function paintZoneFloor(ctx: CanvasRenderingContext2D, zone: LabZone, t: number)
     ctx.setLineDash([]);
   }
 
-  // Ambient occlusion lembut di sisi atas & kiri ruangan (kedalaman 2.5D!)
-  const aoTop = ctx.createLinearGradient(px, py, px, py + t * 0.85);
-  aoTop.addColorStop(0, 'rgba(62, 37, 23, 0.22)');
-  aoTop.addColorStop(1, 'rgba(62, 37, 23, 0)');
+  // RTX-Style Ambient Occlusion (RTAO) di ke-4 tepi ruangan untuk kedalaman 2.5D yang kaya & kontras
+  const aoTop = ctx.createLinearGradient(px, py, px, py + t * 1.1);
+  aoTop.addColorStop(0, 'rgba(48, 28, 16, 0.28)');
+  aoTop.addColorStop(0.5, 'rgba(48, 28, 16, 0.08)');
+  aoTop.addColorStop(1, 'rgba(48, 28, 16, 0)');
   ctx.fillStyle = aoTop;
-  ctx.fillRect(px, py, pw, t * 0.85);
+  ctx.fillRect(px, py, pw, t * 1.1);
 
-  const aoLeft = ctx.createLinearGradient(px, py, px + t * 0.45, py);
-  aoLeft.addColorStop(0, 'rgba(62, 37, 23, 0.12)');
-  aoLeft.addColorStop(1, 'rgba(62, 37, 23, 0)');
+  const aoBottom = ctx.createLinearGradient(px, py + ph - t * 0.55, px, py + ph);
+  aoBottom.addColorStop(0, 'rgba(48, 28, 16, 0)');
+  aoBottom.addColorStop(1, 'rgba(48, 28, 16, 0.14)');
+  ctx.fillStyle = aoBottom;
+  ctx.fillRect(px, py + ph - t * 0.55, pw, t * 0.55);
+
+  const aoLeft = ctx.createLinearGradient(px, py, px + t * 0.65, py);
+  aoLeft.addColorStop(0, 'rgba(48, 28, 16, 0.18)');
+  aoLeft.addColorStop(1, 'rgba(48, 28, 16, 0)');
   ctx.fillStyle = aoLeft;
-  ctx.fillRect(px, py, t * 0.45, ph);
+  ctx.fillRect(px, py, t * 0.65, ph);
+
+  const aoRight = ctx.createLinearGradient(px + pw - t * 0.5, py, px + pw, py);
+  aoRight.addColorStop(0, 'rgba(48, 28, 16, 0)');
+  aoRight.addColorStop(1, 'rgba(48, 28, 16, 0.12)');
+  ctx.fillStyle = aoRight;
+  ctx.fillRect(px + pw - t * 0.5, py, t * 0.5, ph);
 
   ctx.restore();
 }
@@ -460,14 +473,14 @@ function paintZoneFloor(ctx: CanvasRenderingContext2D, zone: LabZone, t: number)
 function paintCorridorFloor(ctx: CanvasRenderingContext2D, map: LabMapData, t: number): void {
   const worldW = map.width * t;
   const worldH = map.height * t;
-  // Lantai ubin krem koridor kampus hangat
-  ctx.fillStyle = '#f5ebd6';
+  // Lantai ubin krem-hangat koridor kampus (kontras nyaman, tidak silau)
+  ctx.fillStyle = '#eadbc0';
   ctx.fillRect(0, 0, worldW, worldH);
 
   for (let y = 0; y < map.height; y += 1) {
     for (let x = 0; x < map.width; x += 1) {
       if ((x + y) % 2 === 1) {
-        ctx.fillStyle = '#eee1c6';
+        ctx.fillStyle = '#e1cfb0';
         ctx.fillRect(x * t, y * t, t, t);
       }
     }

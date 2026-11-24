@@ -42,27 +42,27 @@ export function collectMapPointLights(
   const lights: PointLight2D[] = [];
   const hasDecor = (id: RoomDecorId) => Boolean(equippedDecor?.includes(id));
 
-  // 1. Limpahan cahaya jendela matahari utara di setiap ruangan deret atas
+  // 1. Limpahan cahaya jendela matahari utara di setiap ruangan deret atas (lembut & tidak pernah membuat lantai putih silau)
   const northWindowZones = ['las', 'cetak-3d', 'elektronik-iot', 'gudang-alat', 'studio-desain'];
   for (const z of map.zones) {
     if (!northWindowZones.includes(z.id)) continue;
     const cx = (z.bounds.x + z.bounds.w * 0.5) * t;
-    const cy = (z.bounds.y + 1.35) * t;
+    const cy = (z.bounds.y + 1.25) * t;
     const isAfternoon = sun.phase === 'sore';
     lights.push({
       id: `win-${z.id}`,
-      x: cx + sun.shadowDirX * 18,
-      y: cy + 12,
-      radius: z.bounds.w * t * 0.44,
+      x: cx + sun.shadowDirX * 14,
+      y: cy + 8,
+      radius: z.bounds.w * t * 0.34,
       r: isAfternoon ? 255 : 255,
-      g: isAfternoon ? 206 : 246,
-      b: isAfternoon ? 132 : 210,
-      intensity: isAfternoon ? 0.24 : 0.16,
+      g: isAfternoon ? 196 : 238,
+      b: isAfternoon ? 116 : 192,
+      intensity: isAfternoon ? 0.14 : 0.065,
       kind: 'sun-window',
     });
   }
 
-  // 2. Sumber cahaya nyata dari setiap perabot aktif di 11 ruangan
+  // 2. Sumber cahaya nyata dari setiap perabot aktif di 11 ruangan (fokus lokal ala RTX specular, bebas overexposure)
   for (let i = 0; i < map.furniture.length; i += 1) {
     const f = map.furniture[i];
     const cx = (f.rect.x + f.rect.w * 0.5) * t;
@@ -75,43 +75,43 @@ export function collectMapPointLights(
           id: `light-${f.id}`,
           x: cx,
           y: cy - 4,
-          radius: Math.max(58, f.rect.w * t * 0.58),
-          r: 92,
-          g: 214,
-          b: 255,
-          intensity: 0.22 * lampBoost * flicker,
+          radius: Math.max(42, f.rect.w * t * 0.42),
+          r: 72,
+          g: 198,
+          b: 248,
+          intensity: 0.13 * lampBoost * flicker,
           kind: 'monitor',
         });
         break;
       }
       case 'meja-desain': {
-        const hueShift = reducedMotion ? 0 : Math.sin(timeSeconds * 1.4 + i) * 28;
+        const hueShift = reducedMotion ? 0 : Math.sin(timeSeconds * 1.4 + i) * 24;
         lights.push({
           id: `light-${f.id}`,
           x: cx,
           y: cy - 3,
-          radius: Math.max(62, f.rect.w * t * 0.62),
-          r: Math.min(255, Math.round(212 + hueShift)),
-          g: 154,
-          b: 255,
-          intensity: 0.24 * lampBoost,
+          radius: Math.max(46, f.rect.w * t * 0.45),
+          r: Math.min(255, Math.round(198 + hueShift)),
+          g: 138,
+          b: 246,
+          intensity: 0.14 * lampBoost,
           kind: 'design',
         });
         break;
       }
       case 'bilik-las': {
-        // Percikan busur listrik las dinamis: pendar oranye pilot + kilatan biru-emas saat menyala
+        // Percikan busur listrik las dinamis: pendar oranye pilot + kilatan biru-emas terfokus saat menyala
         const sparkWave = reducedMotion ? 0.35 : Math.sin(timeSeconds * 8.6 + i * 2.9);
         const sparking = sparkWave > 0.52;
         lights.push({
           id: `light-${f.id}`,
           x: cx,
           y: cy,
-          radius: sparking ? 102 : 52,
+          radius: sparking ? 76 : 42,
           r: sparking ? 255 : 255,
-          g: sparking ? 216 : 148,
-          b: sparking ? 142 : 72,
-          intensity: sparking ? 0.44 : 0.13 * lampBoost,
+          g: sparking ? 204 : 142,
+          b: sparking ? 118 : 64,
+          intensity: sparking ? 0.28 : 0.10 * lampBoost,
           kind: 'weld',
         });
         break;
@@ -122,11 +122,11 @@ export function collectMapPointLights(
           id: `light-${f.id}`,
           x: cx - f.rect.w * t * 0.18,
           y: cy - 2,
-          radius: 56,
-          r: 74,
-          g: 235,
-          b: 146,
-          intensity: 0.21 * lampBoost * wave,
+          radius: 44,
+          r: 62,
+          g: 224,
+          b: 138,
+          intensity: 0.13 * lampBoost * wave,
           kind: 'oscilloscope',
         });
         break;
@@ -137,11 +137,11 @@ export function collectMapPointLights(
           id: `light-${f.id}`,
           x: cx,
           y: cy - 4,
-          radius: 44,
-          r: i % 2 === 0 ? 72 : 255,
-          g: i % 2 === 0 ? 226 : 198,
-          b: i % 2 === 0 ? 218 : 98,
-          intensity: 0.20 * lampBoost * pulse,
+          radius: 36,
+          r: i % 2 === 0 ? 64 : 252,
+          g: i % 2 === 0 ? 214 : 184,
+          b: i % 2 === 0 ? 206 : 82,
+          intensity: 0.12 * lampBoost * pulse,
           kind: 'printer',
         });
         break;
@@ -152,11 +152,11 @@ export function collectMapPointLights(
           id: `light-${f.id}`,
           x: f.rect.x * t + f.rect.w * t - 16,
           y: f.rect.y * t + 10,
-          radius: 82,
+          radius: 58,
           r: 255,
-          g: 214,
-          b: 124,
-          intensity: 0.34 * lampBoost * glow,
+          g: 204,
+          b: 108,
+          intensity: 0.20 * lampBoost * glow,
           kind: 'lamp',
         });
         break;
@@ -168,11 +168,11 @@ export function collectMapPointLights(
           id: `light-${f.id}`,
           x: cx,
           y: cy,
-          radius: hasLamp ? 128 : 86,
+          radius: hasLamp ? 96 : 62,
           r: 255,
-          g: hasLamp ? 210 : 226,
-          b: hasLamp ? 118 : 162,
-          intensity: (hasLamp ? 0.44 : 0.24) * lampBoost * glow,
+          g: hasLamp ? 202 : 216,
+          b: hasLamp ? 104 : 142,
+          intensity: (hasLamp ? 0.28 : 0.15) * lampBoost * glow,
           kind: 'lamp',
         });
         break;
@@ -182,11 +182,11 @@ export function collectMapPointLights(
           id: `light-${f.id}`,
           x: cx + 10,
           y: cy - 2,
-          radius: 68,
+          radius: 52,
           r: 255,
-          g: 218,
-          b: 142,
-          intensity: 0.26 * lampBoost,
+          g: 208,
+          b: 126,
+          intensity: 0.16 * lampBoost,
           kind: 'lamp',
         });
         break;
@@ -222,15 +222,16 @@ export function drawDynamicPointLights(
     ctx.fillRect(0, 0, worldW, worldH);
   }
 
-  // 2. Pancaran titik cahaya aditif (lighter) dari seluruh monitor, las, osiloskop, & lampu
+  // 2. Pancaran titik cahaya lokal (terfokus di sekitar sumber lampu tanpa memutihkan lantai)
   ctx.globalCompositeOperation = 'lighter';
   for (const l of lights) {
     if (l.intensity <= 0.005 || l.radius <= 1) continue;
+    const peak = Math.min(0.32, l.intensity);
     const grad = ctx.createRadialGradient(l.x, l.y, 1, l.x, l.y, l.radius);
-    grad.addColorStop(0, `rgba(${l.r}, ${l.g}, ${l.b}, ${Math.min(0.68, l.intensity).toFixed(3)})`);
+    grad.addColorStop(0, `rgba(${l.r}, ${l.g}, ${l.b}, ${peak.toFixed(3)})`);
     grad.addColorStop(
-      0.42,
-      `rgba(${l.r}, ${l.g}, ${l.b}, ${(l.intensity * 0.45).toFixed(3)})`
+      0.36,
+      `rgba(${l.r}, ${l.g}, ${l.b}, ${(peak * 0.35).toFixed(3)})`
     );
     grad.addColorStop(1, `rgba(${l.r}, ${l.g}, ${l.b}, 0)`);
     ctx.fillStyle = grad;

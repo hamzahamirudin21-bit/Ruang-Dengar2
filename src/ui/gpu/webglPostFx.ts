@@ -65,12 +65,12 @@ vec3 acesSoft(vec3 x) {
   return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
 }
 
-// Ekstraksi piksel terang (emissive bloom & halation hangat)
+// Ekstraksi piksel sangat terang saja (hanya sumber emisif murni: LED, percikan las, sorotan lampu; lantai & wajah karakter tidak ikut silau)
 vec3 brightSample(vec2 uv) {
   vec3 c = texture(uTex, clamp(uv, vec2(0.001), vec2(0.999))).rgb;
   float lum = dot(c, vec3(0.2126, 0.7152, 0.0722));
-  float mask = smoothstep(0.68, 1.02, lum);
-  return c * mask;
+  float mask = smoothstep(0.88, 1.04, lum);
+  return c * (mask * mask);
 }
 
 void main() {
@@ -114,40 +114,43 @@ void main() {
     bloom *= vec3(1.06, 1.01, 0.94);
   }
 
-  // 3. Volumetric God-Rays (berkas cahaya matahari bervolume melintasi diorama)
+  // 3. Volumetric God-Rays (berkas cahaya matahari halus tanpa memucatkan lantai)
   float animT = mix(uTime, 0.0, uReduced);
   float rayCoord = uv.x * cos(uGodRayAngle) + uv.y * sin(uGodRayAngle);
-  float shaft1 = pow(max(0.0, sin(rayCoord * 13.0 + animT * 0.22)), 5.0);
-  float shaft2 = pow(max(0.0, sin(rayCoord * 23.0 - animT * 0.14 + 1.7)), 6.0);
-  float topFade = smoothstep(0.92, 0.04, uv.y);
-  float rayMask = (shaft1 * 0.65 + shaft2 * 0.35) * topFade * uGodRayIntensity * 0.085;
-  vec3 rayColor = mix(vec3(1.0, 0.97, 0.86), vec3(1.0, 0.80, 0.48), clamp((uGradeRgb.r - 1.0) * 9.0, 0.0, 1.0));
+  float shaft1 = pow(max(0.0, sin(rayCoord * 13.0 + animT * 0.22)), 6.0);
+  float shaft2 = pow(max(0.0, sin(rayCoord * 23.0 - animT * 0.14 + 1.7)), 7.0);
+  float topFade = smoothstep(0.75, 0.02, uv.y);
+  float rayMask = (shaft1 * 0.65 + shaft2 * 0.35) * topFade * uGodRayIntensity * 0.032;
+  vec3 rayColor = mix(vec3(1.0, 0.96, 0.84), vec3(1.0, 0.78, 0.45), clamp((uGradeRgb.r - 1.0) * 9.0, 0.0, 1.0));
 
-  // 4. Interactive Cursor Specular Warm Lift (sorotan lembut saat menjelajahi ruangan)
+  // 4. Interactive Cursor Specular Warm Lift (sorotan halus tanpa silau)
   float cursorGlow = 0.0;
   if (uPointer.x >= 0.0 && uPointer.y >= 0.0) {
     float aspect = uTexelSize.y / max(uTexelSize.x, 0.00001);
     vec2 diff = (uv - uPointer) * vec2(aspect, 1.0);
     float dist = length(diff);
-    cursorGlow = exp(-dist * dist * 16.0) * 0.055;
+    cursorGlow = exp(-dist * dist * 20.0) * 0.022;
   }
 
-  // 5. Komposisi + Dynamic Time-of-Day Color Grading + ACES Filmic Mix + Vignette Optik Hangat
+  // 5. Komposisi RTX-Style Micro-Contrast + Dynamic Time-of-Day Color Grading + Vignette Sinema
   vec3 col = baseColor * uGradeRgb;
-  col += bloom * uBloomStrength;
+  col += bloom * (uBloomStrength * 0.48);
   col += rayColor * rayMask;
-  col += vec3(1.0, 0.96, 0.85) * cursorGlow;
+  col += vec3(1.0, 0.95, 0.82) * cursorGlow;
 
-  // Sentuhan vibrance + ACES filmic lembut (campuran 32% agar warna pastel tetap cerah & jernih)
+  // Kurva S-Contrast lembut & saturasi kaya agar garis tinta espresso (#3e2517), serat kayu, dan warna chibi makin tajam & hidup (bebas pudar/silau!)
+  col = clamp(col, 0.0, 1.0);
+  vec3 sCurve = col * col * (3.0 - 2.0 * col);
+  col = mix(col, sCurve, 0.16);
   float luma = dot(col, vec3(0.299, 0.587, 0.114));
-  col = mix(vec3(luma), col, 1.08);
-  vec3 filmic = acesSoft(col * 1.12);
-  col = mix(clamp(col, 0.0, 1.0), filmic, 0.28);
+  col = mix(vec3(luma), col, 1.12);
+  vec3 filmic = acesSoft(col * 0.98);
+  col = mix(col, filmic, 0.18);
 
   // Vinyet optik sudut lembut bergaya lensa kamera sinema
   vec2 vigUv = (uv - 0.5) * vec2(1.15, 1.05);
-  float vig = smoothstep(0.92, 0.34, length(vigUv));
-  col *= mix(0.88, 1.0, vig);
+  float vig = smoothstep(0.95, 0.32, length(vigUv));
+  col *= mix(0.86, 1.0, vig);
 
   outColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }

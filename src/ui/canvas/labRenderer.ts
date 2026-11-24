@@ -440,55 +440,17 @@ function drawDaylightAtmosphere(
   const isLateAfternoon = clockMinutesOfDay >= 870;
 
   ctx.save();
-  // Lapisan nuansa waktu lembut (pagi cerah / siang bersih / sore keemasan)
-  if (isLateAfternoon) {
-    ctx.fillStyle = 'rgba(234, 148, 56, 0.08)';
-    ctx.fillRect(0, 0, worldW, worldH);
-  } else if (isMorning) {
-    ctx.fillStyle = 'rgba(255, 246, 214, 0.045)';
-    ctx.fillRect(0, 0, worldW, worldH);
-  }
-
-  // Berkas cahaya jendela miring lembut ala latar anime kampus
-  const beamColor = isLateAfternoon
-    ? 'rgba(253, 198, 96, 0.13)'
-    : isMorning
-      ? 'rgba(255, 248, 220, 0.10)'
-      : 'rgba(255, 253, 242, 0.065)';
-  const sway = reducedMotion ? 0 : Math.sin(timeSeconds * 0.45) * 10;
-
-  const beams = [
-    { x: worldW * 0.14 + sway, w: worldW * 0.14 },
-    { x: worldW * 0.46 - sway * 0.7, w: worldW * 0.16 },
-    { x: worldW * 0.78 + sway * 0.5, w: worldW * 0.13 },
-  ];
-
-  for (const beam of beams) {
-    const grad = ctx.createLinearGradient(beam.x, 0, beam.x + beam.w * 1.4, worldH * 0.85);
-    grad.addColorStop(0, beamColor);
-    grad.addColorStop(0.65, beamColor.replace(/0\.\d+\)$/, '0.03)'));
-    grad.addColorStop(1, 'rgba(255, 250, 230, 0)');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.moveTo(beam.x, 0);
-    ctx.lineTo(beam.x + beam.w, 0);
-    ctx.lineTo(beam.x + beam.w + worldH * 0.36, worldH);
-    ctx.lineTo(beam.x + worldH * 0.24, worldH);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  // Partikel debu cahaya matahari melayang halus (non-aktif saat reducedMotion)
+  // Hanya tampilkan debu cahaya emas mikro saat bergerak (tanpa kabut putih/balok sinar putih yang membuat lantai silau!)
   if (!reducedMotion) {
-    const moteColor = isLateAfternoon ? '254, 215, 130' : '255, 251, 235';
-    for (let i = 0; i < 14; i += 1) {
+    const moteColor = isLateAfternoon ? '248, 198, 96' : isMorning ? '255, 232, 162' : '255, 240, 185';
+    for (let i = 0; i < 12; i += 1) {
       const seed = i * 73.13;
       const baseX = ((seed * 19.7) % worldW + worldW) % worldW;
       const baseY = ((seed * 31.3) % worldH + worldH) % worldH;
-      const driftX = (baseX + timeSeconds * (5 + (i % 4) * 2.2) + Math.sin(timeSeconds + i) * 6) % worldW;
-      const driftY = (baseY - timeSeconds * (2.5 + (i % 3) * 1.4) + worldH * 10) % worldH;
-      const pulseAlpha = 0.16 + 0.22 * (0.5 + 0.5 * Math.sin(timeSeconds * 1.7 + i * 1.4));
-      const r = 1.1 + (i % 3) * 0.55;
+      const driftX = (baseX + timeSeconds * (4.5 + (i % 4) * 1.8) + Math.sin(timeSeconds + i) * 5) % worldW;
+      const driftY = (baseY - timeSeconds * (2.2 + (i % 3) * 1.2) + worldH * 10) % worldH;
+      const pulseAlpha = 0.12 + 0.16 * (0.5 + 0.5 * Math.sin(timeSeconds * 1.7 + i * 1.4));
+      const r = 1.0 + (i % 3) * 0.45;
       ctx.fillStyle = `rgba(${moteColor}, ${pulseAlpha.toFixed(3)})`;
       ctx.beginPath();
       ctx.arc(driftX, driftY, r, 0, Math.PI * 2);
