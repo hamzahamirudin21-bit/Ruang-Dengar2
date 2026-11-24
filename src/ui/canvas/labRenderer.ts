@@ -44,6 +44,8 @@ import {
   getIllustratedLabBackdrop,
 } from '../world/illustratedLab';
 import type { RoomDecorId } from '../../engine/roomDecor';
+import { computeSunLighting, type CampusWeatherMode } from '../gpu/sunLighting';
+import { collectMapPointLights, drawDynamicPointLights } from '../gpu/pointLights';
 import { buildDrawList, spriteFeet } from '../world/worldMetrics';
 
 export interface CameraTransform {
@@ -89,6 +91,8 @@ export interface LabRenderInput {
   equippedDecor?: readonly RoomDecorId[];
   /** Teks umpan balik melayang pada koordinat dunia (mis. +2 ⭐ Pulih!). */
   worldPopups?: readonly WorldPopup[];
+  /** Mode cuaca & pencahayaan kampus (otomatis, cerah, senja, hujan). */
+  weatherMode?: CampusWeatherMode;
   /** Opsional. Bila tidak ada, render identik dengan sebelumnya. */
   story?: StoryRenderLayer;
 }
@@ -604,8 +608,10 @@ export function renderLabCanvas(
 
   const timeSec = input.timeSeconds ?? 0;
   const reduced = input.reducedMotion ?? false;
+  const weatherMode: CampusWeatherMode = input.weatherMode ?? 'otomatis';
+  const sun = computeSunLighting(clockMinutesOfDay, weatherMode);
 
-  // 1. Halaman Kampus Hidup 2.5D di luar gedung (rumput sunlit sesuai jam, jalan batu, pohon bergoyang)
+  // 1. Halaman Kampus Hidup 2.5D di luar gedung (rumput sunlit sesuai jam/cuaca, kolam koi, jalan batu, pohon bergoyang)
   drawOutdoorCampusCourtyard(
     ctx,
     widthCss,
@@ -614,7 +620,8 @@ export function renderLabCanvas(
     map,
     timeSec,
     reduced,
-    clockMinutesOfDay
+    clockMinutesOfDay,
+    weatherMode
   );
 
   ctx.save();
@@ -735,7 +742,14 @@ export function renderLabCanvas(
   // 5. Garis interaksi dan rute (di bawah semua sprite)
   const story = input.story;
   const storyOpts: StoryRenderOptions | null = story
-    ? { ...story, camera, tileSizePx: t, agents }
+    ? {
+        ...story,
+        camera,
+        tileSizePx: t,
+        agents,
+        clockMinutesOfDay,
+        weatherMode,
+      }
     : null;
   drawInteractionLines(
     ctx,
@@ -767,6 +781,8 @@ export function renderLabCanvas(
     hoveredAgentId,
     timeSeconds: input.timeSeconds,
     reducedMotion: input.reducedMotion,
+    clockMinutesOfDay,
+    weatherMode,
     avatarIdlePosition,
   };
 
@@ -837,6 +853,19 @@ export function renderLabCanvas(
     }
   }
 
+  // 6b. Pencahayaan Titik Dinamis 2D (Dynamic Point Lights & Emissive Bloom) di 11 ruangan
+  if (useIllustrated) {
+    const pointLights = collectMapPointLights(
+      map,
+      input.equippedDecor,
+      clockMinutesOfDay,
+      timeSec,
+      reduced,
+      weatherMode
+    );
+    drawDynamicPointLights(ctx, worldW, worldH, pointLights, sun.duskShade);
+  }
+
   // 7. Overlay setelah semua sprite: status, balon, nama, penanda misi
   const bubbles = computeAgentBubbles(visibleAgents, agentOptions);
   const overlayOrder = [...visibleAgents].sort(
@@ -890,6 +919,6 @@ export function renderLabCanvas(
 
   ctx.restore();
 
-  // 10. Partikel hidup halaman luar (daun/kelopak melayang & kupu-kupu kampus)
-  drawOutdoorAmbientParticles(ctx, widthCss, heightCss, camera, map, timeSec, reduced);
+  // 10. Partikel hidup halaman luar (awan melintas, kelopak/daun, kupu-kupu, atau hujan rintik + riak air)
+  drawOutdoorAmbientParticles(ctx, widthCss, heightCss, camera, map, timeSec, reduced, weatherMode);
 }

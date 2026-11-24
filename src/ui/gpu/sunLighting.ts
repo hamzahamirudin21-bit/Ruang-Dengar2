@@ -5,6 +5,7 @@
  */
 
 export type SunPhase = 'pagi' | 'siang' | 'sore';
+export type CampusWeatherMode = 'otomatis' | 'cerah' | 'senja' | 'hujan';
 
 export interface SunLightingState {
   phase: SunPhase;
@@ -42,17 +43,28 @@ function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
-export function computeSunLighting(clockMinutesOfDay: number): SunLightingState {
-  const safeMin = Number.isFinite(clockMinutesOfDay) ? clockMinutesOfDay : 660;
-  const p = clamp01((safeMin - DAY_START_MIN) / (DAY_END_MIN - DAY_START_MIN));
+export function computeSunLighting(
+  clockMinutesOfDay: number,
+  weatherMode: CampusWeatherMode = 'otomatis'
+): SunLightingState {
+  const effectiveMin =
+    weatherMode === 'senja'
+      ? 960
+      : weatherMode === 'cerah'
+        ? 630
+        : Number.isFinite(clockMinutesOfDay)
+          ? clockMinutesOfDay
+          : 660;
+  const isRain = weatherMode === 'hujan';
+  const p = clamp01((effectiveMin - DAY_START_MIN) / (DAY_END_MIN - DAY_START_MIN));
 
-  const phase: SunPhase = safeMin < 660 ? 'pagi' : safeMin >= 870 ? 'sore' : 'siang';
+  const phase: SunPhase = effectiveMin < 660 ? 'pagi' : effectiveMin >= 870 ? 'sore' : 'siang';
 
   // Sudut horizontal matahari: -1.0 (pagi, bayangan ke kiri/barat) -> 0 (siang) -> +1.15 (sore, bayangan ke kanan/timur)
   const centered = p * 2 - 1; // -1 .. +1
   const shadowDirX = centered * (centered >= 0 ? 1.12 : 0.96);
   const shadowDirY = 0.28 + Math.abs(centered) * 0.22;
-  const shadowLength = 0.55 + Math.pow(Math.abs(centered), 1.35) * 0.82;
+  const shadowLength = isRain ? 0.45 : 0.55 + Math.pow(Math.abs(centered), 1.35) * 0.82;
 
   // Warna bayangan berubah dari biru-pagi sejuk -> abu hangat siang -> ungu-amber senja
   const morningT = clamp01(1 - p * 2.3);
@@ -60,22 +72,28 @@ export function computeSunLighting(clockMinutesOfDay: number): SunLightingState 
   const sr = Math.round(lerp(lerp(32, 24, morningT), 58, eveningT));
   const sg = Math.round(lerp(lerp(38, 44, morningT), 28, eveningT));
   const sb = Math.round(lerp(lerp(48, 72, morningT), 42, eveningT));
-  const sa = Number((0.22 + Math.abs(centered) * 0.08).toFixed(3));
+  const sa = Number((isRain ? 0.18 : 0.22 + Math.abs(centered) * 0.08).toFixed(3));
   const shadowColor = `rgba(${sr}, ${sg}, ${sb}, ${sa})`;
 
-  // Lampu dalam ruangan makin terang & dramatis menjelang sore / pagi awal
-  const indoorLampBoost = Number(
-    Math.min(1, Math.max(0.38, 0.38 + morningT * 0.32 + Math.pow(eveningT, 1.15) * 0.62)).toFixed(3)
-  );
+  // Lampu dalam ruangan makin terang & dramatis menjelang sore / pagi awal / saat hujan
+  const indoorLampBoost = isRain
+    ? 1.0
+    : Number(
+        Math.min(1, Math.max(0.38, 0.38 + morningT * 0.32 + Math.pow(eveningT, 1.15) * 0.62)).toFixed(3)
+      );
 
   // Grading warna sinematik lembut [R, G, B]
-  const gr = Number((1.0 + eveningT * 0.09 - morningT * 0.02).toFixed(3));
-  const gg = Number((1.0 + morningT * 0.02 + eveningT * 0.015).toFixed(3));
-  const gb = Number((1.0 + morningT * 0.055 - eveningT * 0.095).toFixed(3));
+  const gr = isRain ? 0.94 : Number((1.0 + eveningT * 0.09 - morningT * 0.02).toFixed(3));
+  const gg = isRain ? 0.98 : Number((1.0 + morningT * 0.02 + eveningT * 0.015).toFixed(3));
+  const gb = isRain ? 1.07 : Number((1.0 + morningT * 0.055 - eveningT * 0.095).toFixed(3));
 
   const godRayAngle = 0.42 + centered * 0.28;
-  const godRayIntensity = Number((0.46 + morningT * 0.22 + eveningT * 0.36).toFixed(3));
-  const duskShade = Number((Math.pow(eveningT, 1.45) * 0.19).toFixed(3));
+  const godRayIntensity = isRain
+    ? 0.18
+    : Number((0.46 + morningT * 0.22 + eveningT * 0.36).toFixed(3));
+  const duskShade = isRain
+    ? 0.16
+    : Number((Math.pow(eveningT, 1.45) * 0.19).toFixed(3));
 
   return {
     phase,

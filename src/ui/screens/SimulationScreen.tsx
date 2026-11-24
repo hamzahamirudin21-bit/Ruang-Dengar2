@@ -83,7 +83,9 @@ import {
 } from '../components/game';
 import type { HudIconId } from '../components/game/hudIcons';
 import { PixelPortrait } from '../characters/PixelPortrait';
-import { playFeedbackSfx, playSfx } from '../motion/sfx';
+import { playFeedbackSfx, playSfx, setRainAmbienceEnabled } from '../motion/sfx';
+import { computeSunLighting, type CampusWeatherMode } from '../gpu/sunLighting';
+import { WebGLPostFxRenderer } from '../gpu/webglPostFx';
 import { buildSelectedMeters, buildSpeedControls } from './hudModel';
 import { DevPanel } from '../components/DevPanel';
 import { ObservationPanel } from '../ObservationPanel';
@@ -309,6 +311,14 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const glCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const webglFxRef = useRef<WebGLPostFxRenderer | null>(null);
+  const pointerNormRef = useRef<{ x: number; y: number }>({ x: -1, y: -1 });
+  const [weatherMode, setWeatherMode] = useState<CampusWeatherMode>('otomatis');
+  const weatherModeRef = useRef<CampusWeatherMode>('otomatis');
+  const [gpuFxEnabled, setGpuFxEnabled] = useState<boolean>(true);
+  const gpuFxEnabledRef = useRef<boolean>(true);
+  const [webglReady, setWebglReady] = useState<boolean>(false);
   const cameraRef = useRef<CameraTransform>({ offsetX: 8, offsetY: 8, scale: 0.7 });
   const stageSizeRef = useRef<{ width: number; height: number }>({ width: 960, height: 480 });
   const needsRedrawRef = useRef<boolean>(true);
@@ -381,7 +391,38 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
 
   useEffect(() => {
     reducedMotionRef.current = reducedMotion;
+    needsRedrawRef.current = true;
   }, [reducedMotion]);
+
+  useEffect(() => {
+    weatherModeRef.current = weatherMode;
+    setRainAmbienceEnabled(weatherMode === 'hujan');
+    needsRedrawRef.current = true;
+  }, [weatherMode]);
+
+  useEffect(() => {
+    return () => {
+      setRainAmbienceEnabled(false);
+    };
+  }, []);
+
+  useEffect(() => {
+    gpuFxEnabledRef.current = gpuFxEnabled;
+    needsRedrawRef.current = true;
+  }, [gpuFxEnabled]);
+
+  useEffect(() => {
+    const glCanvas = glCanvasRef.current;
+    if (!glCanvas) return;
+    const fx = WebGLPostFxRenderer.create(glCanvas);
+    webglFxRef.current = fx;
+    setWebglReady(Boolean(fx));
+    needsRedrawRef.current = true;
+    return () => {
+      fx?.dispose();
+      webglFxRef.current = null;
+    };
+  }, []);
 
   // Saat seed diganti dari Pengaturan/Dev Panel, bangun ulang dunia secara deterministik
   useEffect(() => {
@@ -480,6 +521,20 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       } else if (key === 'j') {
         playSfx('klik');
         setJournalOpen((cur) => !cur);
+      } else if (key === 'c') {
+        playSfx('klik');
+        setWeatherMode((cur) =>
+          cur === 'otomatis'
+            ? 'cerah'
+            : cur === 'cerah'
+              ? 'senja'
+              : cur === 'senja'
+                ? 'hujan'
+                : 'otomatis'
+        );
+      } else if (key === 'g') {
+        playSfx('klik');
+        setGpuFxEnabled((cur) => !cur);
       } else if (key === 's' && onToggleAudio) {
         onToggleAudio();
       }
@@ -772,6 +827,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               clickRipple: clickRippleRef.current,
               equippedDecor: equippedDecorRef.current,
               worldPopups: worldPopupsRef.current,
+              weatherMode: weatherModeRef.current,
               story: storyApi
                 ? {
                     avatar: storyApi.avatarRef.current,
@@ -783,6 +839,25 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                 : undefined,
             });
             ctx.restore();
+
+            if (gpuFxEnabledRef.current && webglFxRef.current) {
+              const sun = computeSunLighting(
+                worldRef.current.clock.minutesOfDay,
+                weatherModeRef.current
+              );
+              webglFxRef.current.renderFromCanvas(canvas, {
+                timeSeconds: nowSec,
+                reducedMotion: reducedMotionRef.current,
+                gradeRgb: sun.gradeRgb,
+                godRayAngle: sun.godRayAngle,
+                godRayIntensity: sun.godRayIntensity,
+                bloomStrength:
+                  weatherModeRef.current === 'hujan' || sun.phase === 'sore' ? 0.86 : 0.64,
+                tiltShiftStrength: 0.78,
+                pointerNormX: pointerNormRef.current.x,
+                pointerNormY: pointerNormRef.current.y,
+              });
+            }
           }
         }
         needsRedrawRef.current = false;
@@ -806,6 +881,15 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      pointerNormRef.current = {
+        x: Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)),
+        y: Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height)),
+      };
+      if (gpuFxEnabledRef.current && !reducedMotionRef.current) {
+        needsRedrawRef.current = true;
+      }
+    }
     const hitAgent = findAgentAtScreenPoint(
       e.clientX,
       e.clientY,
@@ -1277,11 +1361,24 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           onPointerDown={handleCanvasPointerDown}
           onPointerMove={handleCanvasPointerMove}
           onPointerUp={handleCanvasPointerUp}
+          onPointerLeave={() => {
+            pointerNormRef.current = { x: -1, y: -1 };
+            needsRedrawRef.current = true;
+          }}
           onPointerCancel={() => {
             pointerDownRef.current = false;
+            pointerNormRef.current = { x: -1, y: -1 };
           }}
           className={`block h-full w-full ${
             hoveredAgentId || hoveredZoneId ? 'cursor-pointer' : 'cursor-default'
+          }`}
+        />
+        <canvas
+          ref={glCanvasRef}
+          data-testid="lab-webgl-overlay"
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-0 block h-full w-full ${
+            gpuFxEnabled && webglReady ? '' : 'hidden'
           }`}
         />
       </div>
@@ -1448,8 +1545,73 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           )}
         </div>
 
-        {/* Kanan Atas: Mode Pintu Konsultasi, Musik Kampus, Label, Grid, Panduan, Pengaturan */}
+        {/* Kanan Atas: Cuaca Dinamis, Shader GPU HD-2D, Mode Pintu Konsultasi, Musik Kampus, Label, Grid, Panduan, Pengaturan */}
         <div className="pointer-events-auto order-2 flex shrink-0 items-center gap-1.5 lg:order-3">
+          <button
+            type="button"
+            data-testid="toggle-weather-mode"
+            onClick={() => {
+              playSfx('klik');
+              setWeatherMode((cur) =>
+                cur === 'otomatis'
+                  ? 'cerah'
+                  : cur === 'cerah'
+                    ? 'senja'
+                    : cur === 'senja'
+                      ? 'hujan'
+                      : 'otomatis'
+              );
+            }}
+            title="Siklus Cuaca & Atmosfer Pencahayaan Kampus (Otomatis / Cerah / Senja Keemasan / Hujan Cozy) [C]"
+            className={`hud-pill cursor-pointer transition hover:-translate-y-0.5 ${
+              weatherMode === 'hujan'
+                ? '!bg-gradient-to-b !from-[#4a7aa8] !to-[#2d537a] !text-[#fffdf6]'
+                : weatherMode === 'senja'
+                  ? '!bg-gradient-to-b !from-[#f08e4b] !to-[#c25b22] !text-[#fffdf6]'
+                  : weatherMode === 'cerah'
+                    ? '!bg-gradient-to-b !from-[#ffe799] !to-[#f3b83c] !text-[#3e2517]'
+                    : ''
+            }`}
+          >
+            <span aria-hidden="true">
+              {weatherMode === 'hujan'
+                ? '🌧️'
+                : weatherMode === 'senja'
+                  ? '🌇'
+                  : weatherMode === 'cerah'
+                    ? '☀️'
+                    : '🌤️'}
+            </span>
+            <span className="hidden xl:inline">
+              {weatherMode === 'hujan'
+                ? 'Hujan'
+                : weatherMode === 'senja'
+                  ? 'Senja'
+                  : weatherMode === 'cerah'
+                    ? 'Cerah'
+                    : 'Cuaca'}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            data-testid="toggle-hd2d-gpu"
+            aria-pressed={gpuFxEnabled}
+            onClick={() => {
+              playSfx('klik');
+              setGpuFxEnabled((cur) => !cur);
+            }}
+            title="Shader GPU HD-2D WebGL2: Bloom Emisif, Tilt-Shift DoF, Volumetric God-Rays, & ACES Filmic Grading [G]"
+            className={`hud-pill cursor-pointer transition hover:-translate-y-0.5 ${
+              gpuFxEnabled
+                ? '!bg-gradient-to-b !from-[#3ba08e] !to-[#1f6356] !text-[#fffdf6] shadow-[0_0_12px_rgba(59,160,142,0.55),0_3.5px_0_#3e2517]'
+                : 'opacity-80'
+            }`}
+          >
+            <span aria-hidden="true">✨</span>
+            <span className="hidden sm:inline">HD-2D</span>
+          </button>
+
           <button
             type="button"
             onClick={() => {

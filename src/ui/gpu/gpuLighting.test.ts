@@ -60,4 +60,16 @@ describe('Fase 1 GPU Lighting & Shadows Engine', () => {
     const fakeCanvas = { getContext: () => null } as unknown as HTMLCanvasElement;
     assert.equal(WebGLPostFxRenderer.create(fakeCanvas), null);
   });
+
+  it('mode cuaca hujan, senja, dan cerah menghasilkan parameter pencahayaan dan lampu dalam ruangan yang tepat', () => {
+    const sunny = computeSunLighting(600, 'cerah');
+    const sunset = computeSunLighting(600, 'senja');
+    const rainy = computeSunLighting(600, 'hujan');
+
+    assert.equal(sunset.phase, 'sore');
+    assert.ok(sunset.duskShade >= 0.1, 'Mode senja memiliki warna dusk keemasan yang kaya');
+    assert.equal(rainy.indoorLampBoost, 1.0, 'Saat hujan lampu dalam ruangan menyala penuh (1.0)');
+    assert.ok(rainy.gradeRgb[2] > rainy.gradeRgb[0], 'Saat hujan color grading cenderung sejuk kebiruan');
+    assert.ok(sunny.godRayIntensity > rainy.godRayIntensity, 'Sinar god-ray lebih kuat saat cerah daripada hujan');
+  });
 });

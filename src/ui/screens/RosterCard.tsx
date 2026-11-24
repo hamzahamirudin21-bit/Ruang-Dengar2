@@ -110,6 +110,7 @@ export const RosterCard: React.FC<RosterCardProps> = ({
   onToggleFlip,
 }) => {
   const [internalFlipped, setInternalFlipped] = useState(false);
+  const [tiltStyle, setTiltStyle] = useState<React.CSSProperties | undefined>(undefined);
   const isFlipped = flipped ?? internalFlipped;
   const h = height ?? 150;
   const interests = model.interests.slice(0, 2);
@@ -122,11 +123,35 @@ export const RosterCard: React.FC<RosterCardProps> = ({
     else setInternalFlipped((prev) => !prev);
   };
 
+  const handlePointerMove = (e: React.PointerEvent<HTMLElement>) => {
+    if (reducedMotion) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    const px = (e.clientX - rect.left) / rect.width;
+    const py = (e.clientY - rect.top) / rect.height;
+    const rotY = ((px - 0.5) * 14).toFixed(2);
+    const rotX = ((0.5 - py) * 11).toFixed(2);
+    setTiltStyle({
+      '--holo-rx': `${rotX}deg`,
+      '--holo-ry': `${rotY}deg`,
+      '--holo-gx': `${Math.round(px * 100)}%`,
+      '--holo-gy': `${Math.round(py * 100)}%`,
+      '--holo-opacity': '1',
+    } as React.CSSProperties);
+  };
+
+  const handlePointerLeave = () => {
+    if (reducedMotion) return;
+    setTiltStyle(undefined);
+  };
+
   return (
     <li
       aria-label={cardAltText(model.number, model.name)}
-      className="roster-flip-scene min-w-0"
-      style={{ width: width ?? '100%', height: h }}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+      className="roster-flip-scene holo-card-scene min-w-0"
+      style={{ width: width ?? '100%', height: h, ...tiltStyle }}
     >
       <button
         type="button"
@@ -145,8 +170,9 @@ export const RosterCard: React.FC<RosterCardProps> = ({
           className={`roster-flip-inner ${reducedMotion ? 'roster-flip-inner--reduced' : ''}`}
           data-flipped={isFlipped ? 'true' : 'false'}
         >
-          {/* SISI DEPAN: Potret Setengah Badan + Nama + Minat + Mini Chibi */}
-          <div className="roster-flip-face roster-flip-front roster-card-chamfer yearbook-card grid grid-cols-[52%_48%] overflow-hidden bg-gradient-to-br from-[#fffdf6] via-[#f8edd5] to-[#f0dec0]">
+          {/* SISI DEPAN: Potret Setengah Badan + Nama + Minat + Mini Chibi + Kilau Foil Holografik */}
+          <div className="roster-flip-face roster-flip-front roster-card-chamfer yearbook-card holo-card-face grid grid-cols-[52%_48%] overflow-hidden bg-gradient-to-br from-[#fffdf6] via-[#f8edd5] to-[#f0dec0]">
+            <span aria-hidden="true" className="holo-card-glare" />
             {/* Pin papan buku tahunan mungil di tengah atas kartu */}
             <span aria-hidden="true" className="yearbook-pin" />
             {/* Kolom Kiri (52%): Potret Setengah Badan Utuh */}

@@ -627,15 +627,219 @@ export function StoryScreen({
     return count;
   }, [turnResults]);
 
+  // Paralaks 2.5D mengikuti gerakan kursor & Kanvas VFX GPU-feel 60 FPS (Partikel Ruangan + Pita Cahaya Empati Bezier)
+  const [parallax, setParallax] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const vfxCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const empathyArcStartRef = useRef<number | null>(null);
+  const isClimaxTurn = state.turn >= 4 && !state.ended && !reducedMotion;
+
+  useEffect(() => {
+    if (reactionFx?.kind === 'tepat' && !reducedMotion) {
+      empathyArcStartRef.current =
+        typeof performance !== 'undefined' ? performance.now() : Date.now();
+    }
+  }, [reactionFx, reducedMotion]);
+
+  useEffect(() => {
+    if (reducedMotion) return;
+    const canvas = vfxCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // 22 partikel bokeh/percikan spesifik ruangan
+    const motes = Array.from({ length: 22 }, (_, i) => ({
+      x: ((i * 53 + 17) % 100) / 100,
+      y: ((i * 71 + 29) % 100) / 100,
+      r: 2.2 + (i % 5) * 1.15,
+      vx: ((i % 2 === 0 ? 1 : -1) * (0.004 + (i % 4) * 0.0018)),
+      vy: startZoneId === 'las' ? -(0.018 + (i % 4) * 0.007) : -(0.005 + (i % 3) * 0.003),
+      phase: i * 0.9,
+    }));
+
+    let rafId = 0;
+    let lastTs = typeof performance !== 'undefined' ? performance.now() : Date.now();
+
+    const renderVfx = (now: number) => {
+      const dt = Math.min(0.05, Math.max(0.001, (now - lastTs) / 1000));
+      lastTs = now;
+      const tSec = now / 1000;
+
+      const w = Math.max(320, Math.floor(rootSize.width || canvas.clientWidth || 960));
+      const h = Math.max(240, Math.floor(rootSize.height || canvas.clientHeight || 540));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+
+      // 1. Berkas cahaya volumetrik (Volumetric Window Sunbeams) bernapas halus
+      const beamAlpha = isWarmRoom ? 0.065 : 0.045;
+      const beamShift = Math.sin(tSec * 0.35) * 28;
+      for (let b = 0; b < 3; b += 1) {
+        const bx = w * (0.22 + b * 0.26) + beamShift;
+        const grad = ctx.createLinearGradient(bx - 60, 0, bx + 140, h * 0.85);
+        if (isWarmRoom) {
+          grad.addColorStop(0, `rgba(255, 226, 150, ${beamAlpha})`);
+          grad.addColorStop(0.65, `rgba(255, 200, 112, ${beamAlpha * 0.45})`);
+          grad.addColorStop(1, 'rgba(255, 200, 112, 0)');
+        } else {
+          grad.addColorStop(0, `rgba(140, 232, 255, ${beamAlpha})`);
+          grad.addColorStop(0.65, `rgba(110, 200, 245, ${beamAlpha * 0.4})`);
+          grad.addColorStop(1, 'rgba(110, 200, 245, 0)');
+        }
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(bx - 55, 0);
+        ctx.lineTo(bx + 65, 0);
+        ctx.lineTo(bx + 215, h * 0.88);
+        ctx.lineTo(bx + 45, h * 0.88);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // 2. Partikel bokeh / bara las / bit siber spesifik ruangan
+      for (const m of motes) {
+        m.x = (m.x + m.vx * dt + 1) % 1;
+        m.y = (m.y + m.vy * dt + 1) % 1;
+        const px = m.x * w;
+        const py = m.y * h;
+        const pulse = 0.55 + 0.45 * Math.sin(tSec * 2.2 + m.phase);
+        const rad = m.r * (1.8 + pulse * 0.8);
+        const g = ctx.createRadialGradient(px, py, 0, px, py, rad * 2.4);
+        if (startZoneId === 'las') {
+          g.addColorStop(0, `rgba(255, 188, 92, ${0.46 * pulse})`);
+          g.addColorStop(0.5, `rgba(255, 110, 42, ${0.22 * pulse})`);
+          g.addColorStop(1, 'rgba(255, 90, 20, 0)');
+        } else if (
+          startZoneId === 'pemrograman' ||
+          startZoneId === 'elektronik-iot' ||
+          startZoneId === 'cetak-3d'
+        ) {
+          g.addColorStop(0, `rgba(130, 245, 255, ${0.38 * pulse})`);
+          g.addColorStop(0.5, `rgba(64, 196, 224, ${0.16 * pulse})`);
+          g.addColorStop(1, 'rgba(64, 196, 224, 0)');
+        } else {
+          g.addColorStop(0, `rgba(255, 236, 168, ${0.42 * pulse})`);
+          g.addColorStop(0.5, `rgba(245, 190, 88, ${0.18 * pulse})`);
+          g.addColorStop(1, 'rgba(245, 190, 88, 0)');
+        }
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(px, py, rad * 2.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 3. Pita Cahaya Empati Bezier + 24 partikel emas-zamrud saat respons tepat (+12%)
+      if (empathyArcStartRef.current !== null) {
+        const elapsedMs = now - empathyArcStartRef.current;
+        const durMs = 950;
+        if (elapsedMs <= durMs) {
+          const prog = elapsedMs / durMs;
+          const x0 = w * 0.22;
+          const y0 = h * 0.52;
+          const cx = w * 0.5;
+          const cy = h * 0.23;
+          const x1 = w * 0.78;
+          const y1 = h * 0.52;
+
+          const fade = Math.sin(prog * Math.PI);
+          const arcGrad = ctx.createLinearGradient(x0, y0, x1, y1);
+          arcGrad.addColorStop(0, `rgba(255, 224, 118, ${0.75 * fade})`);
+          arcGrad.addColorStop(0.5, `rgba(94, 242, 198, ${0.92 * fade})`);
+          arcGrad.addColorStop(1, `rgba(255, 232, 132, ${0.85 * fade})`);
+
+          ctx.strokeStyle = arcGrad;
+          ctx.lineWidth = 4.5 * fade + 1.5;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          const steps = 28;
+          const headT = Math.min(1, prog * 1.25);
+          const tailT = Math.max(0, prog * 1.25 - 0.55);
+          for (let s = 0; s <= steps; s += 1) {
+            const u = tailT + (headT - tailT) * (s / steps);
+            const omt = 1 - u;
+            const bx = omt * omt * x0 + 2 * omt * u * cx + u * u * x1;
+            const by = omt * omt * y0 + 2 * omt * u * cy + u * u * y1;
+            if (s === 0) ctx.moveTo(bx, by);
+            else ctx.lineTo(bx, by);
+          }
+          ctx.stroke();
+
+          // Kilau komet kepala pita empati di dekat mahasiswa
+          const hu = headT;
+          const homt = 1 - hu;
+          const hx = homt * homt * x0 + 2 * homt * hu * cx + hu * hu * x1;
+          const hy = homt * homt * y0 + 2 * homt * hu * cy + hu * hu * y1;
+          const headGlow = ctx.createRadialGradient(hx, hy, 0, hx, hy, 38);
+          headGlow.addColorStop(0, `rgba(255, 250, 210, ${0.95 * fade})`);
+          headGlow.addColorStop(0.45, `rgba(82, 235, 190, ${0.55 * fade})`);
+          headGlow.addColorStop(1, 'rgba(82, 235, 190, 0)');
+          ctx.fillStyle = headGlow;
+          ctx.beginPath();
+          ctx.arc(hx, hy, 38, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          empathyArcStartRef.current = null;
+        }
+      }
+
+      ctx.restore();
+      rafId = window.requestAnimationFrame(renderVfx);
+    };
+
+    rafId = window.requestAnimationFrame(renderVfx);
+    return () => window.cancelAnimationFrame(rafId);
+  }, [reducedMotion, rootSize.width, rootSize.height, startZoneId, isWarmRoom]);
+
+  const handleStagePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (reducedMotion) return;
+      const el = rootRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      if (r.width <= 0 || r.height <= 0) return;
+      const nx = ((e.clientX - r.left) / r.width - 0.5) * 2;
+      const ny = ((e.clientY - r.top) / r.height - 0.5) * 2;
+      setParallax({
+        x: Math.max(-1, Math.min(1, nx)),
+        y: Math.max(-1, Math.min(1, ny)),
+      });
+    },
+    [reducedMotion, rootRef]
+  );
+
+  const handleStagePointerLeave = useCallback(() => {
+    if (reducedMotion) return;
+    setParallax({ x: 0, y: 0 });
+  }, [reducedMotion]);
+
   return (
     <div
       ref={rootRef}
-      className={`vn-stage ${reactionFx?.kind === 'salah' ? 'vn-stage--shake' : ''} ${className ?? ''}`}
+      onPointerMove={handleStagePointerMove}
+      onPointerLeave={handleStagePointerLeave}
+      className={`vn-stage ${reactionFx?.kind === 'salah' ? 'vn-stage--shake' : ''} ${
+        isClimaxTurn ? 'vn-stage--climax' : ''
+      } ${className ?? ''}`}
       data-mood={stageMood}
       data-testid="story-screen"
     >
-      {/* 1. Latar adegan selebar layar dengan atmosfer sinematik */}
-      <div className="vn-backdrop">
+      {/* 1. Latar adegan selebar layar dengan atmosfer sinematik & paralaks 2.5D */}
+      <div
+        className="vn-backdrop"
+        style={
+          reducedMotion
+            ? undefined
+            : {
+                transform: `translate3d(${(parallax.x * -7).toFixed(1)}px, ${(parallax.y * -4.5).toFixed(1)}px, 0) scale(1.022)`,
+                transition: 'transform 160ms ease-out',
+              }
+        }
+      >
         <StoryBackdrop
           setting={scene?.setting ?? 'ruang-konsultasi'}
           zoneId={startZoneId}
@@ -647,6 +851,15 @@ export function StoryScreen({
       </div>
       {/* 1b. Pencahayaan emosi panggung halus berbasis ekspresi terlihat */}
       <div className="vn-mood-layer" aria-hidden="true" />
+      {/* 1b1. Kanvas VFX GPU-feel 60 FPS: Sunbeams Volumetrik + Partikel Spesifik Ruangan + Pita Cahaya Empati Bezier */}
+      {!reducedMotion && (
+        <canvas
+          ref={vfxCanvasRef}
+          data-testid="vn-vfx-canvas"
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[2] h-full w-full"
+        />
+      )}
       {/* 1b2. Partikel atmosfer melayang lembut di seluruh ruangan (hangat di Ruang BK/Diskusi, lembut bercahaya di Lab) */}
       {!reducedMotion && (
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[1] overflow-hidden">
@@ -680,8 +893,18 @@ export function StoryScreen({
         reducedMotion={reducedMotion}
       />
 
-      {/* 2. Dua karakter simetris berdiri penuh di tepi kiri & kanan + efek ekspresi & komunikasi 2-arah! */}
-      <div className="vn-cast">
+      {/* 2. Dua karakter simetris berdiri penuh di tepi kiri & kanan + efek ekspresi, paralaks 2.5D, & dorongan kamera klimaks! */}
+      <div
+        className={`vn-cast ${isClimaxTurn ? 'vn-cast--climax' : ''}`}
+        style={
+          reducedMotion
+            ? undefined
+            : {
+                transform: `translate3d(${(parallax.x * 3.5).toFixed(1)}px, ${(parallax.y * 1.8).toFixed(1)}px, 0) scale(${isClimaxTurn ? 1.028 : 1})`,
+                transition: 'transform 180ms ease-out',
+              }
+        }
+      >
         {/* Jembatan komunikasi visual 2-arah antara Ibu Dosen dan Mahasiswa saat memilih respons */}
         {reactionFx && !reducedMotion && (
           <div
@@ -782,7 +1005,18 @@ export function StoryScreen({
       </div>
 
       {/* 2b. Lapisan tepi meja depan (foreground tabletop depth): membumikan karakter tanpa menutupi wajah/dialog */}
-      <div className="vn-tabletop" aria-hidden="true">
+      <div
+        className="vn-tabletop"
+        aria-hidden="true"
+        style={
+          reducedMotion
+            ? undefined
+            : {
+                transform: `translate3d(${(parallax.x * 8.5).toFixed(1)}px, 0, 0)`,
+                transition: 'transform 150ms ease-out',
+              }
+        }
+      >
         <div className="vn-tabletop-rim" />
         {/* Buku catatan konselor terbuka mungil di sisi kiri depan */}
         <svg

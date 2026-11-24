@@ -13,6 +13,7 @@ import {
   selectBubbles,
   type BubbleSpec,
 } from '../world/speechBubble';
+import { computeSunLighting, type CampusWeatherMode } from '../gpu/sunLighting';
 
 export interface AgentRenderOptions {
   tileSizePx: number;
@@ -21,6 +22,8 @@ export interface AgentRenderOptions {
   hoveredAgentId: string | null;
   timeSeconds?: number;
   reducedMotion?: boolean;
+  clockMinutesOfDay?: number;
+  weatherMode?: CampusWeatherMode;
   /** Posisi tile avatar bila sedang idle; dipakai untuk balon sapaan "Hi!". */
   avatarIdlePosition?: { x: number; y: number } | null;
 }
@@ -448,11 +451,30 @@ export function drawAgentSprite(
     ctx.restore();
   }
 
-  // Bayangan kontak halus di bawah kaki chibi
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.22)';
+  // Bayangan matahari terarah waktu nyata + bayangan kontak AO di bawah kaki chibi
+  const sun = computeSunLighting(
+    options.clockMinutesOfDay ?? 660,
+    options.weatherMode ?? 'otomatis'
+  );
+  ctx.save();
+  ctx.fillStyle = sun.shadowColor;
   ctx.beginPath();
-  ctx.ellipse(feet.x, feet.y - 1, 15, 5.5, 0, 0, Math.PI * 2);
+  ctx.ellipse(
+    feet.x + sun.shadowDirX * 7.5,
+    feet.y + 1 + sun.shadowDirY * 4.5,
+    14 * (0.85 + sun.shadowLength * 0.35),
+    5.2,
+    sun.shadowDirX * 0.24,
+    0,
+    Math.PI * 2
+  );
   ctx.fill();
+
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.24)';
+  ctx.beginPath();
+  ctx.ellipse(feet.x, feet.y - 1, 13.5, 4.8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 
   const choice = selectFrame({
     moving,

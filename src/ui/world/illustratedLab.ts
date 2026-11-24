@@ -9,6 +9,7 @@
  */
 import type { ConsultationDoorMode, LabFurniture, LabMapData, LabZone, ZoneType } from '../../types';
 import type { RoomDecorId } from '../../engine/roomDecor';
+import { computeSunLighting, type CampusWeatherMode } from '../gpu/sunLighting';
 
 const INK = '#3e2517';
 const CACHE_SCALE = 2; // Render latar gedung statis di 2x HD untuk ketajaman Retina
@@ -68,13 +69,19 @@ export function drawOutdoorCampusCourtyard(
   map: LabMapData,
   timeSeconds: number,
   reducedMotion: boolean,
-  clockMinutesOfDay = 540
+  clockMinutesOfDay = 540,
+  weatherMode: CampusWeatherMode = 'otomatis'
 ): void {
-  // Gradien rumput taman kampus yang ikut menyesuaikan cahaya Pagi / Siang / Sore
-  const isAfternoon = clockMinutesOfDay >= 870;
-  const isMorning = clockMinutesOfDay < 660;
+  const sun = computeSunLighting(clockMinutesOfDay, weatherMode);
+  const isRain = weatherMode === 'hujan';
+  const isAfternoon = sun.phase === 'sore' && !isRain;
+  const isMorning = sun.phase === 'pagi' && !isRain;
   const lawn = ctx.createLinearGradient(0, 0, 0, heightCss);
-  if (isAfternoon) {
+  if (isRain) {
+    lawn.addColorStop(0, '#6e9c78');
+    lawn.addColorStop(0.5, '#5e8d6a');
+    lawn.addColorStop(1, '#4f7c5b');
+  } else if (isAfternoon) {
     lawn.addColorStop(0, '#a6bf6d');
     lawn.addColorStop(0.5, '#91ad5f');
     lawn.addColorStop(1, '#799952');
@@ -176,12 +183,91 @@ export function drawOutdoorCampusCourtyard(
     }
   }
 
-  // Bayangan gedung yang hangat & membumi
-  rrect(ctx, bx + 6 * camera.scale, by + 9 * camera.scale, bw, bh, 10 * camera.scale);
-  ctx.fillStyle = 'rgba(42, 64, 30, 0.28)';
+  // Bayangan gedung dinamis mengikuti arah & panjang matahari waktu nyata
+  const bShadowDx = sun.shadowDirX * 13 * camera.scale;
+  const bShadowDy = (6 + sun.shadowDirY * 14) * camera.scale;
+  rrect(ctx, bx + bShadowDx, by + bShadowDy, bw, bh, 12 * camera.scale);
+  ctx.fillStyle = sun.shadowColor;
   ctx.fill();
 
-  // Pohon-pohon kampus bergoyang halus di sudut-sudut halaman
+  // Kolam Ikan Koi & Air Mancur Taman Kampus (Shader Caustics & Riak Air Hidup) di halaman selatan-barat
+  if (southH >= 34 * camera.scale) {
+    const pondW = 108 * camera.scale;
+    const pondH = Math.min(42 * camera.scale, Math.max(24 * camera.scale, southH - 12 * camera.scale));
+    const pondX = bx + bw * 0.19 - pondW / 2;
+    const pondY = southStartY + 8 * camera.scale;
+
+    // Bingkai batu alam kolam
+    rrect(ctx, pondX - 4 * camera.scale, pondY - 3 * camera.scale, pondW + 8 * camera.scale, pondH + 6 * camera.scale, 16 * camera.scale);
+    ctx.fillStyle = '#c5b498';
+    ctx.fill();
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = Math.max(1.2, 1.8 * camera.scale);
+    ctx.stroke();
+
+    // Air kolam berlapis gradasi biru-zamrud
+    rrect(ctx, pondX, pondY, pondW, pondH, 13 * camera.scale);
+    const waterGrad = ctx.createLinearGradient(pondX, pondY, pondX + pondW, pondY + pondH);
+    waterGrad.addColorStop(0, isAfternoon ? '#389393' : '#2d96a8');
+    waterGrad.addColorStop(0.55, isAfternoon ? '#2a7b88' : '#23798e');
+    waterGrad.addColorStop(1, '#18596b');
+    ctx.fillStyle = waterGrad;
+    ctx.fill();
+
+    // Jaring cahaya air (water caustics) & ikan koi berenang halus
+    ctx.save();
+    rrect(ctx, pondX, pondY, pondW, pondH, 13 * camera.scale);
+    ctx.clip();
+    const animT = reducedMotion ? 1.5 : timeSeconds;
+    ctx.strokeStyle = 'rgba(195, 248, 255, 0.30)';
+    ctx.lineWidth = Math.max(1, 1.3 * camera.scale);
+    for (let wi = 0; wi < 4; wi += 1) {
+      const rx = pondX + ((wi + 0.5) * pondW) / 4 + Math.sin(animT * 1.4 + wi) * 6 * camera.scale;
+      const ry = pondY + pondH * 0.5 + Math.cos(animT * 1.1 + wi * 1.3) * 4 * camera.scale;
+      ctx.beginPath();
+      ctx.ellipse(rx, ry, (11 + Math.sin(animT * 2 + wi) * 3) * camera.scale, 4.5 * camera.scale, 0.2, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // 2 Ikan Koi berenang melingkar lembut
+    for (let ki = 0; ki < 2; ki += 1) {
+      const ang = animT * (0.65 + ki * 0.22) + ki * 3.1;
+      const kx = pondX + pondW * (0.35 + ki * 0.3) + Math.cos(ang) * 14 * camera.scale;
+      const ky = pondY + pondH * 0.52 + Math.sin(ang) * 6 * camera.scale;
+      ctx.save();
+      ctx.translate(kx, ky);
+      ctx.rotate(ang + Math.PI / 2);
+      ctx.fillStyle = ki === 0 ? '#ff7847' : '#ffd15c';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 5.2 * camera.scale, 2.2 * camera.scale, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fffdf6';
+      ctx.beginPath();
+      ctx.arc(-2 * camera.scale, 0, 1.4 * camera.scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Daun teratai & bunga lotus merah muda
+    for (const [lx, ly] of [
+      [pondX + pondW * 0.22, pondY + pondH * 0.38],
+      [pondX + pondW * 0.78, pondY + pondH * 0.62],
+    ]) {
+      ctx.fillStyle = '#4ea865';
+      ctx.beginPath();
+      ctx.arc(lx, ly, 5.5 * camera.scale, 0.25, Math.PI * 1.9);
+      ctx.lineTo(lx, ly);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#fda4af';
+      ctx.beginPath();
+      ctx.arc(lx + 1.5 * camera.scale, ly - 1 * camera.scale, 2.2 * camera.scale, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Pohon-pohon kampus bergoyang halus di sudut-sudut halaman dengan bayangan matahari terarah
   const sway = reducedMotion ? 0 : Math.sin(timeSeconds * 1.15) * 2.4;
   const trees: Array<{ x: number; y: number; r: number; hue: number }> = [
     { x: bx - pad - 26 * camera.scale, y: by - 4 * camera.scale, r: 28 * camera.scale, hue: 0 },
@@ -196,10 +282,20 @@ export function drawOutdoorCampusCourtyard(
     const tr = trees[idx];
     if (tr.r < 6) continue;
     const dx = sway * (idx % 2 === 0 ? 1 : -0.8);
-    // Bayangan tajuk di rumput
-    ctx.fillStyle = 'rgba(38, 72, 32, 0.24)';
+    // Bayangan tajuk di rumput bergeser mengikuti arah matahari
+    const tShadowX = tr.x + sun.shadowDirX * tr.r * 0.65;
+    const tShadowY = tr.y + tr.r * (0.48 + sun.shadowDirY * 0.55);
+    ctx.fillStyle = sun.shadowColor;
     ctx.beginPath();
-    ctx.ellipse(tr.x + 5, tr.y + tr.r * 0.55, tr.r * 0.92, tr.r * 0.45, 0, 0, Math.PI * 2);
+    ctx.ellipse(
+      tShadowX,
+      tShadowY,
+      tr.r * (0.85 + Math.abs(sun.shadowDirX) * 0.28),
+      tr.r * 0.46,
+      sun.shadowDirX * 0.22,
+      0,
+      Math.PI * 2
+    );
     ctx.fill();
     // Tajuk gelap bawah
     ctx.fillStyle = tr.hue === 0 ? '#4d8c4d' : '#3f7f56';
@@ -1251,15 +1347,76 @@ export function drawOutdoorAmbientParticles(
   camera: { offsetX: number; offsetY: number; scale: number },
   map: LabMapData,
   timeSeconds: number,
-  reducedMotion: boolean
+  reducedMotion: boolean,
+  weatherMode: CampusWeatherMode = 'otomatis'
 ): void {
-  if (reducedMotion || widthCss < 200 || heightCss < 200) return;
+  if (widthCss < 200 || heightCss < 200) return;
   const worldW = map.width * map.tileSizePx * camera.scale;
   const worldH = map.height * map.tileSizePx * camera.scale;
   const bx = camera.offsetX;
   const by = camera.offsetY;
 
   ctx.save();
+
+  // Mode Cuaca Hujan Rintik Kampus (Cozy Rain: 3 lapis garis hujan + riak air di halaman batu)
+  if (weatherMode === 'hujan') {
+    const animT = reducedMotion ? 1.0 : timeSeconds;
+    // Riak cipratan air hujan di teras & jalan batu luar gedung
+    ctx.strokeStyle = 'rgba(216, 240, 255, 0.48)';
+    ctx.lineWidth = 1.1;
+    for (let ri = 0; ri < 14; ri += 1) {
+      const cycle = (animT * 1.7 + ri * 0.29) % 1;
+      const rx = ((ri * 173.3 + 64) % Math.max(1, widthCss));
+      const ry = ((ri * 127.9 + 38) % Math.max(1, heightCss));
+      if (rx > bx + 8 && rx < bx + worldW - 8 && ry > by + 8 && ry < by + worldH - 8) continue;
+      ctx.globalAlpha = (1 - cycle) * 0.65;
+      ctx.beginPath();
+      ctx.ellipse(rx, ry, 2 + cycle * 9, 1 + cycle * 3.8, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // 3 lapis rintik hujan miring sinematik
+    ctx.globalAlpha = 1;
+    const dropCount = reducedMotion ? 28 : 64;
+    for (let di = 0; di < dropCount; di += 1) {
+      const layer = (di % 3) + 1;
+      const speed = reducedMotion ? 0 : 340 + layer * 130;
+      const x = ((di * 97.7 + animT * speed * 0.24) % (widthCss + 80)) - 40;
+      const y = ((di * 151.3 + animT * speed) % (heightCss + 80)) - 40;
+      const len = 10 + layer * 5;
+      ctx.strokeStyle =
+        layer === 3
+          ? 'rgba(224, 242, 254, 0.42)'
+          : layer === 2
+            ? 'rgba(186, 230, 253, 0.30)'
+            : 'rgba(186, 230, 253, 0.20)';
+      ctx.lineWidth = layer === 3 ? 1.35 : 1;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - len * 0.24, y + len);
+      ctx.stroke();
+    }
+    ctx.restore();
+    return;
+  }
+
+  if (reducedMotion) {
+    ctx.restore();
+    return;
+  }
+
+  // Bayangan awan lembut (Cloud Shadows) yang melintas pelan di atas halaman & gedung
+  for (let ci = 0; ci < 3; ci += 1) {
+    const cx = ((ci * 480 + timeSeconds * 16) % (widthCss + 360)) - 180;
+    const cy = heightCss * (0.22 + ci * 0.28) + Math.sin(timeSeconds * 0.2 + ci) * 18;
+    const cGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, 155);
+    cGrad.addColorStop(0, 'rgba(22, 40, 28, 0.085)');
+    cGrad.addColorStop(1, 'rgba(22, 40, 28, 0)');
+    ctx.fillStyle = cGrad;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 155, 68, -0.15, 0, Math.PI * 2);
+    ctx.fill();
+  }
   // 8 kelopak/daun halus melayang di luar gedung (hanya di area halaman rumput)
   for (let i = 0; i < 8; i += 1) {
     const speedX = 12 + (i % 3) * 5;

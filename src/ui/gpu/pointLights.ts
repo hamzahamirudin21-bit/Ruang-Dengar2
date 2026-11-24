@@ -5,7 +5,7 @@
  */
 import type { LabMapData } from '../../types';
 import type { RoomDecorId } from '../../engine/roomDecor';
-import { computeSunLighting } from './sunLighting';
+import { computeSunLighting, type CampusWeatherMode } from './sunLighting';
 
 export type PointLightKind =
   | 'monitor'
@@ -33,10 +33,11 @@ export function collectMapPointLights(
   equippedDecor: readonly RoomDecorId[] | undefined,
   clockMinutesOfDay: number,
   timeSeconds: number,
-  reducedMotion: boolean
+  reducedMotion: boolean,
+  weatherMode: CampusWeatherMode = 'otomatis'
 ): PointLight2D[] {
   const t = map.tileSizePx;
-  const sun = computeSunLighting(clockMinutesOfDay);
+  const sun = computeSunLighting(clockMinutesOfDay, weatherMode);
   const lampBoost = sun.indoorLampBoost;
   const lights: PointLight2D[] = [];
   const hasDecor = (id: RoomDecorId) => Boolean(equippedDecor?.includes(id));

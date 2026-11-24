@@ -10,6 +10,7 @@ import {
   SPRITE_WORLD_W,
   spriteFeet,
 } from '../world/worldMetrics';
+import { computeSunLighting, type CampusWeatherMode } from '../gpu/sunLighting';
 
 /**
  * Lapisan cerita di denah: avatar Dosen BK (sprite), penanda misi,
@@ -30,6 +31,8 @@ export interface StoryRenderOptions {
   outcomeBadges: Readonly<Record<string, StoryOutcomeKind>>;
   reducedMotion: boolean;
   timeSeconds: number;
+  clockMinutesOfDay?: number;
+  weatherMode?: CampusWeatherMode;
 }
 
 /** Id sprite untuk avatar Dosen BK. */
@@ -369,8 +372,22 @@ export function drawAvatar(ctx: CanvasRenderingContext2D, opts: StoryRenderOptio
     drawFootstepPuffs(ctx, feet, dir, opts.timeSeconds, opts.reducedMotion, 0.1);
   }
 
-  // Bayangan
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.18)';
+  // Bayangan matahari terarah + kontak AO Ibu Dosen BK
+  const sun = computeSunLighting(opts.clockMinutesOfDay ?? 660, opts.weatherMode ?? 'otomatis');
+  ctx.fillStyle = sun.shadowColor;
+  ctx.beginPath();
+  ctx.ellipse(
+    feet.x + sun.shadowDirX * 7.5,
+    feet.y + 1 + sun.shadowDirY * 4.5,
+    13 * (0.85 + sun.shadowLength * 0.35),
+    4.8,
+    sun.shadowDirX * 0.24,
+    0,
+    Math.PI * 2
+  );
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.22)';
   ctx.beginPath();
   ctx.ellipse(feet.x, feet.y - 0.5, 11.5, 4.2, 0, 0, Math.PI * 2);
   ctx.fill();

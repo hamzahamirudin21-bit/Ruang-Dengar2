@@ -16,6 +16,11 @@ let bgmTimer: number | null = null;
 let bgmStep = 0;
 let visibilityBound = false;
 
+// State ambien hujan kampus cozy prosedural (pink-noise lembut berfilter bandpass)
+let rainDesired = false;
+let rainSource: AudioBufferSourceNode | null = null;
+let rainGainNode: GainNode | null = null;
+
 interface BgmChord {
   notes: readonly number[];
   melody: readonly (number | null)[];
@@ -169,6 +174,81 @@ export function stopCozyBgm(): void {
   }
 }
 
+function syncRainAmbienceNode(): void {
+  try {
+    if (!enabled || !rainDesired || typeof window === 'undefined') {
+      if (rainSource) {
+        try {
+          rainSource.stop();
+          rainSource.disconnect();
+        } catch {
+          /* abaikan */
+        }
+        rainSource = null;
+      }
+      if (rainGainNode) {
+        try {
+          rainGainNode.disconnect();
+        } catch {
+          /* abaikan */
+        }
+        rainGainNode = null;
+      }
+      return;
+    }
+
+    if (rainSource) return;
+    const c = getContext();
+    if (!c) return;
+    if (c.state === 'suspended') void c.resume().catch(() => undefined);
+
+    const sampleRate = c.sampleRate || 44100;
+    const length = sampleRate * 2;
+    const buffer = c.createBuffer(1, length, sampleRate);
+    const data = buffer.getChannelData(0);
+    // Filter Paul Kellet pink-noise ringan agar suara rintik hujan terdengar organik & hangat
+    let b0 = 0;
+    let b1 = 0;
+    let b2 = 0;
+    for (let i = 0; i < length; i += 1) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99765 * b0 + white * 0.099046;
+      b1 = 0.963 * b1 + white * 0.2965164;
+      b2 = 0.57 * b2 + white * 1.0526913;
+      data[i] = (b0 + b1 + b2 + white * 0.1848) * 0.08;
+    }
+
+    const src = c.createBufferSource();
+    src.buffer = buffer;
+    src.loop = true;
+
+    const filter = c.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1050, c.currentTime);
+    filter.Q.setValueAtTime(0.65, c.currentTime);
+
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, c.currentTime);
+    g.gain.linearRampToValueAtTime(0.016, c.currentTime + 0.45);
+
+    src.connect(filter);
+    filter.connect(g);
+    g.connect(c.destination);
+    src.start();
+
+    rainSource = src;
+    rainGainNode = g;
+  } catch {
+    /* gagal diam-diam di headless/Node */
+  }
+}
+
+/** Mengaktifkan atau mematikan ambien rintik hujan cozy saat cuaca kampus disetel ke 'hujan'. */
+export function setRainAmbienceEnabled(active: boolean): void {
+  rainDesired = active === true;
+  syncRainAmbienceNode();
+}
+
 export function setSfxEnabled(value: boolean): void {
   enabled = value === true;
   if (enabled) {
@@ -176,6 +256,7 @@ export function setSfxEnabled(value: boolean): void {
   } else {
     stopCozyBgm();
   }
+  syncRainAmbienceNode();
 }
 
 export function isSfxEnabled(): boolean {
