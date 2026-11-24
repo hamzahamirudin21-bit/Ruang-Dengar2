@@ -293,7 +293,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({
         />
       )}
 
-      {/* Bingkai Ornamen Arsitektur Atelier (bukan kotak garis putus-putus biasa) */}
+      {/* Bingkai Ornamen Arsitektur Atelier */}
       <div className="title-architectural-frame" aria-hidden="true">
         <BrassCornerFiligree className="left-3 top-3" />
         <BrassCornerFiligree className="right-3 top-3 rotate-90" />
@@ -301,384 +301,389 @@ export const StartScreen: React.FC<StartScreenProps> = ({
         <BrassCornerFiligree className="bottom-3 right-3 rotate-180" />
       </div>
 
-      {/* Bilah cepat Pustaka Landasan Teori & Musik Kampus dengan potongan berlian oktagonal */}
-      {(onOpenTheory || onToggleAudio) && (
-        <div className="absolute right-6 top-5 z-20 flex flex-wrap items-center justify-end gap-2.5">
-          {onOpenTheory && (
-            <button
-              type="button"
-              onClick={() => {
-                playSfx('klik');
-                onOpenTheory();
-              }}
-              data-testid="open-theory-library-btn"
-              className="title-top-crest-btn title-top-crest-btn--teal"
-            >
-              <span className="title-top-crest-gem" aria-hidden="true">📚</span>
-              <span>Landasan Psikologi</span>
-            </button>
-          )}
-          {onToggleAudio && (
-            <button
-              type="button"
-              onClick={onToggleAudio}
-              aria-pressed={audioEnabled}
-              aria-label={audioEnabled ? 'Matikan musik kampus & suara' : 'Nyalakan musik kampus & suara'}
-              className={`title-top-crest-btn ${
-                audioEnabled ? 'title-top-crest-btn--gold' : 'title-top-crest-btn--cream'
-              }`}
-            >
-              <span className="title-top-crest-gem" aria-hidden="true">
-                {audioEnabled ? '🔊' : '🔇'}
+      <div className="title-layout-shell">
+        {/* =================================================================
+            ZONA 1 — BILAH ATAS ATELIER (Lambang Edisi di Kiri, Pustaka & Musik di Kanan)
+           ================================================================= */}
+        <div className="title-topbar">
+          <div className="title-crest-row">
+            <div className="title-emblem" aria-hidden="true">
+              <span className="title-emblem-disc title-emblem-ear">
+                <IconTelinga className="h-5 w-5" />
               </span>
-              <span>{audioEnabled ? 'Musik Aktif' : 'Nyalakan Musik'}</span>
-            </button>
+              <span className="title-emblem-disc title-emblem-bubble">
+                <IconObrolan className="h-5 w-5" />
+              </span>
+            </div>
+            <span className="title-edition-stamp">
+              <span className="title-wave-bars" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+                <span />
+              </span>
+              <span>Edisi HD-2D · 18 Kisah · 11 Ruangan Kampus</span>
+            </span>
+          </div>
+
+          {(onOpenTheory || onToggleAudio) && (
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {onOpenTheory && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    playSfx('klik');
+                    onOpenTheory();
+                  }}
+                  data-testid="open-theory-library-btn"
+                  className="title-top-crest-btn title-top-crest-btn--teal"
+                >
+                  <span className="title-top-crest-gem" aria-hidden="true">📚</span>
+                  <span>Landasan Psikologi</span>
+                </button>
+              )}
+              {onToggleAudio && (
+                <button
+                  type="button"
+                  onClick={onToggleAudio}
+                  aria-pressed={audioEnabled}
+                  aria-label={audioEnabled ? 'Matikan musik kampus & suara' : 'Nyalakan musik kampus & suara'}
+                  className={`title-top-crest-btn ${
+                    audioEnabled ? 'title-top-crest-btn--gold' : 'title-top-crest-btn--cream'
+                  }`}
+                >
+                  <span className="title-top-crest-gem" aria-hidden="true">
+                    {audioEnabled ? '🔊' : '🔇'}
+                  </span>
+                  <span>{audioEnabled ? 'Musik Aktif' : 'Nyalakan Musik'}</span>
+                </button>
+              )}
+            </div>
           )}
         </div>
-      )}
 
-      <div className="title-stage">
-        {/* Kolom Kiri: Lambang Segi Delapan + Tipografi Pahat + Bilah Komando Miring + Perkamen Stempel Lilin */}
-        <div className="title-content">
-          <header className="title-logo-wrap">
-            <div className="title-sparkles" aria-hidden="true">
-              <IconBintang className="title-spark title-spark-a" />
-              <IconBintang className="title-spark title-spark-b" />
-              <IconBintang className="title-spark title-spark-c" />
-              {SPARKLES.map((s, i) => (
-                <span
-                  key={i}
-                  className="fx-sparkle"
-                  aria-hidden="true"
-                  style={{
-                    position: 'absolute',
-                    left: `${s.leftPct}%`,
-                    top: `${s.topPct}%`,
-                    width: s.sizePx,
-                    height: s.sizePx,
-                    animationDelay: reduced ? undefined : `${s.delayMs}ms`,
-                    animationDuration: `${s.durationMs}ms`,
-                  }}
-                />
-              ))}
-            </div>
-
-            {/* Baris Lambang Segi Delapan (Octagonal Medallions) & Pita Edisi Pahatan */}
-            <div className="title-crest-row">
-              <div className="title-emblem" aria-hidden="true">
-                <span className="title-emblem-disc title-emblem-ear">
-                  <IconTelinga className="h-5 w-5" />
-                </span>
-                <span className="title-emblem-disc title-emblem-bubble">
-                  <IconObrolan className="h-5 w-5" />
-                </span>
-              </div>
-              <span className="title-edition-stamp">
-                <span className="title-wave-bars" aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                </span>
-                <span>EDISI HD-2D · 18 KISAH · 11 RUANGAN</span>
-              </span>
-            </div>
-
-            <h1 className="title-logo" aria-label={STRINGS.app.name}>
-              {(() => {
-                let idx = 0;
-                return LOGO_LINES.map((line, li) => (
+        {/* =================================================================
+            ZONA 2 — PANGGUNG UTAMA SEIMBANG (Kiri: Logo & 3 Bilah Menu | Kanan: Diorama Pemeran)
+           ================================================================= */}
+        <div className="title-stage">
+          {/* Kolom Kiri: Logo Proporsional + 3 Bilah Menu Pahatan Berukuran Teks Jelas & Nyaman */}
+          <div className="title-content">
+            <header className="title-logo-wrap">
+              <div className="title-sparkles" aria-hidden="true">
+                <IconBintang className="title-spark title-spark-a" />
+                <IconBintang className="title-spark title-spark-b" />
+                <IconBintang className="title-spark title-spark-c" />
+                {SPARKLES.map((s, i) => (
                   <span
-                    key={line}
+                    key={i}
+                    className="fx-sparkle"
                     aria-hidden="true"
-                    className={li === 0 ? 'title-logo-line' : 'title-logo-line title-logo-line-2'}
-                  >
-                    {Array.from(line).map((ch, ci) => {
-                      const d = LOGO_DELAYS[idx++] ?? 0;
-                      return (
-                        <span
-                          key={ci}
-                          className="fx-logo-bounce title-letter"
-                          style={{ animationDelay: reduced ? undefined : `${d}ms` }}
-                        >
-                          {ch}
-                        </span>
-                      );
-                    })}
-                  </span>
-                ));
-              })()}
-            </h1>
+                    style={{
+                      position: 'absolute',
+                      left: `${s.leftPct}%`,
+                      top: `${s.topPct}%`,
+                      width: s.sizePx,
+                      height: s.sizePx,
+                      animationDelay: reduced ? undefined : `${s.delayMs}ms`,
+                      animationDuration: `${s.durationMs}ms`,
+                    }}
+                  />
+                ))}
+              </div>
 
-            <p className="game-ribbon title-subtitle" data-tone="kayu">
-              {STRINGS.titleScreen.subtitle}
-            </p>
-          </header>
-
-          {/* Bilah Komando Pahatan Asimetris (Sculpted Command Blades — Bukan Kotak Biasa!) */}
-          <nav aria-label={STRINGS.app.name} className="title-menu">
-            {menu.map((item, index) => {
-              const tipId = `title-tip-${item.id}`;
-              return (
-                <React.Fragment key={item.id}>
-                  <button
-                    type="button"
-                    disabled={!item.enabled}
-                    aria-disabled={!item.enabled}
-                    aria-describedby={item.tooltip ? tipId : undefined}
-                    title={item.tooltip}
-                    data-start={item.id === 'mulai' ? 'true' : undefined}
-                    onClick={() => handleItem(item.id)}
-                    className={`title-command-blade ${
-                      item.primary
-                        ? 'title-command-blade--primary title-menu-btn-main'
-                        : 'title-command-blade--secondary'
-                    } title-menu-btn`}
-                  >
-                    {/* Medali Ikon Segi Delapan di Sisi Kiri Bilah */}
-                    <span className="title-blade-medallion" aria-hidden="true">
-                      <MenuIcon id={item.id} />
+              <h1 className="title-logo" aria-label={STRINGS.app.name}>
+                {(() => {
+                  let idx = 0;
+                  return LOGO_LINES.map((line, li) => (
+                    <span
+                      key={line}
+                      aria-hidden="true"
+                      className={li === 0 ? 'title-logo-line' : 'title-logo-line title-logo-line-2'}
+                    >
+                      {Array.from(line).map((ch, ci) => {
+                        const d = LOGO_DELAYS[idx++] ?? 0;
+                        return (
+                          <span
+                            key={ci}
+                            className="fx-logo-bounce title-letter"
+                            style={{ animationDelay: reduced ? undefined : `${d}ms` }}
+                          >
+                            {ch}
+                          </span>
+                        );
+                      })}
                     </span>
+                  ));
+                })()}
+              </h1>
 
-                    {/* Teks & Sub-aksen Bilah */}
-                    <span className="flex min-w-0 flex-1 flex-col items-start text-left">
-                      <span className="title-blade-label">{item.label}</span>
-                      {item.primary && (
-                        <span className="title-blade-sublabel">
-                          Masuki Kampus Vokasi &amp; Dampingi 18 Mahasiswa
-                        </span>
-                      )}
-                    </span>
+              <p className="game-ribbon title-subtitle" data-tone="kayu">
+                {STRINGS.titleScreen.subtitle}
+              </p>
+            </header>
 
-                    {/* Ornamen Panah Berlian atau Lencana Status di Kanan */}
-                    {!item.enabled && item.tooltip ? (
-                      <span className="title-soon-pill" aria-hidden="true">
-                        {item.tooltip}
+            {/* 3 Bilah Komando Pahatan (Sculpted Command Blades) dengan Sub-Menu Jelas & Tidak Bertabrakan */}
+            <nav aria-label={STRINGS.app.name} className="title-menu">
+              {menu.map((item, index) => {
+                const tipId = `title-tip-${item.id}`;
+                const subText =
+                  item.id === 'mulai'
+                    ? 'Masuki Kampus Vokasi & Dampingi 18 Mahasiswa'
+                    : item.id === 'tentang'
+                      ? (item.tooltip ?? 'Landasan Pedagogis & Keterampilan Konseling')
+                      : 'Ukuran Teks, Kecepatan Simulasi, & Preferensi Gerak';
+                return (
+                  <React.Fragment key={item.id}>
+                    <button
+                      type="button"
+                      disabled={!item.enabled}
+                      aria-disabled={!item.enabled}
+                      aria-describedby={item.tooltip ? tipId : undefined}
+                      title={item.tooltip}
+                      data-start={item.id === 'mulai' ? 'true' : undefined}
+                      onClick={() => handleItem(item.id)}
+                      className={`title-command-blade ${
+                        item.primary
+                          ? 'title-command-blade--primary title-menu-btn-main'
+                          : 'title-command-blade--secondary'
+                      } title-menu-btn`}
+                    >
+                      {/* Medali Ikon Segi Delapan di Sisi Kiri Bilah */}
+                      <span className="title-blade-medallion" aria-hidden="true">
+                        <MenuIcon id={item.id} />
                       </span>
-                    ) : (
+
+                      {/* Teks Utama & Sub-Menu Dua Baris Rapi (Tidak Pernah Bertumpuk!) */}
+                      <span className="flex min-w-0 flex-1 flex-col items-start text-left">
+                        <span className="title-blade-label">{item.label}</span>
+                        <span
+                          className={`title-blade-sublabel ${
+                            item.primary ? '' : 'title-blade-sublabel--secondary'
+                          }`}
+                        >
+                          {subText}
+                        </span>
+                      </span>
+
+                      {/* Ornamen Indeks Berlian di Kanan */}
                       <span className="title-blade-chevron" aria-hidden="true">
-                        <span className="text-[10px] opacity-65">0{index + 1}</span>
+                        <span className="title-blade-index">0{index + 1}</span>
                         <span>◆</span>
                       </span>
-                    )}
-                  </button>
-                  {item.tooltip ? (
-                    <span id={tipId} className="sr-only">
-                      {item.tooltip}
-                    </span>
-                  ) : null}
-                </React.Fragment>
-              );
-            })}
-          </nav>
+                    </button>
+                    {item.tooltip ? (
+                      <span id={tipId} className="sr-only">
+                        {item.tooltip}
+                      </span>
+                    ) : null}
+                  </React.Fragment>
+                );
+              })}
+            </nav>
+          </div>
 
-          {/* Gulungan Perkamen Berstempel Lilin (Wax-Sealed Parchment Scroll — Bukan Kotak Putih Biasa!) */}
+          {/* Kolom Kanan: Panggung Diorama Astrolab Akustik Nusantara + Pemeran Hidup + Plakat Teater */}
+          <aside className="title-cast-stage" aria-label="Sorotan Pemeran Ruang Dengar">
+            <div className="title-astrolabe-wrap" aria-hidden="true">
+              <svg
+                viewBox="0 0 420 420"
+                fill="none"
+                className="title-astrolabe-svg"
+              >
+                <defs>
+                  <radialGradient id="astrolabeGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#ffe596" stopOpacity="0.48" />
+                    <stop offset="52%" stopColor="#3ba08e" stopOpacity="0.18" />
+                    <stop offset="100%" stopColor="#1c110a" stopOpacity="0" />
+                  </radialGradient>
+                  <linearGradient id="brassRingGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#fff0b8" />
+                    <stop offset="50%" stopColor="#e5a93c" />
+                    <stop offset="100%" stopColor="#82e0cb" />
+                  </linearGradient>
+                </defs>
+
+                <circle cx="210" cy="210" r="195" fill="url(#astrolabeGlow)" />
+
+                <g className="title-astrolabe-ring-outer">
+                  <circle
+                    cx="210"
+                    cy="210"
+                    r="184"
+                    stroke="url(#brassRingGrad)"
+                    strokeWidth="1.8"
+                    strokeOpacity="0.6"
+                  />
+                  <circle
+                    cx="210"
+                    cy="210"
+                    r="172"
+                    stroke="#ffe699"
+                    strokeWidth="1.4"
+                    strokeDasharray="4 10"
+                    strokeOpacity="0.7"
+                  />
+                  {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
+                    <g key={deg} transform={`rotate(${deg} 210 210)`}>
+                      <polygon
+                        points="210,16 215,28 210,35 205,28"
+                        fill="#ffe699"
+                        fillOpacity="0.86"
+                      />
+                    </g>
+                  ))}
+                </g>
+
+                <g className="title-astrolabe-ring-inner">
+                  <rect
+                    x="76"
+                    y="76"
+                    width="268"
+                    height="268"
+                    rx="24"
+                    stroke="#ffe699"
+                    strokeWidth="1.3"
+                    strokeOpacity="0.36"
+                  />
+                  <rect
+                    x="76"
+                    y="76"
+                    width="268"
+                    height="268"
+                    rx="24"
+                    transform="rotate(45 210 210)"
+                    stroke="#66d9c2"
+                    strokeWidth="1.3"
+                    strokeOpacity="0.4"
+                  />
+                  <circle
+                    cx="210"
+                    cy="210"
+                    r="134"
+                    stroke="#ffe699"
+                    strokeWidth="1.6"
+                    strokeDasharray="16 8 4 8"
+                    strokeOpacity="0.52"
+                  />
+                </g>
+              </svg>
+            </div>
+
+            <div
+              className="title-cast-figures"
+              style={
+                reduced
+                  ? undefined
+                  : { transform: `translate3d(${parallax.x.toFixed(1)}px, ${parallax.y.toFixed(1)}px, 0)` }
+              }
+            >
+              <img
+                src={assetUrl('dosen-portrait.png')}
+                alt=""
+                aria-hidden="true"
+                className="title-cast-figure title-cast-figure--dosen"
+                draggable={false}
+              />
+              <img
+                key={featured.id}
+                src={assetUrl(`${featured.id}-portrait.png`)}
+                alt=""
+                aria-hidden="true"
+                className="title-cast-figure title-cast-figure--student fx-panel-in"
+                draggable={false}
+              />
+            </div>
+
+            {/* Plakat Teater Panggung Pemeran dengan Ukuran Teks Jelas & Proporsional */}
+            <div className="title-marquee-plaque">
+              <div className="title-marquee-ribbon">
+                <span>✦ SOROTAN PEMERAN</span>
+                <span className="opacity-60">·</span>
+                <span className="text-[#ffe694]">{featured.badge}</span>
+              </div>
+
+              <div className="flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  aria-label="Pemeran sebelumnya"
+                  onClick={() => {
+                    playSfx('klik');
+                    setCastIndex((i) => (i - 1 + FEATURED_CAST.length) % FEATURED_CAST.length);
+                  }}
+                  className="title-marquee-arrow"
+                >
+                  ‹
+                </button>
+
+                <div className="min-w-0 flex-1 text-center">
+                  <div className="truncate font-['Fredoka',sans-serif] text-[1.12rem] font-bold text-[#3e2517]">
+                    Ibu Dosen BK &amp; {featured.name}
+                  </div>
+                  <div className="truncate text-[0.86rem] font-semibold text-[#6b482e]">
+                    {featured.tag}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  aria-label="Pemeran berikutnya"
+                  onClick={() => {
+                    playSfx('klik');
+                    setCastIndex((i) => (i + 1) % FEATURED_CAST.length);
+                  }}
+                  className="title-marquee-arrow"
+                >
+                  ›
+                </button>
+              </div>
+
+              <div className="title-spotlight-dots" role="group" aria-label="Pilih sorotan pemeran">
+                {FEATURED_CAST.map((c, i) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className="title-spotlight-dot"
+                    aria-label={`Tampilkan ${c.name}`}
+                    aria-pressed={i === castIndex}
+                    onClick={() => {
+                      playSfx('klik');
+                      setCastIndex(i);
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        {/* =================================================================
+            ZONA 3 — DOK BAWAH ATELIER (Perkamen Etika & Pintasan Keyboard Sejajar Rapi)
+           ================================================================= */}
+        <footer className="title-bottom-dock">
           <section
             aria-label={STRINGS.app.disclaimerTitle}
             className="title-parchment-scroll"
           >
-            {/* Stempel Lilin Merah-Emas (Wax Seal Emblem) */}
             <div className="title-wax-seal" aria-hidden="true">
               <span>✦</span>
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <h2 className="title-disclaimer-title">{STRINGS.app.disclaimerTitle}</h2>
-                <span aria-hidden="true" className="h-[1.5px] flex-1 bg-gradient-to-r from-[#b8864b]/50 to-transparent" />
+                <span aria-hidden="true" className="h-[1.5px] flex-1 bg-gradient-to-r from-[#b8864b]/55 to-transparent" />
               </div>
               <p className="title-disclaimer-body">{STRINGS.app.disclaimerBody}</p>
             </div>
           </section>
 
-          {/* Pita Pintasan Keyboard Berpotongan Tiket (Ticket-Notched Hint Bar) */}
           <p className="title-hint">
-            <span className="title-kbd">Enter</span>
-            <span className="title-kbd">Spasi</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="title-kbd">Enter</span>
+              <span className="title-kbd">Spasi</span>
+            </span>
             <span>{STRINGS.startScreen.keyboardHint}</span>
           </p>
-        </div>
-
-        {/* Kolom Kanan: Panggung Diorama Astrolab Akustik Nusantara + Pemeran Hidup + Plakat Teater */}
-        <aside className="title-cast-stage" aria-label="Sorotan Pemeran Ruang Dengar">
-          {/* Astrolab Akustik Nusantara 3-Cincin SVG (Menggantikan lingkaran dashed biasa!) */}
-          <div className="title-astrolabe-wrap" aria-hidden="true">
-            <svg
-              viewBox="0 0 420 420"
-              fill="none"
-              className="title-astrolabe-svg"
-            >
-              <defs>
-                <radialGradient id="astrolabeGlow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#ffe596" stopOpacity="0.48" />
-                  <stop offset="52%" stopColor="#3ba08e" stopOpacity="0.18" />
-                  <stop offset="100%" stopColor="#1c110a" stopOpacity="0" />
-                </radialGradient>
-                <linearGradient id="brassRingGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#fff0b8" />
-                  <stop offset="50%" stopColor="#e5a93c" />
-                  <stop offset="100%" stopColor="#82e0cb" />
-                </linearGradient>
-              </defs>
-
-              {/* Pendaran pusat hangat */}
-              <circle cx="210" cy="210" r="195" fill="url(#astrolabeGlow)" />
-
-              {/* Cincin Luar Berputar: Kompas Derajat & Bintang 8 Penjuru */}
-              <g className="title-astrolabe-ring-outer">
-                <circle
-                  cx="210"
-                  cy="210"
-                  r="184"
-                  stroke="url(#brassRingGrad)"
-                  strokeWidth="1.6"
-                  strokeOpacity="0.55"
-                />
-                <circle
-                  cx="210"
-                  cy="210"
-                  r="172"
-                  stroke="#ffe699"
-                  strokeWidth="1.2"
-                  strokeDasharray="3 9"
-                  strokeOpacity="0.65"
-                />
-                {/* 8 Ornamen Bintang Kompas Nusantara */}
-                {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
-                  <g key={deg} transform={`rotate(${deg} 210 210)`}>
-                    <polygon
-                      points="210,18 214,28 210,34 206,28"
-                      fill="#ffe699"
-                      fillOpacity="0.82"
-                    />
-                  </g>
-                ))}
-              </g>
-
-              {/* Cincin Tengah Berputar Berlawanan: Bingkai Geometris Belah Ketupat Kembar */}
-              <g className="title-astrolabe-ring-inner">
-                <rect
-                  x="76"
-                  y="76"
-                  width="268"
-                  height="268"
-                  rx="24"
-                  stroke="#ffe699"
-                  strokeWidth="1.2"
-                  strokeOpacity="0.32"
-                />
-                <rect
-                  x="76"
-                  y="76"
-                  width="268"
-                  height="268"
-                  rx="24"
-                  transform="rotate(45 210 210)"
-                  stroke="#66d9c2"
-                  strokeWidth="1.2"
-                  strokeOpacity="0.35"
-                />
-                <circle
-                  cx="210"
-                  cy="210"
-                  r="134"
-                  stroke="#ffe699"
-                  strokeWidth="1.5"
-                  strokeDasharray="16 8 4 8"
-                  strokeOpacity="0.48"
-                />
-              </g>
-            </svg>
-          </div>
-
-          <div
-            className="title-cast-figures"
-            style={
-              reduced
-                ? undefined
-                : { transform: `translate3d(${parallax.x.toFixed(1)}px, ${parallax.y.toFixed(1)}px, 0)` }
-            }
-          >
-            <img
-              src={assetUrl('dosen-portrait.png')}
-              alt=""
-              aria-hidden="true"
-              className="title-cast-figure title-cast-figure--dosen"
-              draggable={false}
-            />
-            <img
-              key={featured.id}
-              src={assetUrl(`${featured.id}-portrait.png`)}
-              alt=""
-              aria-hidden="true"
-              className="title-cast-figure title-cast-figure--student fx-panel-in"
-              draggable={false}
-            />
-          </div>
-
-          {/* Plakat Teater Panggung Pemeran (Sculpted Stage Marquee — Bukan Kotak Putih Biasa!) */}
-          <div className="title-marquee-plaque">
-            {/* Pita Lencana Spesialisasi Mengambang di Puncak Plakat */}
-            <div className="title-marquee-ribbon">
-              <span>✦ SOROTAN PEMERAN</span>
-              <span className="opacity-50">·</span>
-              <span className="text-[#ffe694]">{featured.badge}</span>
-            </div>
-
-            <div className="flex items-center justify-between gap-3">
-              {/* Tombol Geser Kiri */}
-              <button
-                type="button"
-                aria-label="Pemeran sebelumnya"
-                onClick={() => {
-                  playSfx('klik');
-                  setCastIndex((i) => (i - 1 + FEATURED_CAST.length) % FEATURED_CAST.length);
-                }}
-                className="title-marquee-arrow"
-              >
-                ‹
-              </button>
-
-              <div className="min-w-0 flex-1 text-center">
-                <div className="truncate font-['Fredoka',sans-serif] text-[0.98rem] font-bold text-[#3e2517]">
-                  Ibu Dosen BK &amp; {featured.name}
-                </div>
-                <div className="truncate text-[0.73rem] font-semibold text-[#6b482e]">
-                  {featured.tag}
-                </div>
-              </div>
-
-              {/* Tombol Geser Kanan */}
-              <button
-                type="button"
-                aria-label="Pemeran berikutnya"
-                onClick={() => {
-                  playSfx('klik');
-                  setCastIndex((i) => (i + 1) % FEATURED_CAST.length);
-                }}
-                className="title-marquee-arrow"
-              >
-                ›
-              </button>
-            </div>
-
-            {/* Indikator Permata Berlian (Diamond Cast Gems — Bukan Titik Bulat Biasa!) */}
-            <div className="title-spotlight-dots" role="group" aria-label="Pilih sorotan pemeran">
-              {FEATURED_CAST.map((c, i) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  className="title-spotlight-dot"
-                  aria-label={`Tampilkan ${c.name}`}
-                  aria-pressed={i === castIndex}
-                  onClick={() => {
-                    playSfx('klik');
-                    setCastIndex(i);
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        </aside>
+        </footer>
       </div>
     </main>
   );
