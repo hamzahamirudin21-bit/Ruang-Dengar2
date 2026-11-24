@@ -467,6 +467,35 @@ function paintZoneFloor(ctx: CanvasRenderingContext2D, zone: LabZone, t: number)
   ctx.fillStyle = aoRight;
   ctx.fillRect(px + pw - t * 0.5, py, t * 0.5, ph);
 
+  // Proyeksi kisi kaca jendela (Window Mullion Lattice) di lantai ruangan deret utara (y <= 1)
+  if (y <= 1 && pw >= t * 5) {
+    const winW = Math.min(pw * 0.52, t * 4.2);
+    const winX = px + (pw - winW) * 0.5;
+    const winY = py + t * 0.32;
+    const winH = t * 1.15;
+    const paneGrad = ctx.createLinearGradient(winX, winY, winX + 8, winY + winH);
+    paneGrad.addColorStop(0, 'rgba(255, 246, 212, 0.16)');
+    paneGrad.addColorStop(1, 'rgba(255, 246, 212, 0)');
+    ctx.fillStyle = paneGrad;
+    ctx.beginPath();
+    ctx.moveTo(winX, winY);
+    ctx.lineTo(winX + winW, winY);
+    ctx.lineTo(winX + winW + 10, winY + winH);
+    ctx.lineTo(winX + 10, winY + winH);
+    ctx.closePath();
+    ctx.fill();
+
+    // Garis kisi kusen jendela (mullion) jatuh miring di lantai
+    ctx.strokeStyle = 'rgba(62, 37, 23, 0.08)';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(winX + winW * 0.5, winY);
+    ctx.lineTo(winX + winW * 0.5 + 10, winY + winH);
+    ctx.moveTo(winX + 5, winY + winH * 0.48);
+    ctx.lineTo(winX + winW + 5, winY + winH * 0.48);
+    ctx.stroke();
+  }
+
   ctx.restore();
 }
 
@@ -498,9 +527,49 @@ function paintCorridorFloor(ctx: CanvasRenderingContext2D, map: LabMapData, t: n
   }
   ctx.stroke();
 
-  // Garis pemandu koridor utama lembut
-  ctx.fillStyle = 'rgba(218, 179, 118, 0.25)';
-  ctx.fillRect(1 * t, 9.45 * t, (map.width - 2) * t, 1.1 * t);
+  // Karpet Jalur Koridor Utama Beraksen Kuningan Nusantara & 3 Medali Kompas Vokasi
+  const runnerX = 1.4 * t;
+  const runnerY = 9.32 * t;
+  const runnerW = (map.width - 2.8) * t;
+  const runnerH = 1.36 * t;
+  rrect(ctx, runnerX, runnerY, runnerW, runnerH, 6);
+  ctx.fillStyle = 'rgba(182, 134, 76, 0.24)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(140, 94, 42, 0.35)';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // Garis bordir dalam karpet koridor
+  ctx.strokeStyle = 'rgba(242, 198, 108, 0.42)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([6, 4]);
+  ctx.strokeRect(runnerX + 4, runnerY + 3.5, runnerW - 8, runnerH - 7);
+  ctx.setLineDash([]);
+
+  // 3 Medali Kompas Kuningan di Persimpangan Koridor
+  for (const mxTile of [13, 25, 37]) {
+    const mx = mxTile * t;
+    const my = 10.0 * t;
+    ctx.save();
+    ctx.fillStyle = 'rgba(218, 168, 78, 0.32)';
+    ctx.strokeStyle = 'rgba(122, 78, 32, 0.45)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(mx, my, 9.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Bintang belah ketupat Nusantara di tengah medali
+    ctx.fillStyle = 'rgba(46, 130, 116, 0.38)';
+    ctx.beginPath();
+    ctx.moveTo(mx, my - 6);
+    ctx.lineTo(mx + 6, my);
+    ctx.lineTo(mx, my + 6);
+    ctx.lineTo(mx - 6, my);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
 }
 
 function paintWall25D(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, t: number): void {
@@ -1140,26 +1209,45 @@ export function drawIllustratedZoneLabel(
   ctx.textBaseline = 'middle';
 
   const tw = ctx.measureText(label).width;
-  const pw = Math.min(zone.bounds.w * t - 8, tw + 16);
-  const ph = 18;
+  const pw = Math.min(zone.bounds.w * t - 8, tw + 24);
+  const ph = 19;
   const px = cx - pw / 2;
   const py = cy - ph / 2;
 
-  // Bayangan lembut
-  rrect(ctx, px, py + 2, pw, ph, 9);
-  ctx.fillStyle = 'rgba(62, 37, 23, 0.24)';
+  // Bayangan kontak plakat
+  rrect(ctx, px, py + 2.2, pw, ph, 9.5);
+  ctx.fillStyle = 'rgba(48, 28, 16, 0.28)';
   ctx.fill();
 
-  // Kapsul pill bersih semi-solid
-  rrect(ctx, px, py, pw, ph, 9);
+  // Kapsul Plakat Atelier Berpaku Kuningan (Brass-Rivet Nameplate)
+  rrect(ctx, px, py, pw, ph, 9.5);
   ctx.fillStyle = selected ? meta.accent : meta.bg;
   ctx.fill();
   ctx.strokeStyle = selected ? '#ffe694' : INK;
-  ctx.lineWidth = selected ? 2 : 1.5;
+  ctx.lineWidth = selected ? 2.2 : 1.6;
   ctx.stroke();
 
+  // Garis aksen warna zona di tepi bawah plakat (saat tidak sedang dipilih)
+  if (!selected) {
+    ctx.save();
+    rrect(ctx, px, py, pw, ph, 9.5);
+    ctx.clip();
+    ctx.fillStyle = meta.accent;
+    ctx.globalAlpha = 0.22;
+    ctx.fillRect(px, py + ph - 3, pw, 3);
+    ctx.restore();
+  }
+
+  // Dua paku keling kuningan mungil di ujung kiri & kanan plakat
+  for (const rx of [px + 5.5, px + pw - 5.5]) {
+    ctx.fillStyle = selected ? '#ffe694' : '#d89e3a';
+    ctx.beginPath();
+    ctx.arc(rx, cy, 1.7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   ctx.fillStyle = selected ? '#fffdf6' : INK;
-  ctx.fillText(label, cx, cy + 0.5, pw - 8);
+  ctx.fillText(label, cx, cy + 0.5, pw - 16);
   ctx.restore();
 }
 

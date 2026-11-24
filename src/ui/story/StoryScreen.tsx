@@ -676,27 +676,27 @@ export function StoryScreen({
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
 
-      // 1. Berkas cahaya volumetrik (Volumetric Window Sunbeams) bernapas halus
-      const beamAlpha = isWarmRoom ? 0.065 : 0.045;
-      const beamShift = Math.sin(tSec * 0.35) * 28;
+      // 1. Berkas cahaya volumetrik (Volumetric Window Sunbeams) bernapas halus di belakang karakter (tidak pernah memucatkan wajah/teks)
+      const beamAlpha = isWarmRoom ? 0.032 : 0.024;
+      const beamShift = Math.sin(tSec * 0.35) * 24;
       for (let b = 0; b < 3; b += 1) {
         const bx = w * (0.22 + b * 0.26) + beamShift;
-        const grad = ctx.createLinearGradient(bx - 60, 0, bx + 140, h * 0.85);
+        const grad = ctx.createLinearGradient(bx - 60, 0, bx + 140, h * 0.78);
         if (isWarmRoom) {
-          grad.addColorStop(0, `rgba(255, 226, 150, ${beamAlpha})`);
-          grad.addColorStop(0.65, `rgba(255, 200, 112, ${beamAlpha * 0.45})`);
-          grad.addColorStop(1, 'rgba(255, 200, 112, 0)');
+          grad.addColorStop(0, `rgba(255, 224, 142, ${beamAlpha})`);
+          grad.addColorStop(0.6, `rgba(255, 196, 104, ${beamAlpha * 0.4})`);
+          grad.addColorStop(1, 'rgba(255, 196, 104, 0)');
         } else {
-          grad.addColorStop(0, `rgba(140, 232, 255, ${beamAlpha})`);
-          grad.addColorStop(0.65, `rgba(110, 200, 245, ${beamAlpha * 0.4})`);
-          grad.addColorStop(1, 'rgba(110, 200, 245, 0)');
+          grad.addColorStop(0, `rgba(132, 226, 252, ${beamAlpha})`);
+          grad.addColorStop(0.6, `rgba(104, 194, 242, ${beamAlpha * 0.38})`);
+          grad.addColorStop(1, 'rgba(104, 194, 242, 0)');
         }
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.moveTo(bx - 55, 0);
-        ctx.lineTo(bx + 65, 0);
-        ctx.lineTo(bx + 215, h * 0.88);
-        ctx.lineTo(bx + 45, h * 0.88);
+        ctx.moveTo(bx - 50, 0);
+        ctx.lineTo(bx + 58, 0);
+        ctx.lineTo(bx + 195, h * 0.82);
+        ctx.lineTo(bx + 42, h * 0.82);
         ctx.closePath();
         ctx.fill();
       }
@@ -857,7 +857,7 @@ export function StoryScreen({
           ref={vfxCanvasRef}
           data-testid="vn-vfx-canvas"
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-[2] h-full w-full"
+          className="pointer-events-none absolute inset-0 z-[1] h-full w-full"
         />
       )}
       {/* 1b2. Partikel atmosfer melayang lembut di seluruh ruangan (hangat di Ruang BK/Diskusi, lembut bercahaya di Lab) */}
