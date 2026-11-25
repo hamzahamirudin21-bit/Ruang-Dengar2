@@ -5627,3 +5627,114 @@ html[data-reduced-motion='true'] .sim-dock-btn {
     opacity: 0.45;
   }
 }
+
+/* ============================================================================
+   11. PHASE 4 — CHARACTER PRESENTATION (6 VISUAL STATES, GROUND GLOW, RIM LIGHT)
+   ============================================================================ */
+
+@keyframes vn-char-enter-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-18px, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes vn-char-enter-right {
+  from {
+    opacity: 0;
+    transform: translate3d(18px, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.vn-char--left[data-char-state='entering'] {
+  animation: vn-char-enter-left 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.vn-char--right[data-char-state='entering'] {
+  animation: vn-char-enter-right 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.vn-char[data-char-state='exiting'] {
+  opacity: 0.55;
+  filter: brightness(0.78) drop-shadow(0 12px 24px rgba(4, 10, 20, 0.55));
+}
+
+.vn-char[data-char-state='speaking'] {
+  z-index: 4;
+  filter:
+    drop-shadow(0 0 18px var(--vn-room-glow))
+    drop-shadow(0 18px 36px rgba(2, 8, 16, 0.72));
+}
+
+.vn-char[data-char-state='selected'] {
+  z-index: 3;
+  filter:
+    drop-shadow(0 0 14px rgba(255, 189, 89, 0.35))
+    drop-shadow(0 16px 32px rgba(2, 8, 16, 0.65));
+}
+
+.vn-char[data-char-state='listening'] {
+  z-index: 2;
+  filter: brightness(0.95) drop-shadow(0 14px 28px rgba(2, 8, 16, 0.6));
+}
+
+.vn-char[data-char-state='idle'] {
+  z-index: 2;
+  filter: brightness(0.92) drop-shadow(0 12px 24px rgba(2, 8, 16, 0.55));
+}
+
+/* Ambient Ground Glow di bawah kaki/tubuh karakter */
+.vn-char-ground-glow {
+  position: absolute;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  width: 78%;
+  height: 3.4rem;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    var(--vn-room-glow) 0%,
+    rgba(255, 189, 89, 0.14) 55%,
+    transparent 78%
+  );
+  opacity: 0.65;
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity 240ms ease, transform 240ms ease;
+}
+
+.vn-char[data-char-state='speaking'] .vn-char-ground-glow,
+.vn-char[data-char-state='selected'] .vn-char-ground-glow {
+  opacity: 1;
+  transform: translateX(-50%) scale(1.08);
+}
+
+/* Indikator status bicara/mendengarkan pada Stage Nameplate */
+.vn-stage-state-dot {
+  display: inline-block;
+  width: 6.5px;
+  height: 6.5px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.55);
+}
+.vn-stage-state-dot--speaking {
+  background: #00E5FF;
+  box-shadow: 0 0 8px #00E5FF;
+}
+.vn-stage-state-dot--selected {
+  background: #FFBD59;
+  box-shadow: 0 0 8px #FFBD59;
+}
+.vn-stage-state-dot--listening {
+  background: #34D399;
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.7);
+}

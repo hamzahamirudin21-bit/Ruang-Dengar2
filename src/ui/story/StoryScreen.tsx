@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { LAB_MAP } from '../../data/map';
 import { STRINGS } from '../../data/strings';
+import { STUDENT_BACKGROUNDS } from '../../data/studentBackgrounds';
 import { resolveRoomVisualConfig } from './roomVisualConfig';
 import type { StoryArrival, StoryOutcome, StoryRunnerState } from '../../engine/story/runner';
 import { presentChoices } from '../../engine/story/runner';
@@ -522,6 +523,49 @@ export function StoryScreen({
   const studentSpeaking = beat?.kind === 'mahasiswa' || beat?.kind === 'isyarat';
   const speakerKey = counselorSpeaking ? 'dosen' : studentSpeaking ? 'mahasiswa' : 'none';
 
+  // PHASE 4: 6 Visual State Karakter (Entering, Exiting, Speaking, Listening, Selected, Idle)
+  const [charEntering, setCharEntering] = useState(true);
+  useEffect(() => {
+    if (reducedMotion) {
+      setCharEntering(false);
+      return;
+    }
+    setCharEntering(true);
+    const id = window.setTimeout(() => setCharEntering(false), 360);
+    return () => window.clearTimeout(id);
+  }, [agent.id, reducedMotion]);
+
+  const counselorVisualState: 'entering' | 'exiting' | 'speaking' | 'listening' | 'selected' | 'idle' =
+    showSummary || confirmEnd
+      ? 'exiting'
+      : charEntering
+        ? 'entering'
+        : counselorSpeaking
+          ? 'speaking'
+          : atChoices
+            ? 'selected'
+            : studentSpeaking
+              ? 'listening'
+              : 'idle';
+
+  const studentVisualState: 'entering' | 'exiting' | 'speaking' | 'listening' | 'selected' | 'idle' =
+    showSummary || confirmEnd
+      ? 'exiting'
+      : charEntering
+        ? 'entering'
+        : studentSpeaking
+          ? 'speaking'
+          : drawer === 'right'
+            ? 'selected'
+            : counselorSpeaking || atChoices
+              ? 'listening'
+              : 'idle';
+
+  const studentRoleSubtitle = useMemo(() => {
+    const bg = STUDENT_BACKGROUNDS[agent.id];
+    return bg ? `Mahasiswa · ${bg.typeTag}` : 'Mahasiswa Vokasi';
+  }, [agent.id]);
+
   const [msSinceSpeakerChange, setMsSinceSpeakerChange] = useState(Number.POSITIVE_INFINITY);
   useEffect(() => {
     if (reducedMotion) {
@@ -961,7 +1005,10 @@ export function StoryScreen({
           className={`vn-char vn-char--left ${
             counselorSpeaking ? 'vn-char--active vn-char--lean-right' : 'vn-char--idle'
           }`}
+          data-char-state={counselorVisualState}
+          data-testid="vn-stage-char-counselor"
         >
+          <span aria-hidden="true" className="vn-char-ground-glow" />
           <ExpressionOverlay
             role="dosen"
             expression={dosenExpression}
@@ -985,12 +1032,18 @@ export function StoryScreen({
           <div
             aria-hidden="true"
             className={`vn-stage-nameplate vn-stage-nameplate--left ${
-              counselorSpeaking ? 'vn-stage-nameplate--active' : ''
+              counselorSpeaking || atChoices ? 'vn-stage-nameplate--active' : ''
             }`}
+            data-state={counselorVisualState}
           >
             <span className="vn-stage-nameplate-icon">📖</span>
             <div className="vn-stage-nameplate-meta">
-              <span className="vn-stage-nameplate-title">{S.speakerCounselor}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="vn-stage-nameplate-title">{S.speakerCounselor}</span>
+                <span
+                  className={`vn-stage-state-dot vn-stage-state-dot--${counselorVisualState}`}
+                />
+              </div>
               <span className="vn-stage-nameplate-role">Dosen Pembimbing</span>
             </div>
           </div>
@@ -1000,7 +1053,10 @@ export function StoryScreen({
           className={`vn-char vn-char--right ${
             studentSpeaking ? 'vn-char--active vn-char--lean-left' : 'vn-char--idle'
           }`}
+          data-char-state={studentVisualState}
+          data-testid="vn-stage-char-student"
         >
+          <span aria-hidden="true" className="vn-char-ground-glow" />
           <div className="absolute left-1/2 top-2 z-10 -translate-x-1/2">
             <EmoteBubble emote={emoteState.id} triggerKey={emoteState.key} reducedMotion={reducedMotion} />
           </div>
@@ -1053,11 +1109,17 @@ export function StoryScreen({
             className={`vn-stage-nameplate vn-stage-nameplate--right ${
               studentSpeaking ? 'vn-stage-nameplate--active' : ''
             }`}
+            data-state={studentVisualState}
           >
             <span className="vn-stage-nameplate-icon">👤</span>
             <div className="vn-stage-nameplate-meta">
-              <span className="vn-stage-nameplate-title">{agent.name}</span>
-              <span className="vn-stage-nameplate-role">Mahasiswa</span>
+              <div className="flex items-center gap-1.5">
+                <span className="vn-stage-nameplate-title">{agent.name}</span>
+                <span
+                  className={`vn-stage-state-dot vn-stage-state-dot--${studentVisualState}`}
+                />
+              </div>
+              <span className="vn-stage-nameplate-role">{studentRoleSubtitle}</span>
             </div>
           </div>
         </div>
