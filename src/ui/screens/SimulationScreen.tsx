@@ -1386,7 +1386,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       </div>
 
       {/* =====================================================================
-          2. FLOATING TOP GAME HUD (Ramping, Jernih, Melayang di Atas Taman)
+          2. FLOATING TOP GAME HUD (AAA SCI-FI DARK GLASS & METALLIC CYAN/AMBER)
          ===================================================================== */}
       <header className="pointer-events-none absolute inset-x-3 top-2.5 z-20 flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
         {/* Kiri Atas: Beranda, Waktu & Hari, 3-Nyawa, Progres Kisah, & Kecepatan */}
@@ -1399,27 +1399,40 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
             }}
             aria-label={STRINGS.statusBar.backToStart}
             title={STRINGS.statusBar.backToStart}
-            className="game-btn-round !h-9 !w-9 text-sm"
+            className="sim-hud-round-btn sim-hud-round-btn--gold !h-9 !w-9"
           >
-            <span aria-hidden="true">🏠</span>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 10.5 12 3l9 7.5" />
+              <path d="M5.5 9v10.5a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9" />
+              <path d="M9.5 20.5v-6h5v6" />
+            </svg>
           </button>
 
-          {/* Pil Hari & Jam Kampus dengan garis progres hari mungil */}
-          <div className="hud-pill relative overflow-hidden">
-            <span aria-hidden="true">{skyEmoji}</span>
-            <span data-testid="sim-day" className="font-bold">
+          {/* Pil Hari & Jam Kampus dengan garis progres hari cyan-gold mungil */}
+          <div className="sim-hud-pill sim-hud-pill--gold relative overflow-hidden">
+            <span aria-hidden="true" className="text-xs opacity-90">{skyEmoji}</span>
+            <span data-testid="sim-day" className="font-bold text-[#EAF6FF]">
               Hari {clock.day}
             </span>
-            <span className="opacity-40">·</span>
-            <span data-testid="sim-time" className="font-mono-data font-bold text-[#9c4c1b]">
+            <span className="opacity-50">•</span>
+            <span data-testid="sim-time" className="font-mono-data font-bold text-[#FFC96B]">
               {formattedTime}
             </span>
             <span
               aria-hidden="true"
-              className="absolute inset-x-0 bottom-0 h-[3px] bg-[#3e2517]/15"
+              className="absolute inset-x-0 bottom-0 h-[2.5px] bg-[#061522]/80"
             >
               <span
-                className="block h-full bg-[#e8a730]"
+                className="block h-full bg-gradient-to-r from-[#00DFFF] to-[#FFC96B]"
                 style={{ width: `${Math.round(dayRatio * 100)}%` }}
               />
             </span>
@@ -1429,11 +1442,11 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           <div
             data-testid="survival-lives-badge"
             title={`Kalah bila ${MAX_LOST_STUDENTS} mahasiswa kehabisan energi (0%) dan hilang`}
-            className={`hud-pill ${
+            className={`sim-hud-pill ${
               lostStudentIds.length >= 2
-                ? '!bg-gradient-to-b !from-[#e5594f] !to-[#c23b32] !text-[#fffdf6]'
+                ? 'sim-hud-pill--danger'
                 : lostStudentIds.length === 1
-                  ? '!bg-gradient-to-b !from-[#ffe28a] !to-[#f3b53b] !text-[#3e2517]'
+                  ? 'sim-hud-pill--amber'
                   : ''
             }`}
           >
@@ -1442,7 +1455,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                 idx < lostStudentIds.length ? '🖤' : '❤️'
               ).join('')}
             </span>
-            <span className="hidden sm:inline">
+            <span className="font-mono-data font-bold text-[#EAF6FF]">
               {lostStudentIds.length}/{MAX_LOST_STUDENTS}
             </span>
           </div>
@@ -1456,15 +1469,17 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               setJournalOpen(true);
             }}
             title="Buka Jurnal Koleksi Kisah Mahasiswa"
-            className="hud-pill cursor-pointer !bg-gradient-to-b !from-[#3ba08e] !to-[#257466] !text-[#fffdf6] hover:brightness-105"
+            className="sim-hud-pill sim-hud-pill--cyan cursor-pointer"
           >
-            <span aria-hidden="true">📖</span>
-            <span>
+            <span aria-hidden="true" className="inline-flex h-4 w-4 items-center justify-center rounded bg-[#00DFFF]/20 text-[10px] text-[#00DFFF]">
+              📖
+            </span>
+            <span className="font-mono-data font-bold text-[#EAF6FF]">
               {missionsDone}/{STUDENT_COUNT}
             </span>
-            <span className="hidden opacity-60 xl:inline">·</span>
-            <span data-testid="active-students-count" className="hidden xl:inline">
-              👥 {activeStudentsCount}
+            <span className="opacity-50">•</span>
+            <span data-testid="active-students-count" className="font-mono-data font-bold text-[#00DFFF]">
+              {activeStudentsCount}
             </span>
           </button>
 
@@ -1472,7 +1487,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           <div
             role="group"
             aria-label={STRINGS.speedControls.speedPrefix}
-            className="hud-speed-group"
+            className="sim-hud-speed-group"
           >
             {speedControls.map((ctl) => {
               const CtlIcon = SPEED_ICON_COMPONENTS[ctl.icon];
@@ -1488,7 +1503,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                     if (ctl.value === null) handleTogglePause();
                     else handleChangeSpeed(ctl.value as SimulationSpeed);
                   }}
-                  className={`hud-speed-btn ${ctl.pressed ? 'hud-speed-btn--active' : ''}`}
+                  className={`sim-hud-speed-btn ${ctl.pressed ? 'sim-hud-speed-btn--active' : ''}`}
                 >
                   {ctl.value === null ? (
                     CtlIcon ? <CtlIcon className="h-3.5 w-3.5" /> : '⏸'
@@ -1516,33 +1531,34 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                 setActiveDrawer(null);
                 story.requestApproach(target.id);
               }}
-              className="mission-alert-pill max-w-full cursor-pointer text-left disabled:cursor-not-allowed disabled:opacity-75"
+              className="sim-center-energy-pill max-w-full cursor-pointer text-left disabled:cursor-not-allowed disabled:opacity-75"
               data-status={campusMission.campusStatus}
               data-testid="isolation-radar-alert"
               title={signalForStudent(campusMission.topPriorityAgent.id).clue}
             >
-              <span className="shrink-0">
-                {campusMission.campusStatus === 'darurat' ? '⚠ KRITIS' : '🔔 SINYAL'}
+              <span className="shrink-0 font-extrabold text-[#FFC96B]">
+                {campusMission.campusStatus === 'darurat' ? '⚡ KRITIS' : '⚡ Energi Lab ' + campusMission.averageEnergyPct + '%'}
               </span>
-              <span className="shrink-0 opacity-55">·</span>
-              <span className="shrink-0">
+              <span className="shrink-0 opacity-45">|</span>
+              <span className="shrink-0 text-[#EAF6FF]">
                 {campusMission.topPriorityAgent.name.split(' ')[0]} (
                 {Math.round(campusMission.topPriorityAgent.energy * 100)}%)
               </span>
-              <span className="hidden truncate font-normal italic opacity-95 2xl:inline">
+              <span className="hidden truncate font-normal italic text-[#92AFC0] 2xl:inline">
                 “{signalForStudent(campusMission.topPriorityAgent.id).clue}”
               </span>
-              <span className="shrink-0 underline decoration-2 underline-offset-2">Hampiri →</span>
+              <span className="shrink-0 text-[#00DFFF] underline decoration-1 underline-offset-2">Hampiri →</span>
             </button>
           ) : (
             <div
-              className="mission-alert-pill"
+              className="sim-center-energy-pill"
               data-status="terjaga"
               data-testid="isolation-radar-alert"
             >
-              <span>✦ Energi Lab {campusMission.averageEnergyPct}%</span>
-              <span className="opacity-55">·</span>
-              <span>Semua Terjaga</span>
+              <span className="text-[#4ade80]">⚡</span>
+              <span className="font-bold text-[#EAF6FF]">Energi Lab {campusMission.averageEnergyPct}%</span>
+              <span className="opacity-45">|</span>
+              <span className="text-[#00DFFF]">Semua Terjaga</span>
             </div>
           )}
         </div>
@@ -1565,14 +1581,10 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               );
             }}
             title="Siklus Cuaca & Atmosfer Pencahayaan Kampus (Otomatis / Cerah / Senja Keemasan / Hujan Cozy) [C]"
-            className={`hud-pill cursor-pointer transition hover:-translate-y-0.5 ${
-              weatherMode === 'hujan'
-                ? '!bg-gradient-to-b !from-[#4a7aa8] !to-[#2d537a] !text-[#fffdf6]'
-                : weatherMode === 'senja'
-                  ? '!bg-gradient-to-b !from-[#f08e4b] !to-[#c25b22] !text-[#fffdf6]'
-                  : weatherMode === 'cerah'
-                    ? '!bg-gradient-to-b !from-[#ffe799] !to-[#f3b83c] !text-[#3e2517]'
-                    : ''
+            className={`sim-hud-pill cursor-pointer ${
+              weatherMode === 'hujan' || weatherMode === 'senja' || weatherMode === 'cerah'
+                ? 'sim-hud-pill--cyan'
+                : ''
             }`}
           >
             <span aria-hidden="true">
@@ -1582,7 +1594,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                   ? '🌇'
                   : weatherMode === 'cerah'
                     ? '☀️'
-                    : '🌤️'}
+                    : '☁️'}
             </span>
             <span className="hidden xl:inline">
               {weatherMode === 'hujan'
@@ -1604,13 +1616,11 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               setGpuFxEnabled((cur) => !cur);
             }}
             title="Shader GPU HD-2D WebGL2: Bloom Emisif, Tilt-Shift DoF, Volumetric God-Rays, & ACES Filmic Grading [G]"
-            className={`hud-pill cursor-pointer transition hover:-translate-y-0.5 ${
-              gpuFxEnabled
-                ? '!bg-gradient-to-b !from-[#3ba08e] !to-[#1f6356] !text-[#fffdf6] shadow-[0_0_12px_rgba(59,160,142,0.55),0_3.5px_0_#3e2517]'
-                : 'opacity-80'
+            className={`sim-hud-pill cursor-pointer ${
+              gpuFxEnabled ? 'sim-hud-pill--cyan' : 'opacity-75'
             }`}
           >
-            <span aria-hidden="true">✨</span>
+            <span aria-hidden="true" className="text-[#00DFFF]">▣</span>
             <span className="hidden sm:inline">HD-2D</span>
           </button>
 
@@ -1627,10 +1637,10 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                 ? `${STRINGS.canvasToolbar.doorVisibilityHintLab} (Klik untuk ganti ke Pintu Samping)`
                 : `${STRINGS.canvasToolbar.doorVisibilityHintSide} (Klik untuk ganti ke Pintu Lab)`
             }
-            className={`hud-pill cursor-pointer transition hover:-translate-y-0.5 ${
+            className={`sim-hud-pill cursor-pointer ${
               viewOptions.consultationDoorMode === 'samping'
-                ? '!bg-gradient-to-b !from-[#3ba08e] !to-[#257466] !text-[#fffdf6]'
-                : '!bg-gradient-to-b !from-[#ffe799] !to-[#f3b83c] !text-[#3e2517]'
+                ? 'sim-hud-pill--cyan'
+                : 'sim-hud-pill--amber-solid'
             }`}
           >
             <IconDoor className="h-3.5 w-3.5 shrink-0" />
@@ -1646,7 +1656,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               aria-pressed={audioEnabled}
               aria-label={audioEnabled ? 'Matikan musik kampus & suara' : 'Nyalakan musik kampus & suara'}
               title={audioEnabled ? 'Musik Kampus & Suara Aktif' : 'Nyalakan Musik Kampus & Suara'}
-              className="game-btn-round !h-9 !w-9 text-sm"
+              className="sim-hud-round-btn !h-9 !w-9 text-sm"
             >
               <span aria-hidden="true">{audioEnabled ? '🔊' : '🔇'}</span>
             </button>
@@ -1661,7 +1671,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               playSfx('klik');
               handleUpdateViewOptions({ showZoneLabels: !viewOptions.showZoneLabels });
             }}
-            className="game-btn-round !h-9 !w-9"
+            className="sim-hud-round-btn !h-9 !w-9"
           >
             <IconTag className="h-4 w-4" />
           </button>
@@ -1675,7 +1685,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               playSfx('klik');
               handleUpdateViewOptions({ showGrid: !viewOptions.showGrid });
             }}
-            className="game-btn-round hidden !h-9 !w-9 sm:inline-flex"
+            className="sim-hud-round-btn hidden !h-9 !w-9 sm:inline-flex"
           >
             <IconGrid className="h-4 w-4" />
           </button>
@@ -1688,7 +1698,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               playSfx('klik');
               setBriefingOpen(true);
             }}
-            className="game-btn-round !h-9 !w-9 font-['Fredoka'] text-xs font-bold"
+            className="sim-hud-round-btn !h-9 !w-9 font-['Fredoka'] text-xs font-bold"
           >
             ?
           </button>
@@ -1701,7 +1711,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               playSfx('klik');
               onOpenSettings();
             }}
-            className="game-btn-round !h-9 !w-9"
+            className="sim-hud-round-btn !h-9 !w-9"
           >
             <IconSettings className="h-4 w-4" />
           </button>
@@ -1908,53 +1918,65 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         ) : (
           <div
             aria-hidden="true"
-            className="hud-pill pointer-events-none hidden text-[11px] sm:inline-flex"
+            className="sim-legend-pill pointer-events-none hidden sm:inline-flex"
           >
-            <span className="inline-flex items-center gap-1">
-              <span className="h-2.5 w-2.5 rounded-full border border-[#3e2517] bg-[#36ab81]" />
-              Mengobrol (+)
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#10b981]/25 text-[10px] font-bold text-[#34d399] ring-1 ring-[#10b981]/60">
+                ✓
+              </span>
+              <span className="text-[#EAF6FF]">Mengobrol (+)</span>
             </span>
-            <span className="opacity-35">·</span>
-            <span className="inline-flex items-center gap-1">
-              <span className="h-2.5 w-2.5 rounded-full border border-[#3e2517] bg-[#f2ae30]" />
-              Waspada
+            <span className="opacity-35">|</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="text-xs text-[#FFC96B]">✦</span>
+              <span className="text-[#EAF6FF]">Waspada</span>
             </span>
-            <span className="opacity-35">·</span>
-            <span className="inline-flex items-center gap-1">
-              <span className="h-2.5 w-2.5 rounded-full border border-[#3e2517] bg-[#e5534b]" />
-              Terisolasi (&lt;35%)
+            <span className="opacity-35">|</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="text-xs text-[#f87171]">❤️</span>
+              <span className="text-[#EAF6FF]">Terisolasi (&lt;35%)</span>
             </span>
           </div>
         )}
       </div>
 
       {/* =====================================================================
-          5. FLOATING BOTTOM-RIGHT PLAY-STORE ICON DOCK (4 TOMBOL TAKTIL)
+          5. FLOATING BOTTOM-RIGHT AAA SCI-FI ACTION DOCK (4 TOMBOL UTAMA)
          ===================================================================== */}
       <nav
         aria-label="Dok Menu Konselor"
-        className="pointer-events-auto absolute bottom-3.5 right-3.5 z-20 flex items-end gap-2"
+        className="pointer-events-auto absolute bottom-3.5 right-3.5 z-20 flex items-end gap-2.5"
       >
         <button
           type="button"
           aria-pressed={activeDrawer === 'misi'}
           title="Daftar Misi & Energi Mahasiswa [M]"
           onClick={() => toggleDrawer('misi')}
-          className={`hud-dock-btn ${activeDrawer === 'misi' ? 'hud-dock-btn--active' : ''}`}
+          className={`sim-dock-btn ${activeDrawer === 'misi' ? 'sim-dock-btn--active' : ''}`}
         >
           {campusMission.criticalAgents.length > 0 ? (
-            <span className="hud-dock-badge hud-dock-badge--danger">
+            <span className="sim-dock-badge sim-dock-badge--danger">
               {campusMission.criticalAgents.length}
             </span>
           ) : campusMission.warningAgents.length > 0 ? (
-            <span className="hud-dock-badge hud-dock-badge--warn">
+            <span className="sim-dock-badge sim-dock-badge--warn">
               {campusMission.warningAgents.length}
             </span>
           ) : null}
-          <span aria-hidden="true" className="text-xl leading-none">
-            🎯
-          </span>
-          <span className="hud-dock-label">Misi</span>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="h-6 w-6 text-[#00DFFF]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.9"
+          >
+            <circle cx="12" cy="12" r="8.5" />
+            <circle cx="12" cy="12" r="4.5" />
+            <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+          </svg>
+          <span className="sim-dock-label">Misi</span>
+          <span aria-hidden="true" className="sim-dock-bottom-bar sim-dock-bottom-bar--gold" />
         </button>
 
         <button
@@ -1962,12 +1984,23 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           aria-pressed={activeDrawer === 'sosiogram'}
           title="Peta Relasi & Sosiogram [R]"
           onClick={() => toggleDrawer('sosiogram')}
-          className={`hud-dock-btn ${activeDrawer === 'sosiogram' ? 'hud-dock-btn--active' : ''}`}
+          className={`sim-dock-btn ${activeDrawer === 'sosiogram' ? 'sim-dock-btn--active' : ''}`}
         >
-          <span aria-hidden="true" className="text-xl leading-none">
-            🕸️
-          </span>
-          <span className="hud-dock-label">Relasi</span>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="h-6 w-6 text-[#EAF6FF]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          >
+            <circle cx="9" cy="8.5" r="3" />
+            <circle cx="16.5" cy="9.5" r="2.3" />
+            <path d="M3.8 18.5c0-2.6 2.3-4.5 5.2-4.5s5.2 1.9 5.2 4.5" />
+            <path d="M14.2 18c.4-1.9 1.9-3.3 4-3.3 1.3 0 2.5.6 3.2 1.5" />
+          </svg>
+          <span className="sim-dock-label">Relasi</span>
+          <span aria-hidden="true" className="sim-dock-bottom-bar sim-dock-bottom-bar--cyan" />
         </button>
 
         <button
@@ -1979,19 +2012,28 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               activeDrawer === 'catatan' || activeDrawer === 'pengamatan' ? activeDrawer : 'catatan'
             )
           }
-          className={`hud-dock-btn ${
+          className={`sim-dock-btn ${
             activeDrawer === 'catatan' || activeDrawer === 'pengamatan'
-              ? 'hud-dock-btn--active'
+              ? 'sim-dock-btn--active'
               : ''
           }`}
         >
-          <span className="hud-dock-badge hud-dock-badge--teal">
+          <span className="sim-dock-badge sim-dock-badge--cyan">
             {missionsDone}/{STUDENT_COUNT}
           </span>
-          <span aria-hidden="true" className="text-xl leading-none">
-            📓
-          </span>
-          <span className="hud-dock-label">Buku</span>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="h-6 w-6 text-[#EAF6FF]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          >
+            <path d="M3 6.5A2.5 2.5 0 0 1 5.5 4H12v15H5.5A2.5 2.5 0 0 0 3 21.5z" />
+            <path d="M21 6.5A2.5 2.5 0 0 0 18.5 4H12v15h6.5a2.5 2.5 0 0 1 2.5 2.5z" />
+          </svg>
+          <span className="sim-dock-label">Buku</span>
+          <span aria-hidden="true" className="sim-dock-bottom-bar sim-dock-bottom-bar--gold" />
         </button>
 
         <button
@@ -2001,20 +2043,30 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
             playSfx('klik');
             setDecorShopOpen(true);
           }}
-          title="Hias Ruang Konsultasi BK dengan Bintang Empati [H]"
-          className="hud-dock-btn hud-dock-btn--gold"
+          title="Hias Ruang Konsultasi BK & Hasil Bintang Empati [H]"
+          className="sim-dock-btn"
         >
           <span
-            className={`hud-dock-badge ${
-              canBuyAnyDecor ? 'hud-dock-badge--danger' : 'hud-dock-badge--gold'
+            className={`sim-dock-badge ${
+              canBuyAnyDecor ? 'sim-dock-badge--danger' : 'sim-dock-badge--gold'
             }`}
           >
             ⭐{availableStars}
           </span>
-          <span aria-hidden="true" className="text-xl leading-none">
-            🪴
-          </span>
-          <span className="hud-dock-label">Hias</span>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="h-6 w-6 text-[#FFC96B]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.85"
+          >
+            <path d="M12 3v11" />
+            <path d="m8 7 4-4 4 4" />
+            <path d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" />
+          </svg>
+          <span className="sim-dock-label">Hias</span>
+          <span aria-hidden="true" className="sim-dock-bottom-bar sim-dock-bottom-bar--gold" />
         </button>
       </nav>
 
