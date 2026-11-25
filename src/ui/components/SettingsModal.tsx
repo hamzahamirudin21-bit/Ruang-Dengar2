@@ -11,6 +11,7 @@ interface SettingsModalProps {
   settings: AppSettings;
   onSave: (next: AppSettings) => void;
   onClose: () => void;
+  onReplayComicIntro?: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -18,6 +19,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   settings,
   onSave,
   onClose,
+  onReplayComicIntro,
 }) => {
   const [draft, setDraft] = useState<AppSettings>(settings);
 
@@ -227,6 +229,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               })}
             </div>
           </fieldset>
+
+          {onReplayComicIntro && (
+            <div className="flex items-center justify-between gap-3 rounded-2xl border-2 border-[#3e2517]/30 bg-[#fffdf7] p-3.5 shadow-[inset_0_-3px_0_#efe0c0]">
+              <div>
+                <div className="font-['Fredoka'] text-sm font-bold text-[#3e2517]">
+                  Pembuka Sinematik Komik (6 Babak)
+                </div>
+                <p className="mt-0.5 text-xs text-[#6b482e]">
+                  Putar kembali kisah pembuka laboratorium dan perkenalan 18 mahasiswa.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onReplayComicIntro}
+                className="game-btn-secondary shrink-0 !px-3.5 text-xs"
+                data-testid="settings-replay-comic-intro-btn"
+              >
+                🎬 Putar Intro
+              </button>
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center justify-between gap-3 border-t-2 border-dashed border-[#3e2517]/20 pt-4">
             <button

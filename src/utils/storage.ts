@@ -10,6 +10,7 @@ const SETTINGS_STORAGE_KEY = 'ruang-dengar:settings:v1';
 // setelah kohort dikurangi ke 15, sehingga data v1 tidak boleh dibaca atau dimigrasi.
 const COUNSELOR_RECORDS_STORAGE_KEY = 'ruang-dengar:counselor-records:v2';
 const AGENT_MEMORY_STORAGE_KEY = 'ruang-dengar:agent-memory:v2';
+export const COMIC_INTRO_COMPLETED_KEY = 'ruang-dengar:comic-intro-completed:v1';
 
 export interface StoredCounselorRecords {
   hypotheses: CounselorHypothesis[];
@@ -142,6 +143,32 @@ export function saveAgentMemoryMap(
       AGENT_MEMORY_STORAGE_KEY,
       JSON.stringify(memoryMap)
     );
+  } catch {
+    // Abaikan kegagalan penyimpanan lokal sesuai aturan permanen
+  }
+}
+
+export function hasCompletedComicIntro(): boolean {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return false;
+    }
+    return window.localStorage.getItem(COMIC_INTRO_COMPLETED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function markComicIntroCompleted(completed = true): void {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return;
+    }
+    if (completed) {
+      window.localStorage.setItem(COMIC_INTRO_COMPLETED_KEY, '1');
+    } else {
+      window.localStorage.removeItem(COMIC_INTRO_COMPLETED_KEY);
+    }
   } catch {
     // Abaikan kegagalan penyimpanan lokal sesuai aturan permanen
   }

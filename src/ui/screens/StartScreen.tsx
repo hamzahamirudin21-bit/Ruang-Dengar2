@@ -15,6 +15,7 @@ interface StartScreenProps {
   audioEnabled?: boolean;
   onToggleAudio?: () => void;
   onOpenTheory?: () => void;
+  onOpenComicIntro?: () => void;
   onStart: () => void;
   onOpenSettings: () => void;
 }
@@ -80,6 +81,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({
   audioEnabled = false,
   onToggleAudio,
   onOpenTheory,
+  onOpenComicIntro,
   onStart,
   onOpenSettings,
 }) => {
@@ -326,8 +328,22 @@ export const StartScreen: React.FC<StartScreenProps> = ({
             </span>
           </div>
 
-          {(onOpenTheory || onToggleAudio) && (
+          {(onOpenTheory || onToggleAudio || onOpenComicIntro) && (
             <div className="flex flex-wrap items-center justify-end gap-3">
+              {onOpenComicIntro && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    playSfx('klik');
+                    onOpenComicIntro();
+                  }}
+                  data-testid="open-comic-intro-btn"
+                  className="title-top-crest-btn title-top-crest-btn--gold"
+                >
+                  <span className="title-top-crest-gem" aria-hidden="true">🎬</span>
+                  <span>Komik Intro (6 Babak)</span>
+                </button>
+              )}
               {onOpenTheory && (
                 <button
                   type="button"

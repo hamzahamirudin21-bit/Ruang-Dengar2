@@ -5,10 +5,16 @@ import { AppScreen, AppSettings } from './types';
 import { playSfx, setSfxEnabled } from './ui/motion/sfx';
 import { SettingsModal } from './ui/components/SettingsModal';
 import { TheoryLibraryModal } from './ui/components/TheoryLibraryModal';
+import { ComicIntroController } from './ui/intro/ComicIntroController';
 import { CharacterRosterScreen } from './ui/screens/CharacterRosterScreen';
 import { SimulationScreen } from './ui/screens/SimulationScreen';
 import { StartScreen } from './ui/screens/StartScreen';
-import { loadSettings, saveSettings } from './utils/storage';
+import {
+  hasCompletedComicIntro,
+  loadSettings,
+  markComicIntroCompleted,
+  saveSettings,
+} from './utils/storage';
 
 function shouldAutostart(): boolean {
   try {
@@ -29,6 +35,7 @@ export default function App() {
   );
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [theoryOpen, setTheoryOpen] = useState<boolean>(false);
+  const [comicIntroOpen, setComicIntroOpen] = useState<boolean>(false);
   const [transitioning, setTransitioning] = useState<boolean>(false);
   const transitionTimerRef = useRef<number | null>(null);
 
@@ -99,6 +106,22 @@ export default function App() {
     handleSaveSettings(updated);
   };
 
+  const handleStartFromTitle = useCallback(() => {
+    if (!hasCompletedComicIntro()) {
+      setComicIntroOpen(true);
+      return;
+    }
+    navigateScreen('roster');
+  }, [navigateScreen]);
+
+  const handleFinishComicIntro = useCallback(() => {
+    markComicIntroCompleted(true);
+    setComicIntroOpen(false);
+    if (screen === 'start') {
+      navigateScreen('roster');
+    }
+  }, [navigateScreen, screen]);
+
   return (
     <div className="min-h-screen bg-[var(--ui-bg)] text-[var(--ui-text)]">
       {storageNotice && (
@@ -119,11 +142,12 @@ export default function App() {
 
       {screen === 'start' ? (
         <StartScreen
-          isSettingsOpen={settingsOpen || theoryOpen}
+          isSettingsOpen={settingsOpen || theoryOpen || comicIntroOpen}
           audioEnabled={settings.soundEnabled === true}
           onToggleAudio={handleToggleAudio}
           onOpenTheory={() => setTheoryOpen(true)}
-          onStart={() => navigateScreen('roster')}
+          onOpenComicIntro={() => setComicIntroOpen(true)}
+          onStart={handleStartFromTitle}
           onOpenSettings={() => setSettingsOpen(true)}
         />
       ) : screen === 'roster' ? (
@@ -160,12 +184,24 @@ export default function App() {
         settings={settings}
         onSave={handleSaveSettings}
         onClose={() => setSettingsOpen(false)}
+        onReplayComicIntro={() => {
+          setSettingsOpen(false);
+          setComicIntroOpen(true);
+        }}
       />
 
       <TheoryLibraryModal
         isOpen={theoryOpen}
         onClose={() => setTheoryOpen(false)}
       />
+
+      {comicIntroOpen && (
+        <ComicIntroController
+          reducedMotion={settings.reducedMotion}
+          onComplete={handleFinishComicIntro}
+          onSkip={handleFinishComicIntro}
+        />
+      )}
     </div>
   );
 }

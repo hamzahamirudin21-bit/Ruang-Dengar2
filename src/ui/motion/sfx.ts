@@ -7,6 +7,15 @@ import { SFX_GAIN_MAX, SfxName, shouldPlaySfx, sfxPlan } from './sfxPlan';
 
 export type FeedbackSfxKind = 'tepat' | 'salah' | 'flip' | 'drawer';
 
+export type IntroSfxKind =
+  | 'panel-whoosh'
+  | 'door-open'
+  | 'footstep'
+  | 'comic-pop'
+  | 'light-sweep'
+  | 'title-climax'
+  | 'ambient-chime';
+
 let enabled = false;
 let ctx: AudioContext | null = null;
 const lastPlayed: Partial<Record<SfxName, number>> = {};
@@ -361,6 +370,78 @@ export function playFeedbackSfx(kind: FeedbackSfxKind): void {
       const end = start + s.d;
       osc.type = s.w;
       osc.frequency.setValueAtTime(s.f, start);
+      g.gain.setValueAtTime(0.0001, start);
+      g.gain.linearRampToValueAtTime(Math.min(SFX_GAIN_MAX, s.g), start + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, end);
+      osc.connect(g);
+      g.connect(filter);
+      osc.start(start);
+      osc.stop(end + 0.02);
+    }
+  } catch {
+    /* gagal diam-diam */
+  }
+}
+
+/** Efek foley sinematik untuk pembuka komik animasi 6 babak (tetap memakai AudioContext tunggal di berkas ini). */
+export function playIntroSfx(kind: IntroSfxKind): void {
+  try {
+    if (!enabled) return;
+    const c = getContext();
+    if (!c) return;
+    if (c.state === 'suspended') void c.resume().catch(() => undefined);
+    if (bgmTimer === null) startCozyBgm();
+
+    const t0 = c.currentTime;
+    const filter = c.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(2400, t0);
+    filter.connect(c.destination);
+
+    const steps: ReadonlyArray<{ f: number; fEnd?: number; d: number; delay: number; w: OscillatorType; g: number }> =
+      kind === 'ambient-chime'
+        ? [
+            { f: 392.0, fEnd: 523.25, d: 0.24, delay: 0, w: 'sine', g: 0.055 },
+            { f: 587.33, fEnd: 783.99, d: 0.28, delay: 0.1, w: 'triangle', g: 0.05 },
+          ]
+        : kind === 'panel-whoosh'
+          ? [
+              { f: 220, fEnd: 520, d: 0.12, delay: 0, w: 'triangle', g: 0.06 },
+              { f: 520, fEnd: 660, d: 0.08, delay: 0.05, w: 'sine', g: 0.045 },
+            ]
+          : kind === 'door-open'
+            ? [
+                { f: 280, fEnd: 440, d: 0.16, delay: 0, w: 'sine', g: 0.065 },
+                { f: 520, fEnd: 659.25, d: 0.16, delay: 0.08, w: 'triangle', g: 0.055 },
+              ]
+            : kind === 'footstep'
+              ? [{ f: 165, fEnd: 120, d: 0.055, delay: 0, w: 'triangle', g: 0.05 }]
+              : kind === 'comic-pop'
+                ? [
+                    { f: 460, fEnd: 740, d: 0.085, delay: 0, w: 'triangle', g: 0.065 },
+                  ]
+                : kind === 'light-sweep'
+                  ? [
+                      { f: 523.25, fEnd: 880, d: 0.2, delay: 0, w: 'sine', g: 0.05 },
+                      { f: 659.25, fEnd: 1046.5, d: 0.22, delay: 0.07, w: 'triangle', g: 0.048 },
+                    ]
+                  : [
+                      { f: 523.25, d: 0.18, delay: 0, w: 'triangle', g: 0.075 },
+                      { f: 659.25, d: 0.2, delay: 0.09, w: 'triangle', g: 0.078 },
+                      { f: 783.99, d: 0.22, delay: 0.18, w: 'triangle', g: 0.082 },
+                      { f: 1046.5, d: 0.34, delay: 0.28, w: 'sine', g: 0.088 },
+                    ];
+
+    for (const s of steps) {
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      const start = t0 + s.delay;
+      const end = start + s.d;
+      osc.type = s.w;
+      osc.frequency.setValueAtTime(s.f, start);
+      if (s.fEnd) {
+        osc.frequency.exponentialRampToValueAtTime(Math.max(40, s.fEnd), end);
+      }
       g.gain.setValueAtTime(0.0001, start);
       g.gain.linearRampToValueAtTime(Math.min(SFX_GAIN_MAX, s.g), start + 0.008);
       g.gain.exponentialRampToValueAtTime(0.0001, end);
