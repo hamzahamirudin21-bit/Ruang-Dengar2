@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { LAB_MAP } from '../../data/map';
 import { STRINGS } from '../../data/strings';
+import { resolveRoomVisualConfig } from './roomVisualConfig';
 import type { StoryArrival, StoryOutcome, StoryRunnerState } from '../../engine/story/runner';
 import { presentChoices } from '../../engine/story/runner';
 import type { StoryExpression, StoryGraph, StoryScene } from '../../engine/story/storyTypes';
@@ -554,11 +555,32 @@ export function StoryScreen({
   }, [visibleLen, typing.done]);
 
   const artId = resolveSceneArt({ setting: scene?.setting ?? 'ruang-konsultasi', zoneId: startZoneId });
+  const roomConfig = useMemo(
+    () =>
+      resolveRoomVisualConfig({
+        setting: scene?.setting ?? 'ruang-konsultasi',
+        zoneId: startZoneId,
+      }),
+    [scene?.setting, startZoneId]
+  );
+  const roomThemeStyle = useMemo<CSSProperties>(
+    () =>
+      ({
+        '--vn-room-bg-primary': roomConfig.theme.bgPrimary,
+        '--vn-room-bg-secondary': roomConfig.theme.bgSecondary,
+        '--vn-room-accent': roomConfig.theme.accentPrimary,
+        '--vn-room-accent-secondary': roomConfig.theme.accentSecondary,
+        '--vn-room-glow': roomConfig.theme.glowColor,
+        '--vn-room-dialog-glass': roomConfig.theme.dialogGlassBg,
+        '--vn-room-tabletop': roomConfig.theme.tabletopSurface,
+      }) as CSSProperties,
+    [roomConfig]
+  );
   const displayedSceneTitle = useMemo(() => {
-    if (!scene) return '';
-    if (scene.setting === 'ruang-konsultasi') return scene.title;
-    return LAB_MAP.zones.find((z) => z.id === startZoneId)?.label ?? scene.title;
-  }, [scene, startZoneId]);
+    if (!scene) return roomConfig.headerTitle;
+    if (scene.setting === 'ruang-konsultasi') return roomConfig.headerTitle;
+    return roomConfig.headerTitle || LAB_MAP.zones.find((z) => z.id === startZoneId)?.label || scene.title;
+  }, [scene, startZoneId, roomConfig.headerTitle]);
   const prevArtRef = useRef<string | null>(null);
   useEffect(() => {
     if (prevArtRef.current !== null && prevArtRef.current !== artId) playSfx('ganti-adegan');
@@ -822,10 +844,15 @@ export function StoryScreen({
       ref={rootRef}
       onPointerMove={handleStagePointerMove}
       onPointerLeave={handleStagePointerLeave}
+      style={roomThemeStyle}
       className={`vn-stage ${reactionFx?.kind === 'salah' ? 'vn-stage--shake' : ''} ${
         isClimaxTurn ? 'vn-stage--climax' : ''
       } ${className ?? ''}`}
       data-mood={stageMood}
+      data-room-id={roomConfig.roomId}
+      data-room-mood={roomConfig.moodCategory}
+      data-wall-display={roomConfig.wallDisplayKind}
+      data-desk-prop={roomConfig.deskPropKind}
       data-testid="story-screen"
     >
       {/* 1. Latar adegan selebar layar dengan atmosfer sinematik & paralaks 2.5D */}
