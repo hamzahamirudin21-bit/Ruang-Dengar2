@@ -3,135 +3,137 @@ import assert from 'node:assert/strict';
 import { STUDENT_BLUEPRINTS } from '../../data/agents.seed';
 import { STUDENT_BACKGROUNDS } from '../../data/studentBackgrounds';
 import {
-  COMIC_INTRO_BEATS,
-  COMIC_INTRO_TOTAL_DURATION_MS,
-  COMIC_STUDENT_IDENTITIES,
-  DOSEN_IDENTITY,
-  getComicCharacterIdentity,
-} from './comicIntroData';
+  COMIC_CHARACTER_PROFILES,
+  COMIC_STORY_PAGES,
+  COMIC_STORY_TOTAL_DURATION_MS,
+  DOSEN_CHARACTER_PROFILE,
+  clampStoryTimeMs,
+  computeStoryTimelineState,
+  getCharacterProfile,
+  getNextPageStartMs,
+  getPrevPageStartMs,
+} from './StoryTimeline';
 import {
-  clampTimelineMs,
-  computeCameraTransformStyle,
-  computeIntroTimelineState,
-  getNextBeatStartMs,
-  getPrevBeatStartMs,
-  typewriterTextAt,
-} from './IntroTimeline';
-import { IntroAudioManager } from './IntroAudioManager';
+  computeCharacterSkeletalPose,
+  computeCloseupFeetPose,
+  computeCloseupHandDoorPose,
+} from './CharacterAnimationEngine';
+import { computePanelCameraMatrix } from './ComicCameraController';
+import { computePanelTransitionState } from './ComicTransitionEngine';
+import { AudioController } from './AudioController';
 
-test('memuat tepat 18 identitas mahasiswa yang 100% sinkron dengan STUDENT_BLUEPRINTS & STUDENT_BACKGROUNDS', () => {
-  assert.equal(COMIC_STUDENT_IDENTITIES.length, 18);
+test('memuat seluruh 18 karakter asli dari database (Raka s.d. Bagas) lengkap dengan appearance & latar belakang', () => {
+  assert.equal(COMIC_CHARACTER_PROFILES.length, 18);
 
   for (let i = 0; i < STUDENT_BLUEPRINTS.length; i += 1) {
     const bp = STUDENT_BLUEPRINTS[i];
     const bg = STUDENT_BACKGROUNDS[bp.id];
-    const comicStudent = COMIC_STUDENT_IDENTITIES[i];
+    const prof = COMIC_CHARACTER_PROFILES[i];
 
-    assert.equal(comicStudent.id, bp.id);
-    assert.equal(comicStudent.name, bp.name);
-    assert.equal(comicStudent.portraitUrl, `/assets/characters/${bp.id}-portrait.png`);
-    assert.equal(comicStudent.spriteUrl, `/assets/characters/${bp.id}-sprite.png`);
-    assert.equal(comicStudent.typeTag, bg.typeTag);
-    assert.equal(comicStudent.uniquePotential, bp.uniquePotential);
-    assert.ok(bg.originAndCohort.includes(comicStudent.origin));
-    assert.equal(getComicCharacterIdentity(bp.id).name, bp.name);
+    assert.equal(prof.id, bp.id);
+    assert.equal(prof.name, bp.name);
+    assert.equal(prof.typeTag, bg.typeTag);
+    assert.equal(prof.uniquePotential, bp.uniquePotential);
+    assert.ok(prof.appearance, `Appearance wajib tersedia untuk ${bp.id}`);
+    assert.equal(getCharacterProfile(bp.id).name, bp.name);
   }
 
-  assert.equal(getComicCharacterIdentity('dosen').id, DOSEN_IDENTITY.id);
+  assert.equal(getCharacterProfile('dosen').id, DOSEN_CHARACTER_PROFILE.id);
 });
 
-test('memiliki 6 babak sinematik (SCENE 01 s.d. SCENE 06) dengan durasi total 45–75 detik', () => {
-  const sceneNumbers = Array.from(new Set(COMIC_INTRO_BEATS.map((b) => b.sceneNumber)));
-  assert.deepEqual(sceneNumbers, [1, 2, 3, 4, 5, 6]);
-  assert.ok(COMIC_INTRO_TOTAL_DURATION_MS >= 45000);
-  assert.ok(COMIC_INTRO_TOTAL_DURATION_MS <= 75000);
+test('memiliki 6 halaman komik asimetris (PAGE 1 s.d. PAGE 6) dengan variasi komposisi panel', () => {
+  assert.equal(COMIC_STORY_PAGES.length, 6);
+  const pageNumbers = COMIC_STORY_PAGES.map((p) => p.pageNumber);
+  assert.deepEqual(pageNumbers, [1, 2, 3, 4, 5, 6]);
+  assert.ok(COMIC_STORY_TOTAL_DURATION_MS >= 45000);
+  assert.ok(COMIC_STORY_TOTAL_DURATION_MS <= 75000);
+
+  // Page 1 memiliki 1 splash panel + 2 panel detail
+  assert.equal(COMIC_STORY_PAGES[0].panels.length, 3);
+  // Page 2 memiliki 4 panel (walk, close-up feet TAP... TAP..., close-up hand KLIK!, open doors SWOOSH!!)
+  assert.equal(COMIC_STORY_PAGES[1].panels.length, 4);
+  // Page 3 memiliki 4 panel aktivitas laboratorium (solder, coding, 3D print, las K3)
+  assert.equal(COMIC_STORY_PAGES[2].panels.length, 4);
+  // Page 4 memiliki 5 panel kelompok aktivitas
+  assert.equal(COMIC_STORY_PAGES[3].panels.length, 5);
+  // Page 5 memiliki 1 splash panel besar One Laboratory
+  assert.equal(COMIC_STORY_PAGES[4].panels.length, 1);
+  // Page 6 memiliki 1 splash panel Title Reveal
+  assert.equal(COMIC_STORY_PAGES[5].panels.length, 1);
 });
 
-test('memperkenalkan seluruh 18 mahasiswa (mhs-01..mhs-18) di SCENE 03 (Meet the Students) dan SCENE 05 (One Community)', () => {
-  const scene3Beats = COMIC_INTRO_BEATS.filter((b) => b.sceneNumber === 3);
-  assert.equal(scene3Beats.length, 8); // 8 panel beats pengenalan kelompok aktivitas
-
-  const scene3CharIds = new Set<string>();
-  for (const beat of scene3Beats) {
-    for (const panel of beat.panels) {
-      for (const c of panel.characters) {
-        if (c.characterId.startsWith('mhs-')) {
-          scene3CharIds.add(c.characterId);
-        }
+test('seluruh 18 karakter muncul sebagai aktor full-body di PAGE 4 (Meet the Community) dan PAGE 5 (One Laboratory)', () => {
+  const page4 = COMIC_STORY_PAGES[3];
+  const page4StudentIds = new Set<string>();
+  for (const panel of page4.panels) {
+    for (const actor of panel.actors) {
+      if (actor.characterId.startsWith('mhs-')) {
+        page4StudentIds.add(actor.characterId);
       }
     }
   }
-  assert.equal(scene3CharIds.size, 18);
-  for (const bp of STUDENT_BLUEPRINTS) {
-    assert.equal(scene3CharIds.has(bp.id), true);
+  assert.equal(page4StudentIds.size, 18);
+
+  const page5 = COMIC_STORY_PAGES[4];
+  const page5StudentIds = new Set<string>();
+  for (const panel of page5.panels) {
+    for (const actor of panel.actors) {
+      if (actor.characterId.startsWith('mhs-')) {
+        page5StudentIds.add(actor.characterId);
+      }
+    }
   }
-
-  // Scene 05 juga wajib memuat ke-18 mahasiswa dalam satu komunitas utuh
-  const scene5Beat = COMIC_INTRO_BEATS.find((b) => b.sceneNumber === 5);
-  assert.ok(scene5Beat);
-  const scene5CharIds = new Set(
-    scene5Beat.panels.flatMap((p) => p.characters.map((c) => c.characterId))
-  );
-  assert.equal(scene5CharIds.size, 18);
+  assert.equal(page5StudentIds.size, 18);
 });
 
-test('menyertakan teks narasi wajib pada SCENE 01, SCENE 02, dan SCENE 05 sesuai storyboard', () => {
-  const s1 = COMIC_INTRO_BEATS.find((b) => b.sceneNumber === 1);
-  const s2 = COMIC_INTRO_BEATS.find((b) => b.sceneNumber === 2);
-  const s5 = COMIC_INTRO_BEATS.find((b) => b.sceneNumber === 5);
+test('CharacterAnimationEngine menghasilkan animasi rangka nyata (jalan, solder, koding, las, close-up kaki & tangan)', () => {
+  const walkActor = COMIC_STORY_PAGES[0].panels[0].actors[0];
+  const pose0 = computeCharacterSkeletalPose(walkActor, 100, 9000, false, false);
+  const pose1 = computeCharacterSkeletalPose(walkActor, 600, 9000, true, false);
 
-  assert.equal(
-    s1?.narrativeCaption,
-    'Setiap perjalanan besar selalu dimulai dari sebuah tempat.'
-  );
-  assert.equal(
-    s2?.narrativeCaption,
-    'Di tempat ini, rasa ingin tahu berubah menjadi eksperimen. Ide sederhana berkembang menjadi teknologi.'
-  );
-  assert.equal(
-    s5?.narrativeCaption,
-    'Berbeda keahlian, berbeda karakter, tetapi memiliki satu tujuan: belajar, berkarya, dan menciptakan sesuatu yang bermakna.'
-  );
+  // Saat berjalan, posisi X berubah dan sudut kaki/lengan berayun
+  assert.notEqual(pose0.xNorm, pose1.xNorm);
+  assert.notEqual(pose0.leftThighRad, pose1.leftThighRad);
+  assert.notEqual(pose0.rightUpperArmRad, pose1.rightUpperArmRad);
+  // Saat berbicara, mulut terbuka
+  assert.equal(pose0.mouthOpen01, 0);
+  assert.ok(pose1.mouthOpen01 > 0);
+
+  // Close-up langkah kaki & tangan membuka pintu
+  const feet0 = computeCloseupFeetPose(100, false);
+  const feet1 = computeCloseupFeetPose(450, false);
+  assert.notEqual(feet0.leftShoeXNorm, feet1.leftShoeXNorm);
+
+  const hand0 = computeCloseupHandDoorPose(100, false);
+  const hand1 = computeCloseupHandDoorPose(1100, false);
+  assert.equal(hand0.latchClicked, false);
+  assert.equal(hand1.latchClicked, true);
+  assert.ok(hand1.handlePressRad > hand0.handlePressRad);
 });
 
-test('menghitung progres timeline, efek typewriter, kamera, serta navigasi Next/Prev Beat secara deterministik', () => {
-  assert.equal(clampTimelineMs(-500), 0);
-  assert.equal(clampTimelineMs(999999), COMIC_INTRO_TOTAL_DURATION_MS);
+test('ComicCameraController, ComicTransitionEngine, StoryTimeline & AudioController bekerja deterministik', () => {
+  assert.equal(clampStoryTimeMs(-200), 0);
+  assert.equal(clampStoryTimeMs(999999), COMIC_STORY_TOTAL_DURATION_MS);
 
-  const startSnap = computeIntroTimelineState(0);
-  assert.equal(startSnap.activeBeat.sceneNumber, 1);
-  assert.equal(startSnap.isFinished, false);
+  const st1 = computeStoryTimelineState(0);
+  assert.equal(st1.activePage.pageNumber, 1);
 
-  // Navigasi Next Beat dari Scene 01 (0ms) menuju Scene 02 (6000ms)
-  const nextMs = getNextBeatStartMs(0);
-  assert.equal(nextMs, 6000);
-  const s2Snap = computeIntroTimelineState(nextMs + 1200);
-  assert.equal(s2Snap.activeBeat.sceneNumber, 2);
-  assert.ok(s2Snap.activeDialogues.length > 0);
+  const nextMs = getNextPageStartMs(0);
+  assert.equal(nextMs, 9000);
+  assert.equal(computeStoryTimelineState(nextMs).activePage.pageNumber, 2);
+  assert.equal(getPrevPageStartMs(9500), 0);
 
-  // Navigasi Prev Beat
-  assert.equal(getPrevBeatStartMs(6500), 0);
-  assert.equal(getPrevBeatStartMs(8000), 6000);
+  const cam = computePanelCameraMatrix('pan-exterior-to-building', 2000, 9000, false);
+  assert.ok(cam.zoom > 1);
 
-  // Efek typewriter
-  const twHalf = typewriterTextAt('Halo Dunia', 500, 1000);
-  assert.equal(twHalf.text, 'Halo ');
-  assert.equal(twHalf.isComplete, false);
+  const trHidden = computePanelTransitionState('from-left', 100, 650, false);
+  assert.equal(trHidden.isVisible, false);
+  const trShown = computePanelTransitionState('from-left', 950, 650, false);
+  assert.equal(trShown.isVisible, true);
+  assert.ok(trShown.revealProgress01 > 0);
 
-  const twFull = typewriterTextAt('Halo Dunia', 1200, 1000);
-  assert.equal(twFull.text, 'Halo Dunia');
-  assert.equal(twFull.isComplete, true);
-
-  // Transformasi kamera menghormati reducedMotion
-  assert.ok(computeCameraTransformStyle('slow-zoom-in', 0.5, true).transform.includes('scale(1)'));
-  assert.ok(!computeCameraTransformStyle('slow-zoom-in', 0.5, false).transform.includes('scale(1)'));
-});
-
-test('mengelola pemicu audio tanpa duplikasi dan dapat di-reset saat Replay', () => {
-  const audio = new IntroAudioManager();
-  audio.syncAt(100);
+  const audio = new AudioController();
   audio.syncAt(200);
   audio.reset();
-  audio.syncAt(100);
   assert.equal(typeof audio.isMuted(), 'boolean');
 });

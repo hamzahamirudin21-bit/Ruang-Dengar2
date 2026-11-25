@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { COMIC_INTRO_BEATS, COMIC_INTRO_TOTAL_DURATION_MS } from './comicIntroData';
 import {
-  clampTimelineMs,
-  computeIntroTimelineState,
-  getNextBeatStartMs,
-  getPrevBeatStartMs,
-} from './IntroTimeline';
-import { IntroAudioManager } from './IntroAudioManager';
-import { IntroSkipController } from './IntroSkipController';
-import { ComicSceneManager } from './ComicSceneManager';
+  COMIC_STORY_PAGES,
+  COMIC_STORY_TOTAL_DURATION_MS,
+  clampStoryTimeMs,
+  computeStoryTimelineState,
+  getNextPageStartMs,
+  getPrevPageStartMs,
+} from './StoryTimeline';
+import { AudioController } from './AudioController';
+import { ComicPageRenderer } from './ComicPageRenderer';
 
 export interface ComicIntroControllerProps {
   reducedMotion?: boolean;
@@ -16,79 +16,83 @@ export interface ComicIntroControllerProps {
   onSkip: () => void;
 }
 
+function readInitialPageTimeFromUrl(): number {
+  try {
+    if (typeof window === 'undefined') return 0;
+    const params = new URLSearchParams(window.location.search);
+    const pageNum = Number(params.get('introPage'));
+    if (pageNum >= 1 && pageNum <= COMIC_STORY_PAGES.length) {
+      const target = COMIC_STORY_PAGES[pageNum - 1];
+      return target ? target.startTimeMs + 2600 : 0;
+    }
+    return 0;
+  } catch {
+    return 0;
+  }
+}
+
 export const ComicIntroController: React.FC<ComicIntroControllerProps> = ({
   reducedMotion = false,
   onComplete,
   onSkip,
 }) => {
-  const [elapsedMs, setElapsedMs] = useState<number>(0);
+  const [elapsedMs, setElapsedMs] = useState<number>(() => readInitialPageTimeFromUrl());
   const [isPaused, setIsPaused] = useState<boolean>(false);
-  const audioManagerRef = useRef<IntroAudioManager>(new IntroAudioManager());
-  const [isMuted, setIsMuted] = useState<boolean>(() => audioManagerRef.current.isMuted());
+  const audioRef = useRef<AudioController>(new AudioController());
+  const [isMuted, setIsMuted] = useState<boolean>(() => audioRef.current.isMuted());
 
-  const snapshot = useMemo(() => computeIntroTimelineState(elapsedMs), [elapsedMs]);
+  const timeline = useMemo(() => computeStoryTimelineState(elapsedMs), [elapsedMs]);
 
-  // Sinkronisasi pemicu SFX setiap kali elapsedMs bertambah
   useEffect(() => {
-    audioManagerRef.current.syncAt(elapsedMs);
+    audioRef.current.syncAt(elapsedMs);
   }, [elapsedMs]);
 
-  // Loop animasi berbasis requestAnimationFrame yang mulus
   useEffect(() => {
-    if (isPaused || snapshot.isFinished) return undefined;
+    if (isPaused || timeline.isFinished) return undefined;
     let rafId = 0;
     let lastTs = performance.now();
 
-    const step = (now: number) => {
-      const dt = Math.min(120, Math.max(0, now - lastTs));
+    const tick = (now: number) => {
+      const dt = Math.min(100, Math.max(0, now - lastTs));
       lastTs = now;
-      setElapsedMs((prev) => {
-        const next = clampTimelineMs(prev + dt, COMIC_INTRO_TOTAL_DURATION_MS);
-        return next;
-      });
-      rafId = window.requestAnimationFrame(step);
+      setElapsedMs((prev) => clampStoryTimeMs(prev + dt, COMIC_STORY_TOTAL_DURATION_MS));
+      rafId = window.requestAnimationFrame(tick);
     };
 
-    rafId = window.requestAnimationFrame(step);
-    return () => {
-      window.cancelAnimationFrame(rafId);
-    };
-  }, [isPaused, snapshot.isFinished]);
+    rafId = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(rafId);
+  }, [isPaused, timeline.isFinished]);
 
   const handleTogglePause = useCallback(() => {
     setIsPaused((prev) => !prev);
   }, []);
 
-  const handleNextBeat = useCallback(() => {
-    setElapsedMs((prev) => {
-      const nextMs = getNextBeatStartMs(prev);
-      return nextMs;
-    });
+  const handleNextPage = useCallback(() => {
+    setElapsedMs((prev) => getNextPageStartMs(prev));
   }, []);
 
-  const handlePrevBeat = useCallback(() => {
-    setElapsedMs((prev) => getPrevBeatStartMs(prev));
+  const handlePrevPage = useCallback(() => {
+    setElapsedMs((prev) => getPrevPageStartMs(prev));
   }, []);
 
   const handleReplay = useCallback(() => {
-    audioManagerRef.current.reset();
+    audioRef.current.reset();
     setElapsedMs(0);
     setIsPaused(false);
   }, []);
 
   const handleToggleMute = useCallback(() => {
-    const nextMuted = !audioManagerRef.current.isMuted();
-    audioManagerRef.current.setMuted(nextMuted);
+    const nextMuted = !audioRef.current.isMuted();
+    audioRef.current.setMuted(nextMuted);
     setIsMuted(nextMuted);
   }, []);
 
-  const handleJumpToBeat = useCallback((beatIndex: number) => {
-    const targetBeat = COMIC_INTRO_BEATS[beatIndex];
-    if (!targetBeat) return;
-    setElapsedMs(targetBeat.startTimeMs);
+  const handleJumpToPage = useCallback((pageIdx: number) => {
+    const page = COMIC_STORY_PAGES[pageIdx];
+    if (!page) return;
+    setElapsedMs(page.startTimeMs);
   }, []);
 
-  // Pintasan keyboard (Space = Pause/Resume, Panah Kanan = Next Beat, Panah Kiri = Prev Beat, Escape = Skip)
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -99,73 +103,125 @@ export const ComicIntroController: React.FC<ComicIntroControllerProps> = ({
         handleTogglePause();
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        handleNextBeat();
+        handleNextPage();
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        handlePrevBeat();
+        handlePrevPage();
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handleNextBeat, handlePrevBeat, handleTogglePause, onSkip]);
+  }, [handleNextPage, handlePrevPage, handleTogglePause, onSkip]);
 
   return (
     <div
-      className="comic-intro-overlay fixed inset-0 z-50 flex flex-col bg-slate-950 text-white select-none"
+      className="comic-intro-fullscreen fixed inset-0 z-50 flex flex-col overflow-hidden select-none"
+      style={{
+        background:
+          'radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 75%, #020617 100%)',
+      }}
       role="dialog"
       aria-modal="true"
-      aria-label="Pembuka Komik Animasi Sinematik Ruang Dengar"
+      aria-label="Komik Animasi Pembuka Ruang Dengar"
       data-testid="comic-intro-overlay"
     >
-      <IntroSkipController
-        activeBeat={snapshot.activeBeat}
-        activeBeatIndex={snapshot.activeBeatIndex}
-        totalBeats={COMIC_INTRO_BEATS.length}
-        overallProgress={snapshot.overallProgress}
-        isPaused={isPaused}
-        isMuted={isMuted}
-        onTogglePause={handleTogglePause}
-        onPrevBeat={handlePrevBeat}
-        onNextBeat={handleNextBeat}
-        onReplay={handleReplay}
-        onToggleMute={handleToggleMute}
-        onSkip={onSkip}
-        onJumpToBeat={handleJumpToBeat}
-      />
+      {/* Garis Progres Tipis di Tepi Paling Atas Layar (Tanpa Header Besar!) */}
+      <div className="relative z-40 h-1.5 w-full bg-slate-900">
+        <div
+          className="h-full bg-gradient-to-r from-amber-400 via-sky-400 to-emerald-400 transition-all duration-100"
+          style={{ width: `${Math.round(timeline.overallProgress01 * 100)}%` }}
+        />
+      </div>
 
-      <ComicSceneManager
-        snapshot={snapshot}
+      {/* Kontrol Melayang Minimalis di Sudut Kanan Atas (Tidak Menguasai Layar) */}
+      <nav
+        aria-label="Kontrol Cerita Komik"
+        className="fixed top-3 right-4 z-40 flex items-center gap-1 rounded-full border-2 border-slate-950 bg-slate-950/88 px-2.5 py-1 text-white shadow-[3px_3px_0_#020617] backdrop-blur-md"
+      >
+        {/* Indikator 6 Halaman */}
+        <div className="mr-1.5 flex items-center gap-1">
+          {COMIC_STORY_PAGES.map((p, idx) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => handleJumpToPage(idx)}
+              className={`h-2.5 w-2.5 cursor-pointer rounded-full border border-slate-950 transition ${
+                idx === timeline.activePageIndex
+                  ? 'scale-125 bg-amber-400'
+                  : idx < timeline.activePageIndex
+                    ? 'bg-sky-400'
+                    : 'bg-slate-700 hover:bg-slate-500'
+              }`}
+              title={`Halaman ${p.pageNumber}: ${p.title}`}
+              data-testid={`comic-page-dot-${p.pageNumber}`}
+            />
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={handlePrevPage}
+          className="cursor-pointer rounded-full px-2 py-0.5 text-[11px] font-bold text-slate-200 hover:bg-slate-800 hover:text-white"
+          title="Halaman Sebelumnya (←)"
+          data-testid="comic-intro-btn-prev"
+        >
+          ⏮
+        </button>
+        <button
+          type="button"
+          onClick={handleTogglePause}
+          className="cursor-pointer rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[11px] font-black text-amber-300 hover:bg-amber-400/30"
+          title="Pause / Resume (Spasi)"
+          data-testid="comic-intro-btn-pause"
+        >
+          {isPaused ? '▶ Resume' : '⏸ Pause'}
+        </button>
+        <button
+          type="button"
+          onClick={handleNextPage}
+          className="cursor-pointer rounded-full px-2 py-0.5 text-[11px] font-bold text-slate-200 hover:bg-slate-800 hover:text-white"
+          title="Halaman Berikutnya (→)"
+          data-testid="comic-intro-btn-next"
+        >
+          ⏭
+        </button>
+        <button
+          type="button"
+          onClick={handleReplay}
+          className="cursor-pointer rounded-full px-2 py-0.5 text-[11px] font-bold text-slate-200 hover:bg-slate-800 hover:text-white"
+          title="Ulangi Cerita"
+          data-testid="comic-intro-btn-replay"
+        >
+          ↻
+        </button>
+        <button
+          type="button"
+          onClick={handleToggleMute}
+          className="cursor-pointer rounded-full px-2 py-0.5 text-[11px] font-bold text-slate-200 hover:bg-slate-800 hover:text-white"
+          title={isMuted ? 'Nyalakan Suara' : 'Bisukan Suara'}
+          data-testid="comic-intro-btn-mute"
+        >
+          {isMuted ? '🔇' : '🔊'}
+        </button>
+        <button
+          type="button"
+          onClick={onSkip}
+          className="ml-1 cursor-pointer rounded-full border border-slate-950 bg-amber-400 px-2.5 py-0.5 text-[11px] font-black uppercase text-slate-950 hover:bg-amber-300"
+          title="Lewati Intro (Esc)"
+          data-testid="comic-intro-btn-skip"
+        >
+          Skip ✕
+        </button>
+      </nav>
+
+      {/* Panggung Halaman Buku Komik (Mengisi ~90% Layar) */}
+      <ComicPageRenderer
+        timeline={timeline}
         reducedMotion={reducedMotion}
         onStartSimulation={onComplete}
-        onReplayIntro={handleReplay}
+        onReplayStory={handleReplay}
         onSkipIntro={onSkip}
       />
-
-      {/* Footer Petunjuk Pintasan & Status */}
-      <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-800/80 bg-slate-950/95 px-4 py-2 text-[11px] text-slate-400">
-        <div className="flex items-center gap-3">
-          <span>
-            Pintasan: <strong className="text-slate-200">Spasi</strong> Jeda ·{' '}
-            <strong className="text-slate-200">← / →</strong> Geser Panel ·{' '}
-            <strong className="text-slate-200">Esc</strong> Lewati
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-amber-300/90">
-            18 Mahasiswa Terhubung dengan Database Resmi
-          </span>
-          {!snapshot.isFinished && (
-            <button
-              type="button"
-              onClick={onComplete}
-              className="cursor-pointer rounded-md border border-emerald-400/60 bg-emerald-950/80 px-2.5 py-0.5 text-[11px] font-bold text-emerald-200 transition hover:bg-emerald-900"
-              data-testid="comic-intro-footer-continue"
-            >
-              Langsung Mulai Simulasi →
-            </button>
-          )}
-        </div>
-      </footer>
     </div>
   );
 };

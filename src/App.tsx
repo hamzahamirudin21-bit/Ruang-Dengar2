@@ -26,6 +26,16 @@ function shouldAutostart(): boolean {
   }
 }
 
+function shouldAutoOpenComicIntro(): boolean {
+  try {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('intro') === '1' || params.has('introPage');
+  } catch {
+    return false;
+  }
+}
+
 export default function App() {
   const [initialLoaded] = useState(() => loadSettings(STRINGS.errors.storageReadFailed));
   const [settings, setSettings] = useState<AppSettings>(initialLoaded.value);
@@ -35,7 +45,9 @@ export default function App() {
   );
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [theoryOpen, setTheoryOpen] = useState<boolean>(false);
-  const [comicIntroOpen, setComicIntroOpen] = useState<boolean>(false);
+  const [comicIntroOpen, setComicIntroOpen] = useState<boolean>(() =>
+    shouldAutoOpenComicIntro()
+  );
   const [transitioning, setTransitioning] = useState<boolean>(false);
   const transitionTimerRef = useRef<number | null>(null);
 

@@ -9,9 +9,13 @@ export type FeedbackSfxKind = 'tepat' | 'salah' | 'flip' | 'drawer';
 
 export type IntroSfxKind =
   | 'panel-whoosh'
+  | 'door-click'
   | 'door-open'
   | 'footstep'
   | 'comic-pop'
+  | 'solder-sizzle'
+  | 'keyboard-clack'
+  | 'weld-spark'
   | 'light-sweep'
   | 'title-climax'
   | 'ambient-chime';
@@ -409,6 +413,11 @@ export function playIntroSfx(kind: IntroSfxKind): void {
               { f: 220, fEnd: 520, d: 0.12, delay: 0, w: 'triangle', g: 0.06 },
               { f: 520, fEnd: 660, d: 0.08, delay: 0.05, w: 'sine', g: 0.045 },
             ]
+          : kind === 'door-click'
+            ? [
+                { f: 680, fEnd: 920, d: 0.045, delay: 0, w: 'triangle', g: 0.065 },
+                { f: 420, fEnd: 540, d: 0.055, delay: 0.04, w: 'sine', g: 0.055 },
+              ]
           : kind === 'door-open'
             ? [
                 { f: 280, fEnd: 440, d: 0.16, delay: 0, w: 'sine', g: 0.065 },
@@ -416,6 +425,21 @@ export function playIntroSfx(kind: IntroSfxKind): void {
               ]
             : kind === 'footstep'
               ? [{ f: 165, fEnd: 120, d: 0.055, delay: 0, w: 'triangle', g: 0.05 }]
+              : kind === 'solder-sizzle'
+                ? [
+                    { f: 980, fEnd: 1420, d: 0.07, delay: 0, w: 'sawtooth', g: 0.032 },
+                    { f: 1240, fEnd: 860, d: 0.08, delay: 0.05, w: 'triangle', g: 0.03 },
+                  ]
+              : kind === 'keyboard-clack'
+                ? [
+                    { f: 540, fEnd: 380, d: 0.032, delay: 0, w: 'triangle', g: 0.048 },
+                    { f: 620, fEnd: 410, d: 0.032, delay: 0.055, w: 'triangle', g: 0.045 },
+                  ]
+              : kind === 'weld-spark'
+                ? [
+                    { f: 740, fEnd: 1560, d: 0.065, delay: 0, w: 'sawtooth', g: 0.038 },
+                    { f: 1120, fEnd: 620, d: 0.09, delay: 0.045, w: 'triangle', g: 0.036 },
+                  ]
               : kind === 'comic-pop'
                 ? [
                     { f: 460, fEnd: 740, d: 0.085, delay: 0, w: 'triangle', g: 0.065 },
