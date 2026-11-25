@@ -5759,21 +5759,18 @@ html[data-reduced-motion='true'] .sim-dock-btn {
 }
 
 .vn-backdrop {
-  transform: translate3d(calc(var(--vn-px) * -7px), calc(var(--vn-py) * -4.5px), 0) scale(1.022);
-  transition: transform 160ms ease-out;
+  transform: none;
 }
 
 .vn-cast {
-  transform: translate3d(calc(var(--vn-px) * 3.5px), calc(var(--vn-py) * 1.8px), 0) scale(1);
-  transition: transform 180ms ease-out;
+  transform: none;
 }
 .vn-cast--climax {
-  transform: translate3d(calc(var(--vn-px) * 3.5px), calc(var(--vn-py) * 1.8px), 0) scale(1.028);
+  transform: none;
 }
 
 .vn-tabletop {
-  transform: translate3d(calc(var(--vn-px) * 8.5px), 0, 0);
-  transition: transform 150ms ease-out;
+  transform: none;
 }
 
 /* Ghost Full-Text Reservation: teks penuh menentukan dimensi kontainer sementara typewriter berjalan di atasnya */

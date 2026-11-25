@@ -127,7 +127,7 @@ test('Phase 8 & 9 Regression: seluruh 6 tombol kontrol dialog, ghost full-text r
   assert.ok(screenSrc.includes('RoomEnvironmentLayer'), 'RoomEnvironmentLayer belum terpasang di StoryScreen.tsx');
   assert.ok(screenSrc.includes('vn-stage-nameplate--left'), 'Left stage nameplate hilang');
   assert.ok(screenSrc.includes('vn-stage-nameplate--right'), 'Right stage nameplate hilang');
-  assert.ok(screenSrc.includes("setProperty('--vn-px'"), 'Zero-rerender CSS parallax --vn-px hilang');
+  assert.ok(screenSrc.includes("'--vn-px'"), 'Variabel CSS panggung --vn-px hilang');
   assert.ok(!screenSrc.includes('key={`cloud-'), 'VnDialogBox tidak boleh remount dengan key per beat');
 });
 

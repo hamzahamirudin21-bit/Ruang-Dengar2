@@ -189,14 +189,13 @@ function drawAgentEnergyBar(
   ctx.roundRect(bx, by, barW - 1.5, barH, 2.5);
   ctx.fill();
 
-  // Isi warna dinamis: cyan-emerald (stabil), amber (waspada), merah berdenyut (kritis)
+  // Isi warna dinamis stabil: cyan-emerald (stabil), amber (waspada), merah (kritis)
   const trackW = barW - 1.5;
   const fillW = Math.max(2.2, trackW * energy);
-  const pulse = reduced ? 0.5 : 0.5 + 0.5 * Math.sin(timeSec * 6.5);
 
   const barGrad = ctx.createLinearGradient(bx, by, bx + fillW, by);
   if (isCritical) {
-    barGrad.addColorStop(0, pulse > 0.5 ? '#ef4444' : '#f87171');
+    barGrad.addColorStop(0, '#ef4444');
     barGrad.addColorStop(1, '#fb7185');
   } else if (isWarning) {
     barGrad.addColorStop(0, '#f59e0b');
@@ -221,29 +220,6 @@ function drawAgentEnergyBar(
   // Kilau spekular atas tipis pada bilah energi
   ctx.fillStyle = 'rgba(255, 255, 255, 0.36)';
   ctx.fillRect(bx + 1, by + 0.6, Math.max(0, fillW - 2), 1.3);
-
-  // Indikator aliran energi hidup (+ hijau/cyan saat mengobrol, ▼ merah/amber saat menurun)
-  if (!reduced) {
-    if (isCommunicating) {
-      const lift = ((timeSec * 1.4 + phaseOffsetFor(agent.id)) % 1) * 7;
-      const alpha = Math.max(0, 1 - lift / 7);
-      ctx.font = '800 8.5px Outfit, ui-sans-serif, sans-serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = `rgba(0, 223, 255, ${alpha.toFixed(2)})`;
-      ctx.fillText('+', startX + totalW + 2, by + 2 - lift);
-    } else if (energy < 0.6 && agent.status !== 'istirahat') {
-      const drop = ((timeSec * 1.2 + phaseOffsetFor(agent.id)) % 1) * 5;
-      const alpha = Math.max(0, 1 - drop / 5);
-      ctx.font = '800 8.5px Outfit, ui-sans-serif, sans-serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = isCritical
-        ? `rgba(239, 68, 68, ${alpha.toFixed(2)})`
-        : `rgba(255, 181, 71, ${alpha.toFixed(2)})`;
-      ctx.fillText('▼', startX + totalW + 2, by + 1 + drop);
-    }
-  }
 
   // Angka persentase mungil tajam di sisi kanan kapsul bila dipilih/waspada/zoom dekat
   if (showNumber) {
@@ -335,8 +311,8 @@ function drawBubble(
   const bw = Math.max(24, tw + 14);
   const bh = 17.5;
   const bx = feet.x - bw / 2;
-  // Diposisikan di atas kepala agar tidak pernah menutupi wajah karakter
-  const by = feet.y - SPRITE_WORLD_H - 13 - bh - spec.hopPx * 2;
+  // Diposisikan stabil di atas kepala agar tidak pernah bergetar atau menutupi wajah karakter
+  const by = feet.y - SPRITE_WORLD_H - 13 - bh;
 
   // Pendaran luar halus di sekitar balon ucapan
   ctx.fillStyle = 'rgba(0, 223, 255, 0.14)';
@@ -537,15 +513,14 @@ export function drawAgentSprite(
   ctx.stroke();
   ctx.restore();
 
-  // Cincin radar peringatan merah berdenyut di kaki bila energi mahasiswa kritis (< 35%)
+  // Cincin radar peringatan merah stabil di kaki bila energi mahasiswa kritis (< 35%)
   if (agent.energy < 0.35) {
-    const p = reducedMotion ? 0.5 : 0.5 + 0.5 * Math.sin(timeSeconds * 5.2 + phaseOffsetFor(agent.id) * 6);
     ctx.save();
-    ctx.strokeStyle = `rgba(239, 68, 68, ${(0.45 + 0.45 * p).toFixed(3)})`;
-    ctx.fillStyle = `rgba(239, 68, 68, ${(0.08 + 0.1 * p).toFixed(3)})`;
-    ctx.lineWidth = 2.0;
+    ctx.strokeStyle = 'rgba(239, 68, 68, 0.72)';
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.12)';
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.ellipse(feet.x, feet.y, 18 + 5 * p, 7.2 + 2.0 * p, 0, 0, Math.PI * 2);
+    ctx.ellipse(feet.x, feet.y, 19.5, 7.8, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.restore();
@@ -574,26 +549,6 @@ export function drawAgentSprite(
 
   const dir = facingOf(agent, (id) => allById.get(id)?.position);
   const moving = isWalking(agent);
-
-  // Kepulan debu langkah kaki chibi halus saat berjalan
-  if (moving && !reducedMotion) {
-    const dx = dir === 'kanan' ? -1 : dir === 'kiri' ? 1 : 0;
-    const dy = dir === 'bawah' ? -1 : dir === 'atas' ? 1 : 0;
-    const seed = phaseOffsetFor(agent.id);
-    ctx.save();
-    for (let i = 0; i < 2; i += 1) {
-      const cycle = (timeSeconds * 3.0 + seed + i * 0.5) % 1;
-      const dist = 4.5 + cycle * 11;
-      const px = feet.x + dx * dist + (dx === 0 ? (i === 0 ? -2.5 : 2.5) : 0);
-      const py = feet.y - 2 + dy * dist * 0.6 - cycle * 3;
-      const r = 2 + cycle * 1.9;
-      ctx.fillStyle = `rgba(248, 241, 224, ${Math.max(0, (1 - cycle) * 0.42).toFixed(3)})`;
-      ctx.beginPath();
-      ctx.arc(px, py, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-  }
 
   // Bayangan matahari terarah waktu nyata + bayangan kontak AO di bawah kaki chibi
   const sun = computeSunLighting(
@@ -658,13 +613,10 @@ export function drawAgentOverlays(
 
   drawStatusIndicator(ctx, agent, t);
 
-  // Penanda anime halus bila stres tinggi (> 0.65): tetes keringat cel-shaded + busur amber
+  // Penanda anime halus bila stres tinggi (> 0.65): tetes keringat cel-shaded stabil + busur amber
   if (agent.stress > 0.65) {
-    const timeSec = options.timeSeconds ?? 0;
-    const reduced = options.reducedMotion ?? false;
-    const bob = reduced ? 0 : Math.sin(timeSec * 4.2 + phaseOffsetFor(agent.id) * 6) * 1.6;
     const sx = feet.x + 15.5;
-    const sy = feet.y - SPRITE_WORLD_H + 14 + bob;
+    const sy = feet.y - SPRITE_WORLD_H + 14;
 
     ctx.save();
     ctx.fillStyle = '#7dd3fc';

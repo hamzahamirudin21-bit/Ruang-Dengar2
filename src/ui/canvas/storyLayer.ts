@@ -182,18 +182,16 @@ export function drawMissionMarker(
   const feet = spriteFeet(agent.position, opts.tileSizePx);
   const cx = feet.x;
   const isCritical = typeof agent.energy === 'number' && agent.energy < 0.35;
-  const bob = opts.reducedMotion ? 0 : Math.sin(opts.timeSeconds * (isCritical ? 5.2 : 3.4)) * (isCritical ? 2.4 : 1.8);
-  const glow = pulse(opts, isCritical ? 0.95 : 1.6);
   const r = isCritical ? 7.2 : 6.2;
-  const my = feet.y - SPRITE_WORLD_H - r - 3.5 + bob;
+  const my = feet.y - SPRITE_WORLD_H - r - 3.5;
 
   ctx.save();
-  // Aura emas (atau merah-kritis berdenyut bila energi mahasiswa < 35%)
+  // Aura emas/merah stabil (tanpa getaran bobbing vertikal)
   ctx.fillStyle = isCritical
-    ? `rgba(239, 68, 68, ${(0.24 + 0.28 * glow).toFixed(3)})`
-    : `rgba(250, 204, 21, ${(0.18 + 0.16 * glow).toFixed(3)})`;
+    ? 'rgba(239, 68, 68, 0.32)'
+    : 'rgba(250, 204, 21, 0.24)';
   ctx.beginPath();
-  ctx.arc(cx, my, r + (isCritical ? 4.8 : 3.2) + glow * (isCritical ? 2.8 : 1.6), 0, Math.PI * 2);
+  ctx.arc(cx, my, r + (isCritical ? 4.8 : 3.4), 0, Math.PI * 2);
   ctx.fill();
 
   const grad = ctx.createLinearGradient(cx, my - r, cx, my + r);

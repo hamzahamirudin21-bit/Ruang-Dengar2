@@ -196,7 +196,6 @@ export function LivingPortrait({
 
   if (assetSource.kind === 'aset') {
     const expr = assetSource.specificExpression ? null : transformForExpression(expression);
-    const speakPulse = !reduced && isSpeaker && isTyping ? Math.sin(timeMs * 0.022) * 1.9 : 0;
     const isWarm =
       reactionKind === 'tepat' || expression === 'tersenyum' || expression === 'lega';
     const isDowncast =
@@ -207,29 +206,8 @@ export function LivingPortrait({
     const totalBright =
       bright *
       (expr ? expr.brightness : 1) *
-      (reactionKind === 'tepat' ? 1.06 : reactionKind === 'salah' ? 0.91 : 1);
-    const sat = reactionKind === 'tepat' ? 1.08 : isDowncast ? 0.86 : isWarm ? 1.04 : 1;
-    const exprDy = expr && !reduced ? expr.dyPercent * 1.45 : 0;
-    const exprRot = expr && !reduced ? expr.rotateDeg * 0.6 : 0;
-    const poseAnimClass = reduced
-      ? ''
-      : reactionKind === 'tepat'
-        ? 'vn-pose-happy-hop'
-        : reactionKind === 'salah'
-          ? 'vn-pose-sad-slump'
-          : expression === 'terkejut'
-            ? 'vn-expr-shock'
-            : expression === 'cemas'
-              ? 'vn-expr-anxious'
-              : expression === 'kesal'
-                ? 'vn-expr-tense'
-                : expression === 'lelah'
-                  ? 'vn-expr-tired'
-                  : expression === 'menunduk' || expression === 'menutup-diri'
-                    ? 'vn-expr-downcast'
-                    : isWarm
-                      ? 'vn-expr-warm'
-                      : '';
+      (reactionKind === 'tepat' ? 1.04 : reactionKind === 'salah' ? 0.94 : 1);
+    const sat = reactionKind === 'tepat' ? 1.05 : isDowncast ? 0.92 : isWarm ? 1.02 : 1;
     const spriteStyle: CSSProperties = {
       display: fluid ? 'flex' : 'inline-block',
       alignItems: fluid ? 'flex-end' : undefined,
@@ -238,15 +216,14 @@ export function LivingPortrait({
       width: fluid ? '100%' : width,
       height: fluid ? '100%' : height,
       transformOrigin: 'bottom center',
-      transform: `translateY(${pose.breathDy * (fluid ? 2.4 : s) + exprDy + speakPulse}px) rotate(${exprRot}deg) scale(${pose.scaleX * sizeScale}, ${pose.scaleY * sizeScale})`,
+      transform: 'none',
       filter: `brightness(${totalBright}) saturate(${sat})`,
-      transition: reduced ? 'none' : 'filter 240ms ease',
-      willChange: reduced ? undefined : 'transform',
+      transition: reduced ? 'none' : 'filter 200ms ease',
     };
 
     return (
       <div
-        className={`${className ?? ''} ${poseAnimClass}`.trim()}
+        className={(className ?? '').trim()}
         style={spriteStyle}
         data-speaker={isSpeaker ? 'true' : undefined}
         data-expression={expression}

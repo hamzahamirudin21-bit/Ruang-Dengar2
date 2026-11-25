@@ -316,8 +316,8 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   const pointerNormRef = useRef<{ x: number; y: number }>({ x: -1, y: -1 });
   const [weatherMode, setWeatherMode] = useState<CampusWeatherMode>('otomatis');
   const weatherModeRef = useRef<CampusWeatherMode>('otomatis');
-  const [gpuFxEnabled, setGpuFxEnabled] = useState<boolean>(true);
-  const gpuFxEnabledRef = useRef<boolean>(true);
+  const [gpuFxEnabled, setGpuFxEnabled] = useState<boolean>(false);
+  const gpuFxEnabledRef = useRef<boolean>(false);
   const [webglReady, setWebglReady] = useState<boolean>(false);
   const cameraRef = useRef<CameraTransform>({ offsetX: 8, offsetY: 8, scale: 0.7 });
   const stageSizeRef = useRef<{ width: number; height: number }>({ width: 960, height: 480 });
@@ -730,9 +730,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           storyApi.advanceFrame(dt);
           walkingDirty = true;
         }
-        if (storyMarkerIdsRef.current.length > 0 && !reducedMotionRef.current) {
-          walkingDirty = true;
-        }
       }
 
       const test = devPathTestRef.current;
@@ -775,7 +772,10 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       const nowSec = now / 1000;
       timeSecRef.current = nowSec;
       const animTick = animationTick(nowSec);
-      if (shouldRedrawForAnimation(lastAnimTick, animTick, reducedMotionRef.current)) {
+      if (
+        walkingDirty &&
+        shouldRedrawForAnimation(lastAnimTick, animTick, reducedMotionRef.current)
+      ) {
         walkingDirty = true;
       }
       if (clickRippleRef.current) {
@@ -891,9 +891,6 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         x: Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)),
         y: Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height)),
       };
-      if (gpuFxEnabledRef.current && !reducedMotionRef.current) {
-        needsRedrawRef.current = true;
-      }
     }
     const hitAgent = findAgentAtScreenPoint(
       e.clientX,

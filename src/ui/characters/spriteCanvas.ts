@@ -125,10 +125,10 @@ export function drawSprite(ctx: CanvasRenderingContext2D, opts: DrawSpriteOption
         if (smooth && 'imageSmoothingQuality' in ctx) {
           ctx.imageSmoothingQuality = 'high'
         }
-        const { col, row } = spriteSheetCell(opts.dir, opts.anim, opts.frame)
+        const { row } = spriteSheetCell(opts.dir, opts.anim, opts.frame)
         ctx.drawImage(
           img,
-          col * source.cell.w, row * source.cell.h, source.cell.w, source.cell.h,
+          0, row * source.cell.h, source.cell.w, source.cell.h,
           dx, dy, w, h,
         )
         return

@@ -109,8 +109,8 @@ export function StoryBackdrop({ setting, zoneId, variant, size, narrow, reducedM
   }, [artId, reduced]);
 
   const timeMs = useAnimationClock(false);
-  const dx = parallaxOffsetPx(timeMs, reduced);
-  const dust = useMemo(() => dustSpecs(seedFor(artId), DUST_COUNT, narrow), [artId, narrow]);
+  const dx = parallaxOffsetPx(timeMs, true);
+  const dust = useMemo(() => dustSpecs(seedFor(artId), 0, narrow && DUST_COUNT > 0), [artId, narrow]);
   const onFail = useMemo(() => () => setFailed(true), []);
 
   return (
@@ -124,7 +124,7 @@ export function StoryBackdrop({ setting, zoneId, variant, size, narrow, reducedM
         <div
           className="absolute inset-0"
           style={{
-            transform: `translate3d(${dx.toFixed(2)}px, 0, 0) scale(${BACKDROP_SCALE})`,
+            transform: dx === 0 ? 'none' : `translate3d(${dx.toFixed(2)}px, 0, 0) scale(${BACKDROP_SCALE})`,
             filter: BACKDROP_BLUR_PX > 0 ? `blur(${BACKDROP_BLUR_PX}px)` : undefined,
           }}
         >
