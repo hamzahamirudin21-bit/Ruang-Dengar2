@@ -1,12 +1,14 @@
-import { ComicCameraPreset } from './StoryTimeline';
+import { TileViewport } from './StoryTimeline';
 
-export interface CameraMatrix2D {
-  zoom: number;
-  panXNorm: number;
-  panYNorm: number;
-  rotationRad: number;
-  shakeXPx: number;
-  shakeYPx: number;
+export interface PanelWorldCamera {
+  /** Skala piksel kanvas per piksel dunia LAB_MAP */
+  scale: number;
+  /** Offset X dalam piksel kanvas */
+  offsetX: number;
+  /** Offset Y dalam piksel kanvas */
+  offsetY: number;
+  /** Viewport tile aktif hasil interpolasi */
+  viewport: TileViewport;
 }
 
 function easeInOutCubic(t: number): number {
@@ -14,168 +16,88 @@ function easeInOutCubic(t: number): number {
   return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
 }
 
-/**
- * Menghitung pergerakan kamera sinematik 2D per panel komik:
- * zoom-in ke wajah/objek penting, pan mengikuti karakter berjalan,
- * transisi wide shot ke close-up, serta focus shifting antartokoh.
- */
-export function computePanelCameraMatrix(
-  preset: ComicCameraPreset,
-  panelElapsedMs: number,
-  pageDurationMs: number,
+export function interpolateTileViewport(
+  start: TileViewport,
+  end: TileViewport,
+  progress01: number,
   reducedMotion = false
-): CameraMatrix2D {
+): TileViewport {
   if (reducedMotion) {
     return {
-      zoom: 1,
-      panXNorm: 0,
-      panYNorm: 0,
-      rotationRad: 0,
-      shakeXPx: 0,
-      shakeYPx: 0,
+      x: (start.x + end.x) * 0.5,
+      y: (start.y + end.y) * 0.5,
+      w: (start.w + end.w) * 0.5,
+      h: (start.h + end.h) * 0.5,
     };
   }
+  const e = easeInOutCubic(progress01);
+  return {
+    x: start.x + (end.x - start.x) * e,
+    y: start.y + (end.y - start.y) * e,
+    w: start.w + (end.w - start.w) * e,
+    h: start.h + (end.h - start.h) * e,
+  };
+}
 
-  const progress = Math.max(0, Math.min(1, panelElapsedMs / Math.max(1, pageDurationMs)));
-  const e = easeInOutCubic(progress);
-  const tSec = Math.max(0, panelElapsedMs) / 1000;
+/**
+ * Menghitung transformasi kamera 2D dari koordinat dunia LAB_MAP (tileSizePx = 28)
+ * ke kanvas panel komik menggunakan pendekatan cover-fill terpusat sehingga
+ * tidak pernah ada area hitam kosong di tepi panel.
+ */
+export function computePanelWorldCamera(
+  startViewport: TileViewport,
+  endViewport: TileViewport,
+  panelElapsedMs: number,
+  pageDurationMs: number,
+  canvasWidth: number,
+  canvasHeight: number,
+  tileSizePx: number,
+  reducedMotion = false
+): PanelWorldCamera {
+  const progress01 = Math.max(0, Math.min(1, panelElapsedMs / Math.max(1, pageDurationMs)));
+  const vp = interpolateTileViewport(startViewport, endViewport, progress01, reducedMotion);
 
-  switch (preset) {
-    case 'pan-exterior-to-building':
-      return {
-        zoom: 1.03 + e * 0.09,
-        panXNorm: -0.04 + e * 0.07,
-        panYNorm: 0.02 - e * 0.03,
-        rotationRad: 0,
-        shakeXPx: 0,
-        shakeYPx: 0,
-      };
+  const viewWorldW = Math.max(4, vp.w) * tileSizePx;
+  const viewWorldH = Math.max(3, vp.h) * tileSizePx;
+  const viewCenterX = (vp.x + vp.w * 0.5) * tileSizePx;
+  const viewCenterY = (vp.y + vp.h * 0.5) * tileSizePx;
 
-    case 'zoom-foliage-sign':
-      return {
-        zoom: 1.02 + e * 0.1,
-        panXNorm: 0.02 * e,
-        panYNorm: -0.02 * e,
-        rotationRad: 0,
-        shakeXPx: 0,
-        shakeYPx: 0,
-      };
+  // Gunakan Math.max agar ilustrasi peta memenuhi 100% panel tanpa ruang kosong
+  const scaleX = canvasWidth / Math.max(1, viewWorldW);
+  const scaleY = canvasHeight / Math.max(1, viewWorldH);
+  const scale = Math.max(scaleX, scaleY);
 
-    case 'track-walking-student':
-      return {
-        zoom: 1.04 + e * 0.06,
-        panXNorm: -0.05 + e * 0.1,
-        panYNorm: 0,
-        rotationRad: 0,
-        shakeXPx: 0,
-        shakeYPx: 0,
-      };
+  const offsetX = canvasWidth * 0.5 - viewCenterX * scale;
+  const offsetY = canvasHeight * 0.5 - viewCenterY * scale;
 
-    case 'snap-zoom-feet': {
-      const impact = panelElapsedMs < 350 ? Math.sin(tSec * 38) * 2.2 : 0;
-      return {
-        zoom: 1.05 + e * 0.12,
-        panXNorm: 0.03 * e,
-        panYNorm: 0.02 * e,
-        rotationRad: -0.01 * e,
-        shakeXPx: impact,
-        shakeYPx: Math.abs(impact) * 0.6,
-      };
-    }
+  return {
+    scale,
+    offsetX,
+    offsetY,
+    viewport: vp,
+  };
+}
 
-    case 'snap-zoom-hand-handle': {
-      const clickShake =
-        panelElapsedMs > 650 && panelElapsedMs < 1050 ? Math.sin(tSec * 45) * 2.8 : 0;
-      return {
-        zoom: 1.06 + e * 0.14,
-        panXNorm: 0.04 * e,
-        panYNorm: -0.02 * e,
-        rotationRad: 0.012 * e,
-        shakeXPx: clickShake,
-        shakeYPx: -clickShake * 0.7,
-      };
-    }
+/**
+ * Mengonversi posisi tile dunia LAB_MAP (x, y) ke koordinat normalisasi (0..1) di dalam panel
+ * agar ekor balon dialog mengarah tepat ke atas kepala sprite miniatur.
+ */
+export function worldTileToPanelNorm(
+  tileX: number,
+  tileY: number,
+  camera: PanelWorldCamera,
+  canvasWidth: number,
+  canvasHeight: number,
+  tileSizePx: number,
+  verticalOffsetWorldPx = -52
+): { xNorm: number; yNorm: number } {
+  const worldX = (tileX + 0.5) * tileSizePx;
+  const worldY = (tileY + 0.5) * tileSizePx + 8 + verticalOffsetWorldPx;
+  const screenX = worldX * camera.scale + camera.offsetX;
+  const screenY = worldY * camera.scale + camera.offsetY;
 
-    case 'push-through-open-doors':
-      return {
-        zoom: 1.02 + e * 0.12,
-        panXNorm: -0.02 + e * 0.04,
-        panYNorm: 0.02 - e * 0.04,
-        rotationRad: 0,
-        shakeXPx: 0,
-        shakeYPx: 0,
-      };
-
-    case 'focus-solder-tip':
-      return {
-        zoom: 1.04 + e * 0.1,
-        panXNorm: -0.02 + e * 0.04,
-        panYNorm: 0.03 * e,
-        rotationRad: 0,
-        shakeXPx: 0,
-        shakeYPx: 0,
-      };
-
-    case 'focus-coding-monitors':
-      return {
-        zoom: 1.04 + e * 0.08,
-        panXNorm: 0.03 - e * 0.06,
-        panYNorm: -0.01 * e,
-        rotationRad: 0,
-        shakeXPx: 0,
-        shakeYPx: 0,
-      };
-
-    case 'focus-3d-nozzle':
-      return {
-        zoom: 1.03 + e * 0.09,
-        panXNorm: -0.02 + e * 0.05,
-        panYNorm: 0.02 * e,
-        rotationRad: 0,
-        shakeXPx: 0,
-        shakeYPx: 0,
-      };
-
-    case 'focus-welding-arc': {
-      const arcVibration = Math.sin(tSec * 32) * 1.1;
-      return {
-        zoom: 1.05 + e * 0.11,
-        panXNorm: -0.03 + e * 0.05,
-        panYNorm: 0.02 * e,
-        rotationRad: 0,
-        shakeXPx: arcVibration,
-        shakeYPx: arcVibration * 0.5,
-      };
-    }
-
-    case 'pan-group-discussion':
-      return {
-        zoom: 1.03 + e * 0.06,
-        panXNorm: -0.04 + e * 0.08,
-        panYNorm: 0,
-        rotationRad: 0,
-        shakeXPx: 0,
-        shakeYPx: 0,
-      };
-
-    case 'pullback-community-panorama':
-      return {
-        zoom: 1.12 - e * 0.1,
-        panXNorm: -0.03 + e * 0.06,
-        panYNorm: 0.02 - e * 0.02,
-        rotationRad: 0,
-        shakeXPx: 0,
-        shakeYPx: 0,
-      };
-
-    case 'dramatic-title-zoom':
-      return {
-        zoom: 1.02 + e * 0.08,
-        panXNorm: 0,
-        panYNorm: -0.02 * e,
-        rotationRad: 0,
-        shakeXPx: 0,
-        shakeYPx: 0,
-      };
-  }
+  return {
+    xNorm: Math.max(0.06, Math.min(0.94, screenX / Math.max(1, canvasWidth))),
+    yNorm: Math.max(0.08, Math.min(0.92, screenY / Math.max(1, canvasHeight))),
+  };
 }

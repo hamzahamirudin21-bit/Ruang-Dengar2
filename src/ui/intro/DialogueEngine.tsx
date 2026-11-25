@@ -61,22 +61,15 @@ export const DialogueEngine: React.FC<DialogueEngineProps> = ({
       const sinceStart = pageElapsedMs - dlg.startOffsetMs;
       const visibleText = getVisibleTypewriterText(dlg.text, sinceStart);
       const speakerAnchor = dlg.speakerId ? actorAnchors[dlg.speakerId] : undefined;
-      const actorSpec = dlg.speakerId
-        ? panel.actors.find((a) => a.characterId === dlg.speakerId)
-        : undefined;
 
       const targetXNorm =
         speakerAnchor?.xNorm !== undefined
           ? speakerAnchor.xNorm
-          : actorSpec
-            ? actorSpec.xNorm
-            : dlg.bubbleXNorm;
+          : dlg.bubbleXNorm;
       const targetYNorm =
         speakerAnchor?.yNorm !== undefined
           ? speakerAnchor.yNorm
-          : actorSpec
-            ? Math.max(0.38, actorSpec.yNorm - 0.34)
-            : Math.min(0.85, dlg.bubbleYNorm + 0.25);
+          : Math.min(0.85, dlg.bubbleYNorm + 0.2);
 
       activeDialogues.push({
         spec: dlg,
