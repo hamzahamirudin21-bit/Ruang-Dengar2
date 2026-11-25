@@ -68,3 +68,26 @@ test('Phase 1 Architecture: Pemrograman & MCU memiliki alur firmware sensor() ->
   assert.equal(mcu.headerTitle, 'STASIUN PEMROGRAMAN DAN MIKROKONTROLER');
   assert.deepEqual(mcu.wallDisplayNodes, ['sensor()', 'filter()', 'sendMQTT()']);
 });
+
+test('Phase 3 Multi-Room Personalization: perpindahan antar-11 ruangan mengubah wallDisplayTitle, wallDisplayNodes, dan palet warna secara dinamis', () => {
+  const seenPalettes = new Set<string>();
+  for (const zoneId of ALL_ZONES) {
+    const cfg = resolveRoomVisualConfig({ setting: 'lab', zoneId });
+    assert.equal(cfg.roomId, zoneId);
+    assert.ok(cfg.wallDisplayTitle.length > 5);
+    assert.equal(cfg.wallDisplayNodes.length, 3);
+    const paletteSignature = `${cfg.theme.bgPrimary}|${cfg.theme.accentPrimary}|${cfg.theme.tabletopSurface}`;
+    seenPalettes.add(paletteSignature);
+  }
+  // Seluruh 11 ruangan memiliki kombinasi palet warna latar/aksen/meja yang berbeda
+  assert.equal(seenPalettes.size, 11);
+
+  // Saat berpindah dari lab (mis. las) ke ruang-konsultasi (Walk Together), tema berubah ke konsultasi
+  const beforeWalk = resolveRoomVisualConfig({ setting: 'lab', zoneId: 'las' });
+  const afterWalk = resolveRoomVisualConfig({ setting: 'ruang-konsultasi', zoneId: 'las' });
+  assert.equal(beforeWalk.roomId, 'las');
+  assert.equal(afterWalk.roomId, 'konsultasi');
+  assert.notEqual(beforeWalk.theme.accentPrimary, afterWalk.theme.accentPrimary);
+  assert.notEqual(beforeWalk.wallDisplayKind, afterWalk.wallDisplayKind);
+});
+

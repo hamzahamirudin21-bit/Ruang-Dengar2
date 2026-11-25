@@ -5276,3 +5276,354 @@ html[data-reduced-motion='true'] .sim-dock-btn {
   background: rgba(165, 243, 252, 0.8);
   box-shadow: 0 0 6px rgba(0, 229, 255, 0.8);
 }
+
+.vn-desk-room-tag {
+  position: absolute;
+  right: max(6%, 3.5rem);
+  bottom: 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.18rem 0.72rem;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 229, 255, 0.36);
+  background: rgba(6, 21, 34, 0.86);
+  color: #9EB7C7;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.vn-desk-room-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--vn-room-accent);
+  box-shadow: 0 0 6px var(--vn-room-accent);
+}
+
+/* ============================================================================
+   10. PHASE 3 — MULTI-ROOM ENVIRONMENT PERSONALIZATION (11 ROOMS)
+   ============================================================================ */
+
+.vn-room-ceiling-trim {
+  position: absolute;
+  inset-x: 0;
+  top: 0;
+  height: 44px;
+  background:
+    linear-gradient(180deg, rgba(4, 14, 24, 0.82) 0%, rgba(4, 14, 24, 0) 100%);
+  border-top: 2px solid var(--vn-room-accent);
+  box-shadow: 0 0 24px var(--vn-room-glow);
+}
+
+.vn-room-ambient-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 42% 38% at 78% 30%, var(--vn-room-glow) 0%, transparent 72%),
+    radial-gradient(ellipse 35% 40% at 22% 42%, rgba(255, 189, 89, 0.16) 0%, transparent 70%);
+  opacity: 0.85;
+}
+
+/* 1. Peralatan Latar Kiri (Server Rack / Industrial Cabinet / Bookcase) */
+.vn-room-left-fixture {
+  position: absolute;
+  left: 3.5%;
+  top: 19%;
+  bottom: 24%;
+  width: clamp(5.8rem, 9.5vw, 8.8rem);
+  opacity: 0.86;
+}
+
+.vn-env-server-rack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 10px 8px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(0, 229, 255, 0.32);
+  background: linear-gradient(180deg, rgba(10, 25, 38, 0.92) 0%, rgba(5, 14, 22, 0.96) 100%);
+  box-shadow:
+    inset 0 0 14px rgba(0, 229, 255, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.65);
+}
+.vn-env-server-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.22);
+}
+.vn-env-server-blade {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(13, 33, 48, 0.88);
+}
+.vn-env-blade-bars {
+  width: 68%;
+  height: 4px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(0, 229, 255, 0.45) 0px,
+    rgba(0, 229, 255, 0.45) 5px,
+    transparent 5px,
+    transparent 8px
+  );
+}
+.vn-env-led {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+}
+.vn-env-led--cyan {
+  background: #00E5FF;
+  box-shadow: 0 0 8px #00E5FF;
+}
+.vn-env-led--gold {
+  background: #FFBD59;
+  box-shadow: 0 0 8px #FFBD59;
+}
+
+.vn-env-industrial-cabinet {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255, 181, 71, 0.42);
+  background: linear-gradient(180deg, rgba(30, 35, 44, 0.94) 0%, rgba(18, 21, 28, 0.96) 100%);
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+}
+.vn-env-hazard-stripe {
+  height: 10px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #FFB547 0px,
+    #FFB547 8px,
+    #141820 8px,
+    #141820 16px
+  );
+}
+.vn-env-cabinet-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 8px;
+  flex: 1;
+}
+.vn-env-cabinet-drawer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 181, 71, 0.28);
+  background: rgba(38, 44, 54, 0.85);
+}
+.vn-env-drawer-handle {
+  width: 44%;
+  height: 4px;
+  border-radius: 999px;
+  background: #FFB547;
+}
+
+.vn-env-bookcase {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 100%;
+  padding: 10px 8px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255, 201, 107, 0.36);
+  background: linear-gradient(180deg, rgba(44, 32, 22, 0.92) 0%, rgba(24, 18, 12, 0.96) 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+}
+.vn-env-bookshelf-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 28%;
+  padding: 0 4px 4px;
+  border-bottom: 3px solid rgba(180, 132, 78, 0.65);
+}
+.vn-env-book-spine {
+  display: block;
+  width: 18%;
+  border-radius: 2px 2px 0 0;
+}
+.vn-env-book-spine--1 { height: 82%; background: #38bdf8; }
+.vn-env-book-spine--2 { height: 94%; background: #fbbf24; }
+.vn-env-book-spine--3 { height: 76%; background: #34d399; }
+.vn-env-book-spine--4 { height: 88%; background: #c084fc; }
+
+/* 2. PANEL VISUALISASI DINDING KANAN-ATAS (ALUR FIRMWARE & TELEMETRI dll.) */
+.vn-room-wall-board {
+  position: absolute;
+  right: max(4.2%, 2.5rem);
+  top: 17.5%;
+  width: clamp(16.5rem, 26vw, 22.5rem);
+  padding: 0.72rem 0.95rem 0.55rem;
+  border-radius: 12px;
+  border: 2px solid var(--vn-room-accent);
+  background:
+    linear-gradient(180deg, rgba(226, 242, 252, 0.93) 0%, rgba(198, 226, 244, 0.91) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 22px var(--vn-room-glow),
+    0 12px 28px rgba(2, 8, 16, 0.72);
+}
+
+.vn-wall-board-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.55rem;
+}
+.vn-wall-board-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--vn-room-accent);
+  box-shadow: 0 0 8px var(--vn-room-accent);
+}
+.vn-wall-board-title {
+  flex: 1;
+  font-family: 'Plus Jakarta Sans', 'Fredoka', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #16324a;
+  text-transform: uppercase;
+}
+.vn-wall-board-tag {
+  padding: 0.1rem 0.42rem;
+  border-radius: 4px;
+  background: rgba(15, 45, 68, 0.14);
+  color: #1e4666;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
+.vn-wall-flow-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+.vn-wall-node {
+  flex: 1;
+  min-width: 0;
+  padding: 0.34rem 0.42rem;
+  border-radius: 7px;
+  text-align: center;
+  font-family: 'Plus Jakarta Sans', monospace;
+  font-size: 0.66rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+.vn-wall-node--1 {
+  border: 1.5px solid #38bdf8;
+  background: rgba(186, 230, 253, 0.75);
+  color: #0c4a6e;
+}
+.vn-wall-node--2 {
+  border: 1.5px solid #34d399;
+  background: rgba(167, 243, 208, 0.78);
+  color: #065f46;
+}
+.vn-wall-node--3 {
+  border: 1.5px solid #fb923c;
+  background: rgba(254, 215, 170, 0.82);
+  color: #7c2d12;
+}
+
+.vn-wall-arrow {
+  display: inline-flex;
+  align-items: center;
+  color: #1e3a5f;
+  font-size: 0.55rem;
+}
+.vn-wall-arrow-line {
+  width: 10px;
+  height: 2px;
+  background: #1e3a5f;
+}
+
+.vn-wall-telemetry-svg {
+  display: block;
+  width: 100%;
+  height: 36px;
+  margin-top: 0.25rem;
+}
+
+/* 3. Monitor Workstation Latar Tengah-Bawah */
+.vn-room-midground-desk {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 34%;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  opacity: 0.78;
+}
+.vn-mid-monitor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.vn-mid-monitor-screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 4.8rem;
+  height: 3.1rem;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1.5px solid var(--vn-room-accent);
+  background: linear-gradient(180deg, rgba(8, 36, 52, 0.92) 0%, rgba(4, 18, 28, 0.96) 100%);
+  box-shadow: 0 0 14px var(--vn-room-glow);
+}
+.vn-mid-monitor-screen span {
+  display: block;
+  height: 2.5px;
+  border-radius: 999px;
+  background: var(--vn-room-accent);
+  opacity: 0.75;
+}
+.vn-mid-monitor-screen span:nth-child(1) { width: 72%; }
+.vn-mid-monitor-screen span:nth-child(2) { width: 48%; }
+.vn-mid-monitor-screen span:nth-child(3) { width: 85%; }
+.vn-mid-monitor-stand {
+  width: 14px;
+  height: 8px;
+  background: #1e293b;
+  border-bottom: 2px solid var(--vn-room-accent);
+}
+
+@media (max-width: 900px) {
+  .vn-room-left-fixture,
+  .vn-room-midground-desk,
+  .vn-desk-room-tag {
+    display: none;
+  }
+  .vn-room-wall-board {
+    top: 14%;
+    right: 1rem;
+    width: 14.5rem;
+    opacity: 0.45;
+  }
+}

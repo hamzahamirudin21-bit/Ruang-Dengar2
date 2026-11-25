@@ -18,6 +18,7 @@ import { resolveSceneArt, sceneVariantForGraph } from '../scene/sceneArt';
 import type { SceneVariant } from '../scene/sceneArt';
 import { ProfileCard } from './ProfileCard';
 import { RoomDecorOverlay } from './RoomDecorOverlay';
+import { RoomEnvironmentLayer } from './RoomEnvironmentLayer';
 import { StoryHistoryPanel } from './StoryHistoryPanel';
 import { EmoteBubble } from './EmoteBubble';
 import { ExpressionOverlay } from './ExpressionOverlay';
@@ -879,6 +880,8 @@ export function StoryScreen({
           reducedMotion={reducedMotion}
         />
       </div>
+      {/* 1a. Lapisan Lingkungan Arsitektural & Panel Dinding Spesifik 11 Ruangan (PHASE 3) */}
+      <RoomEnvironmentLayer config={roomConfig} reducedMotion={reducedMotion} />
       {/* 1b. Pencahayaan emosi panggung halus berbasis ekspresi terlihat */}
       <div className="vn-mood-layer" aria-hidden="true" />
       {/* 1b1. Kanvas VFX GPU-feel 60 FPS: Sunbeams Volumetrik + Partikel Spesifik Ruangan + Pita Cahaya Empati Bezier */}
@@ -1060,9 +1063,10 @@ export function StoryScreen({
         </div>
       </div>
 
-      {/* 2b. Lapisan tepi meja laboratorium futuristik (foreground tabletop depth): buku log kiri, holopad cyan tengah */}
+      {/* 2b. Lapisan tepi meja laboratorium futuristik (foreground tabletop depth): buku log kiri, holopad tengah, & prop spesifik ruangan kanan */}
       <div
         className="vn-tabletop"
+        data-desk-prop={roomConfig.deskPropKind}
         aria-hidden="true"
         style={
           reducedMotion
@@ -1079,7 +1083,7 @@ export function StoryScreen({
           <div className="vn-desk-book vn-desk-book--top" />
           <div className="vn-desk-book vn-desk-book--bottom" />
         </div>
-        {/* Tablet Holografik Cyan bercahaya di tengah meja depan */}
+        {/* Tablet Holografik bercahaya di tengah meja depan */}
         <div className="vn-desk-holopad">
           <div className="vn-desk-holopad-grid" />
           <div className="vn-desk-holopad-bars">
@@ -1087,6 +1091,11 @@ export function StoryScreen({
             <span style={{ width: '64%' }} />
             <span style={{ width: '52%' }} />
           </div>
+        </div>
+        {/* Lencana Instrumen Meja Spesifik Ruangan di sisi kanan meja depan */}
+        <div className="vn-desk-room-tag">
+          <span className="vn-desk-room-dot" />
+          <span>{roomConfig.departmentTag}</span>
         </div>
       </div>
 
