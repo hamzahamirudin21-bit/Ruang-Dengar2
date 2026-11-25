@@ -1785,7 +1785,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
             <div className="flex items-center gap-3">
               {/* Potret mahasiswa */}
               <div
-                className="relative h-[76px] w-[60px] shrink-0 overflow-hidden rounded-2xl border-[2.5px] border-[#3e2517] bg-gradient-to-b from-[#d8ecfa] via-[#f0f5e8] to-[#f8e6c8] shadow-[0_3px_0_#3e2517]"
+                className="relative h-[76px] w-[60px] shrink-0 overflow-hidden rounded-xl border-[1.5px] border-[#00DFFF]/65 bg-gradient-to-b from-[#0e384a] via-[#092635] to-[#061522] shadow-[0_0_12px_rgba(0,223,255,0.22)]"
                 style={{ lineHeight: 0 }}
               >
                 <div className="h-full w-full [&>canvas]:!h-full [&>canvas]:!w-full [&>canvas]:object-contain [&>canvas]:object-bottom [&>img]:!h-full [&>img]:!w-full">
@@ -1805,17 +1805,17 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="truncate font-['Fredoka'] text-sm font-bold text-[#3e2517]">
+                      <span className="truncate font-['Plus_Jakarta_Sans'] text-sm font-extrabold text-[#EAF6FF]">
                         {selectedAgentSnapshot.name}
                       </span>
-                      <span className="rounded-full border border-[#3e2517]/35 bg-[#e6f7f2] px-2 py-0.5 font-['Fredoka'] text-[10px] font-bold text-[#1e6a5d]">
+                      <span className="rounded-full border border-[#00DFFF]/45 bg-[#00DFFF]/15 px-2 py-0.5 font-['Plus_Jakarta_Sans'] text-[10px] font-bold text-[#00DFFF]">
                         {STRINGS.agentInspector.activityNames[selectedAgentSnapshot.status]}
                       </span>
-                      <span className="rounded-full border border-[#3e2517]/35 bg-[#fff2d2] px-2 py-0.5 font-['Fredoka'] text-[10px] font-bold text-[#8a4f16]">
+                      <span className="rounded-full border border-[#FFC96B]/45 bg-[#FFC96B]/15 px-2 py-0.5 font-['Plus_Jakarta_Sans'] text-[10px] font-bold text-[#FFC96B]">
                         {STRINGS.agentInspector.socialNames[selectedAgentSnapshot.socialStatus]}
                       </span>
                     </div>
-                    <p className="mt-0.5 line-clamp-1 text-[11px] italic text-[#6b482e]">
+                    <p className="mt-0.5 line-clamp-1 text-[11px] italic text-[#92AFC0]">
                       🔔 “{signalForStudent(selectedAgentSnapshot.id).clue}”
                     </p>
                   </div>
@@ -1826,14 +1826,14 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                       playSfx('klik');
                       setSelectedAgentId(null);
                     }}
-                    className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-[#3e2517] bg-[#fff5dc] font-['Fredoka'] text-xs font-bold text-[#3e2517] hover:bg-[#ffe199]"
+                    className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border border-[#00DFFF]/45 bg-[#0A2636] text-xs font-bold text-[#EAF6FF] hover:border-[#00DFFF] hover:bg-[#123d54]"
                   >
                     ✕
                   </button>
                 </div>
 
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 rounded-xl border border-[#3e2517]/25 bg-[#fffdf7] px-2 py-1 text-[11px]">
+                  <div className="flex items-center gap-2 rounded-xl border border-[#3e2517]/25 bg-[#fffdf7] px-2 py-1 text-[11px] text-[#3e2517]">
                     {selectedMeters.energy && (
                       <GameMeter
                         label={STRINGS.agentInspector.energyLabel}
@@ -1876,10 +1876,10 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
             <div className="flex items-start justify-between gap-2.5">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="rounded-full border-2 border-[#3e2517] bg-[#ffe694] px-2.5 py-0.5 font-['Fredoka'] text-xs font-bold text-[#3e2517]">
+                  <span className="rounded-full border border-[#FFC96B]/65 bg-[#FFC96B]/20 px-2.5 py-0.5 font-['Plus_Jakarta_Sans'] text-xs font-bold text-[#FFC96B]">
                     📍 {selectedZone.label}
                   </span>
-                  <span className="rounded-full border border-[#3e2517]/30 bg-[#fffdf7] px-2 py-0.5 font-['Fredoka'] text-[10px] font-bold text-[#3e2517]">
+                  <span className="rounded-full border border-[#00DFFF]/40 bg-[#0A2636] px-2 py-0.5 font-['Plus_Jakarta_Sans'] text-[10px] font-bold text-[#EAF6FF]">
                     🔒 Privasi{' '}
                     {Math.round(
                       getEffectiveZonePrivacy(
@@ -1890,11 +1890,11 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                     )}
                     %
                   </span>
-                  <span className="rounded-full border border-[#3e2517]/30 bg-[#fffdf7] px-2 py-0.5 font-['Fredoka'] text-[10px] font-bold text-[#3e2517]">
+                  <span className="rounded-full border border-[#00DFFF]/40 bg-[#0A2636] px-2 py-0.5 font-['Plus_Jakarta_Sans'] text-[10px] font-bold text-[#EAF6FF]">
                     👥 Kapasitas {selectedZone.capacity}
                   </span>
                 </div>
-                <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-[#5d3d26]">
+                <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-[#92AFC0]">
                   {selectedZone.id === 'konsultasi'
                     ? viewOptions.consultationDoorMode === 'lab'
                       ? STRINGS.canvasToolbar.doorVisibilityHintLab
@@ -1909,7 +1909,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                   playSfx('klik');
                   setSelectedZoneId(null);
                 }}
-                className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-[#3e2517] bg-[#fff5dc] font-['Fredoka'] text-xs font-bold text-[#3e2517] hover:bg-[#ffe199]"
+                className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border border-[#00DFFF]/45 bg-[#0A2636] text-xs font-bold text-[#EAF6FF] hover:border-[#00DFFF] hover:bg-[#123d54]"
               >
                 ✕
               </button>
