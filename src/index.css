@@ -5887,3 +5887,163 @@ html[data-reduced-motion='true'] .vn-choice-dock {
   padding: 0.48rem 1rem;
   font-size: clamp(0.8rem, 0.94vw, 0.89rem);
 }
+
+/* ============================================================================
+   14. PHASE 7 — MULTI-RESOLUTION RESPONSIVE LAYOUT
+   Target: 1920x1080, 1600x900, 1366x768, 1280x720, & Tablet (<= 1024px)
+   ============================================================================ */
+
+/* 1. Widescreen 1920x1080 & 1600x900: proporsi panggung sinematik penuh */
+@media (min-width: 1440px) and (min-height: 820px) {
+  .vn-center-corridor {
+    top: 8.1rem;
+    bottom: 2.9rem;
+    width: clamp(27rem, 44vw, 41rem);
+    gap: 0.78rem;
+  }
+  .vn-char {
+    height: clamp(26rem, 76svh, 42rem);
+    max-width: 28vw;
+  }
+}
+
+/* 2. Laptop Standar 1366x768 & 1280x720 (Tinggi viewport <= 800px) */
+@media (max-height: 800px) {
+  .vn-topbar {
+    top: 0.38rem;
+  }
+  .vn-brand-banner {
+    padding: 0.24rem 0.95rem 0.24rem 0.7rem;
+  }
+  .vn-brand-text {
+    font-size: 0.88rem;
+  }
+  .vn-topbtn,
+  .vn-energy-chip {
+    min-height: 1.9rem;
+    padding: 0.22rem 0.78rem;
+    font-size: 0.72rem;
+  }
+  .vn-topbtn--circle {
+    width: 1.9rem;
+    height: 1.9rem;
+  }
+  .vn-location {
+    padding: 0.42rem 1.25rem 0.48rem;
+  }
+  .vn-location-title {
+    font-size: 0.8rem;
+  }
+  .vn-location-caption {
+    margin-top: 0.12rem;
+    font-size: 0.7rem;
+  }
+  .vn-location-objective-pill {
+    margin-top: 0.2rem;
+    padding: 0.12rem 0.72rem;
+    font-size: 0.66rem;
+  }
+  .vn-center-corridor {
+    top: 6.1rem;
+    bottom: 2.15rem;
+    width: clamp(22rem, 44vw, 35.5rem);
+    gap: 0.45rem;
+  }
+  .vn-box {
+    padding: 1.15rem 1.2rem 0.82rem;
+  }
+  .vn-box-body {
+    max-height: 22svh;
+  }
+  .vn-text {
+    font-size: clamp(0.88rem, 1.05vw, 0.98rem);
+    line-height: 1.44;
+  }
+  .vn-cue {
+    margin-top: 0.32rem;
+    font-size: 0.76rem;
+  }
+  .vn-pill {
+    min-height: 1.75rem;
+    padding: 0.18rem 0.65rem;
+    font-size: 0.68rem;
+  }
+  .vn-choice-dock {
+    min-height: 7.1rem;
+    gap: 0.35rem;
+  }
+  .vn-choice-prompt {
+    padding: 0.18rem 1rem;
+    font-size: 0.7rem;
+  }
+  .vn-choice {
+    min-height: 2.65rem;
+    padding: 0.45rem 0.95rem;
+    font-size: clamp(0.8rem, 0.94vw, 0.88rem);
+  }
+  .vn-choice-num {
+    width: 1.7rem;
+    height: 1.7rem;
+    font-size: 0.78rem;
+  }
+  .vn-char {
+    height: clamp(19rem, 71svh, 31rem);
+    max-width: 26.5vw;
+  }
+  .vn-stage-nameplate {
+    bottom: 1.85rem;
+    min-width: 9.2rem;
+    padding: 0.28rem 0.85rem;
+  }
+  .vn-stage-nameplate-title {
+    font-size: 0.76rem;
+  }
+  .vn-stage-nameplate-role {
+    font-size: 0.62rem;
+  }
+  .vn-tabletop {
+    height: 32px;
+  }
+  .vn-desk-holopad {
+    height: 22px;
+    bottom: 3px;
+  }
+  .vn-room-wall-board {
+    top: 15.5%;
+    width: clamp(14.5rem, 23vw, 19rem);
+    padding: 0.52rem 0.75rem 0.42rem;
+  }
+}
+
+/* 3. Tablet & Layar Menengah (<= 1180px) */
+@media (max-width: 1180px) {
+  .vn-center-corridor {
+    width: clamp(20.5rem, 48vw, 32rem);
+  }
+  .vn-char {
+    max-width: 25.5vw;
+  }
+  .vn-room-wall-board {
+    width: clamp(13.5rem, 24vw, 17.5rem);
+  }
+}
+
+/* 4. Tablet Portrait & Layar Sempit (< 900px) */
+@media (max-width: 899.98px) {
+  .vn-center-corridor {
+    top: auto;
+    bottom: 2.2rem;
+    width: min(35rem, 92vw);
+    justify-content: flex-end;
+    gap: 0.45rem;
+  }
+  .vn-char {
+    height: clamp(15.5rem, 46svh, 24rem);
+    max-width: 40vw;
+  }
+  .vn-stage-nameplate {
+    bottom: 1.4rem;
+    min-width: 8rem;
+    padding: 0.24rem 0.7rem;
+  }
+}
