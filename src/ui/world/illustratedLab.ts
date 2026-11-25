@@ -11,7 +11,7 @@ import type { ConsultationDoorMode, LabFurniture, LabMapData, LabZone, ZoneType 
 import type { RoomDecorId } from '../../engine/roomDecor';
 import { computeSunLighting, type CampusWeatherMode } from '../gpu/sunLighting';
 
-const INK = '#3e2517';
+const INK = '#071420';
 const CACHE_SCALE = 2; // Render latar gedung statis di 2x HD untuk ketajaman Retina
 
 interface FloorPalette {
@@ -19,36 +19,117 @@ interface FloorPalette {
   base: string;
   alt: string;
   accent: string;
+  neonBorder?: string;
   rug?: string;
   rugTrim?: string;
 }
 
 const FLOOR_STYLE: Record<ZoneType, FloorPalette> = {
-  las: { style: 'beton', base: '#c4ccd5', alt: '#b8c1cc', accent: '#e8ae2d' },
-  'cetak-3d': { style: 'keramik', base: '#d2e4ee', alt: '#c4d9e6', accent: '#3c9ab6' },
-  'elektronik-iot': { style: 'keramik', base: '#d3e5db', alt: '#c5dacf', accent: '#2f9574' },
-  'gudang-alat': { style: 'beton', base: '#cfc7b8', alt: '#c3baa9', accent: '#9c7240' },
-  pemrograman: { style: 'karpet', base: '#cad8ea', alt: '#bdcde2', accent: '#4e6fb5', rug: '#b7c9e2', rugTrim: '#7b97ca' },
-  diskusi: { style: 'kayu', base: '#DFBE88', alt: '#d3b077', accent: '#ad7d42', rug: '#c4d9b8', rugTrim: '#7aa36d' },
-  istirahat: { style: 'karpet', base: '#eacbb6', alt: '#e0bfa8', accent: '#c9744b', rug: '#f0dcc2', rugTrim: '#d18c64' },
-  konsultasi: { style: 'kayu', base: '#e2c494', alt: '#d6b582', accent: '#be7c3e', rug: '#c9e0d3', rugTrim: '#56997f' },
-  'ruang-dosen': { style: 'kayu', base: '#cca97c', alt: '#c09a6b', accent: '#83542f', rug: '#d3cce3', rugTrim: '#8b7cb0' },
-  'studio-desain': { style: 'kayu', base: '#dfd2ee', alt: '#d3c4e6', accent: '#8b67b8', rug: '#ece0fa', rugTrim: '#a583d1' },
-  'pojok-baca': { style: 'karpet', base: '#c5ded0', alt: '#b7d3c3', accent: '#348060', rug: '#e5d7b7', rugTrim: '#b8945a' },
+  las: {
+    style: 'beton',
+    base: '#3a4654',
+    alt: '#323d4a',
+    accent: '#FFB547',
+    neonBorder: 'rgba(255, 181, 71, 0.55)',
+  },
+  'cetak-3d': {
+    style: 'keramik',
+    base: '#164c68',
+    alt: '#12415a',
+    accent: '#00DFFF',
+    neonBorder: 'rgba(0, 223, 255, 0.75)',
+  },
+  'elektronik-iot': {
+    style: 'keramik',
+    base: '#1b555a',
+    alt: '#16494e',
+    accent: '#00E5FF',
+    neonBorder: 'rgba(0, 229, 255, 0.65)',
+  },
+  'gudang-alat': {
+    style: 'beton',
+    base: '#3f4752',
+    alt: '#363e48',
+    accent: '#FFB547',
+    neonBorder: 'rgba(255, 181, 71, 0.45)',
+  },
+  pemrograman: {
+    style: 'keramik',
+    base: '#1b3d5c',
+    alt: '#16334f',
+    accent: '#168BFF',
+    neonBorder: 'rgba(22, 139, 255, 0.72)',
+    rug: '#152e47',
+    rugTrim: '#00DFFF',
+  },
+  diskusi: {
+    style: 'kayu',
+    base: '#5c584e',
+    alt: '#504c43',
+    accent: '#84cc16',
+    neonBorder: 'rgba(163, 230, 53, 0.55)',
+    rug: '#4e6e48',
+    rugTrim: '#a3e635',
+  },
+  istirahat: {
+    style: 'karpet',
+    base: '#5c5449',
+    alt: '#50483e',
+    accent: '#FFC96B',
+    neonBorder: 'rgba(255, 201, 107, 0.5)',
+    rug: '#6e5a42',
+    rugTrim: '#FFB547',
+  },
+  konsultasi: {
+    style: 'kayu',
+    base: '#614d3b',
+    alt: '#544232',
+    accent: '#FFC96B',
+    neonBorder: 'rgba(255, 201, 107, 0.65)',
+    rug: '#3d5a52',
+    rugTrim: '#00DFFF',
+  },
+  'ruang-dosen': {
+    style: 'kayu',
+    base: '#3f3d5e',
+    alt: '#353352',
+    accent: '#a855f7',
+    neonBorder: 'rgba(168, 85, 247, 0.65)',
+    rug: '#2e2b4a',
+    rugTrim: '#c084fc',
+  },
+  'studio-desain': {
+    style: 'keramik',
+    base: '#4c3b6e',
+    alt: '#413161',
+    accent: '#c084fc',
+    neonBorder: 'rgba(192, 132, 252, 0.75)',
+    rug: '#3b2b59',
+    rugTrim: '#e879f9',
+  },
+  'pojok-baca': {
+    style: 'kayu',
+    base: '#635647',
+    alt: '#574b3d',
+    accent: '#FFB547',
+    neonBorder: 'rgba(0, 223, 255, 0.45)',
+    rug: '#4f4336',
+    rugTrim: '#FFC96B',
+  },
 };
 
 export const ZONE_BADGE_META: Record<ZoneType, { icon: string; accent: string; bg: string }> = {
-  las: { icon: '🔥', accent: '#b8531c', bg: '#fff3e2' },
-  'cetak-3d': { icon: '🖨️', accent: '#1d7694', bg: '#e8f7fc' },
-  'elektronik-iot': { icon: '⚡', accent: '#1f7a5c', bg: '#e6f9f1' },
-  'gudang-alat': { icon: '🧰', accent: '#7c5a32', bg: '#f6efe2' },
-  pemrograman: { icon: '💻', accent: '#3c5aa6', bg: '#ebf1ff' },
-  diskusi: { icon: '💬', accent: '#3a7a4b', bg: '#ecf8ee' },
-  istirahat: { icon: '☕', accent: '#b55635', bg: '#fff0e8' },
-  konsultasi: { icon: '💛', accent: '#237563', bg: '#e5faf4' },
-  'ruang-dosen': { icon: '📋', accent: '#5c4b8a', bg: '#f1ecfc' },
-  'studio-desain': { icon: '🎨', accent: '#764ba2', bg: '#f6ecff' },
-  'pojok-baca': { icon: '📚', accent: '#256e52', bg: '#e6f7ee' },
+  las: { icon: '🔥', accent: '#FFB547', bg: '#0c1f2e' },
+  'cetak-3d': { icon: '🖨️', accent: '#00DFFF', bg: '#092233' },
+  'elektronik-iot': { icon: '⚡', accent: '#00E5FF', bg: '#092430' },
+  'gudang-alat': { icon: '🔧', accent: '#FFB547', bg: '#10212e' },
+  pemrograman: { icon: '💻', accent: '#168BFF', bg: '#0a2036' },
+  diskusi: { icon: '👥', accent: '#a3e635', bg: '#112622' },
+  istirahat: { icon: '☕', accent: '#FFC96B', bg: '#18222c' },
+  konsultasi: { icon: '💬', accent: '#FFC96B', bg: '#14262e' },
+  'ruang-dosen': { icon: '👤', accent: '#c084fc', bg: '#171a33' },
+  'studio-desain': { icon: '🎨', accent: '#e879f9', bg: '#1d1836' },
+  'pojok-baca': { icon: '📖', accent: '#FFB547', bg: '#16222c' },
 };
 
 function rrect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
@@ -501,19 +582,169 @@ function paintZoneFloor(ctx: CanvasRenderingContext2D, zone: LabZone, t: number)
     }
   }
 
-  // Karpet hias tengah untuk zona nyaman (Diskusi, Istirahat, Konsultasi, Pojok Baca, Studio Desain, Ruang Dosen)
+  // Karpet hias tengah atau matras zona kolaborasi (Diskusi, Istirahat, Konsultasi, Pojok Baca, Studio Desain, Ruang Dosen)
   if (pal.rug && pal.rugTrim && pw >= t * 5 && ph >= t * 4) {
-    const insetX = Math.min(t * 1.15, pw * 0.14);
-    const insetY = Math.min(t * 1.05, ph * 0.16);
+    const insetX = zone.id === 'diskusi' ? t * 0.85 : Math.min(t * 1.15, pw * 0.14);
+    const insetY = zone.id === 'diskusi' ? t * 0.85 : Math.min(t * 1.05, ph * 0.16);
     rrect(ctx, px + insetX, py + insetY, pw - insetX * 2, ph - insetY * 2, 10);
     ctx.fillStyle = pal.rug;
     ctx.fill();
     ctx.strokeStyle = pal.rugTrim;
-    ctx.lineWidth = 2;
-    ctx.setLineDash([5, 3]);
+    ctx.lineWidth = zone.id === 'diskusi' ? 2.2 : 1.6;
     ctx.stroke();
-    ctx.setLineDash([]);
   }
+
+  // Garis Perimeter Neon / LED Strip Spesifik Ruangan (sesuai referensi visual AAA)
+  if (pal.neonBorder) {
+    ctx.save();
+    rrect(ctx, px + 3, py + 3, pw - 6, ph - 6, 8);
+    ctx.strokeStyle = pal.neonBorder;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Detail Dekorasi Spesifik Ruangan (Non-Collision Layer, 100% Aman bagi Pathfinding)
+  ctx.save();
+  if (zone.id === 'las') {
+    // Papan gantung alat K3 (pegboard) di dinding utara & pendaran lampu peringatan amber
+    const boardX = px + t * 2.2;
+    const boardY = py + 5;
+    rrect(ctx, boardX, boardY, t * 2.6, 14, 3);
+    ctx.fillStyle = '#26303a';
+    ctx.fill();
+    ctx.strokeStyle = '#FFB547';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    for (let ti = 0; ti < 5; ti += 1) {
+      ctx.fillStyle = '#FFC96B';
+      ctx.fillRect(boardX + 6 + ti * 13, boardY + 3, 3, 8);
+    }
+    const warnGlow = ctx.createRadialGradient(px + pw * 0.5, py + 8, 2, px + pw * 0.5, py + 8, t * 3.5);
+    warnGlow.addColorStop(0, 'rgba(255, 181, 71, 0.24)');
+    warnGlow.addColorStop(1, 'rgba(255, 181, 71, 0)');
+    ctx.fillStyle = warnGlow;
+    ctx.fillRect(px, py, pw, ph);
+  } else if (zone.id === 'cetak-3d') {
+    // Jejak Sirkuit Cyan di Lantai & Proyeksi Kubus Hologram 3D Isometric
+    const holoX = px + pw * 0.44;
+    const holoY = py + ph * 0.68;
+    ctx.strokeStyle = 'rgba(0, 223, 255, 0.42)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(px + 12, holoY + 14);
+    ctx.lineTo(holoX - 24, holoY + 14);
+    ctx.lineTo(holoX - 14, holoY + 4);
+    ctx.moveTo(px + pw - 12, holoY + 14);
+    ctx.lineTo(holoX + 24, holoY + 14);
+    ctx.stroke();
+
+    // Pendaran dasar proyektor lantai
+    const holoGlow = ctx.createRadialGradient(holoX, holoY, 2, holoX, holoY, 32);
+    holoGlow.addColorStop(0, 'rgba(0, 223, 255, 0.40)');
+    holoGlow.addColorStop(1, 'rgba(0, 223, 255, 0)');
+    ctx.fillStyle = holoGlow;
+    ctx.beginPath();
+    ctx.arc(holoX, holoY, 32, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Kubus Wireframe Holografik Isometric
+    ctx.strokeStyle = '#00E5FF';
+    ctx.lineWidth = 1.3;
+    const r = 14;
+    ctx.beginPath();
+    ctx.moveTo(holoX, holoY - r);
+    ctx.lineTo(holoX + r, holoY - r * 0.45);
+    ctx.lineTo(holoX, holoY + r * 0.1);
+    ctx.lineTo(holoX - r, holoY - r * 0.45);
+    ctx.closePath();
+    ctx.moveTo(holoX - r, holoY - r * 0.45);
+    ctx.lineTo(holoX - r, holoY + r * 0.55);
+    ctx.lineTo(holoX, holoY + r * 1.1);
+    ctx.lineTo(holoX + r, holoY + r * 0.55);
+    ctx.lineTo(holoX + r, holoY - r * 0.45);
+    ctx.moveTo(holoX, holoY + r * 0.1);
+    ctx.lineTo(holoX, holoY + r * 1.1);
+    ctx.stroke();
+  } else if (zone.id === 'elektronik-iot') {
+    // Papan Skema Sirkuit Hologram Cyan di Dinding Utara & Meja
+    const scX = px + pw * 0.36;
+    const scY = py + 8;
+    rrect(ctx, scX, scY, 44, 20, 3);
+    ctx.fillStyle = 'rgba(0, 229, 255, 0.16)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.72)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    // Jalur PCB mikro di dalam layar
+    ctx.beginPath();
+    ctx.moveTo(scX + 6, scY + 10);
+    ctx.lineTo(scX + 18, scY + 10);
+    ctx.lineTo(scX + 22, scY + 6);
+    ctx.lineTo(scX + 36, scY + 6);
+    ctx.moveTo(scX + 14, scY + 15);
+    ctx.lineTo(scX + 34, scY + 15);
+    ctx.stroke();
+  } else if (zone.id === 'studio-desain') {
+    // Bidang Kanvas Sketsa Hologram Ungu-Sian dengan Ikon Pena Stylus di Lantai Studio Desain
+    const padW = t * 2.5;
+    const padH = t * 1.5;
+    const padX = px + pw * 0.54;
+    const padY = py + ph * 0.60;
+    rrect(ctx, padX, padY, padW, padH, 5);
+    ctx.fillStyle = 'rgba(192, 132, 252, 0.14)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(232, 121, 249, 0.62)';
+    ctx.lineWidth = 1.3;
+    ctx.stroke();
+    // Ikon pena diagonal di tengah bidang desain
+    ctx.beginPath();
+    ctx.moveTo(padX + padW * 0.35, padY + padH * 0.72);
+    ctx.lineTo(padX + padW * 0.68, padY + padH * 0.28);
+    ctx.strokeStyle = '#00E5FF';
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+  } else if (zone.id === 'diskusi') {
+    // Layar Telemetri Gelombang Akustik Hologram di Sudut Kanan Atas Meja Diskusi
+    const dispX = px + pw - t * 3.1;
+    const dispY = py + t * 1.15;
+    rrect(ctx, dispX, dispY, t * 2.4, t * 1.15, 4);
+    ctx.fillStyle = 'rgba(6, 21, 34, 0.85)';
+    ctx.fill();
+    ctx.strokeStyle = '#00DFFF';
+    ctx.lineWidth = 1.3;
+    ctx.stroke();
+    ctx.beginPath();
+    for (let wx = 0; wx <= 36; wx += 3) {
+      const wy = dispY + 16 + Math.sin(wx * 0.45) * 6;
+      if (wx === 0) ctx.moveTo(dispX + 8 + wx, wy);
+      else ctx.lineTo(dispX + 8 + wx, wy);
+    }
+    ctx.strokeStyle = '#00E5FF';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  } else if (zone.id === 'istirahat') {
+    // Mesin Minuman / Vending Machine Bercahaya di Sisi Kanan Ruang Istirahat (Visual Layer)
+    const vmX = px + pw - t * 2.1;
+    const vmY = py + t * 1.5;
+    const vmW = t * 1.35;
+    const vmH = t * 2.2;
+    rrect(ctx, vmX, vmY, vmW, vmH, 4);
+    ctx.fillStyle = '#1e293b';
+    ctx.fill();
+    ctx.strokeStyle = '#FFB547';
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+    rrect(ctx, vmX + 4, vmY + 5, vmW - 8, vmH - 14, 2);
+    ctx.fillStyle = '#0c2d42';
+    ctx.fill();
+    // Baris botol minuman bercahaya
+    for (let r = 0; r < 3; r += 1) {
+      ctx.fillStyle = r === 0 ? '#38bdf8' : r === 1 ? '#fbbf24' : '#4ade80';
+      ctx.fillRect(vmX + 7, vmY + 9 + r * 11, vmW - 14, 5);
+    }
+  }
+  ctx.restore();
 
   // RTX-Style Ambient Occlusion (RTAO) di ke-4 tepi ruangan untuk kedalaman 2.5D yang kaya & kontras
   const aoTop = ctx.createLinearGradient(px, py, px, py + t * 1.1);
@@ -576,19 +807,19 @@ function paintZoneFloor(ctx: CanvasRenderingContext2D, zone: LabZone, t: number)
 function paintCorridorFloor(ctx: CanvasRenderingContext2D, map: LabMapData, t: number): void {
   const worldW = map.width * t;
   const worldH = map.height * t;
-  // Lantai ubin krem-hangat koridor kampus (kontras nyaman, tidak silau)
-  ctx.fillStyle = '#eadbc0';
+  // Lantai Pelat Metalik Slate Koridor Laboratorium Futuristik
+  ctx.fillStyle = '#5c6672';
   ctx.fillRect(0, 0, worldW, worldH);
 
   for (let y = 0; y < map.height; y += 1) {
     for (let x = 0; x < map.width; x += 1) {
       if ((x + y) % 2 === 1) {
-        ctx.fillStyle = '#e1cfb0';
+        ctx.fillStyle = '#545e6a';
         ctx.fillRect(x * t, y * t, t, t);
       }
     }
   }
-  ctx.strokeStyle = 'rgba(130, 96, 62, 0.11)';
+  ctx.strokeStyle = 'rgba(15, 23, 42, 0.22)';
   ctx.lineWidth = 0.8;
   ctx.beginPath();
   for (let x = 0; x <= map.width; x += 1) {
@@ -601,49 +832,53 @@ function paintCorridorFloor(ctx: CanvasRenderingContext2D, map: LabMapData, t: n
   }
   ctx.stroke();
 
-  // Karpet Jalur Koridor Utama Beraksen Kuningan Nusantara & 3 Medali Kompas Vokasi
+  // Jalur Koridor Utama dengan Strip Pemandu & Panah Chevron Bercahaya Warm Amber (>>> dan ^^^)
   const runnerX = 1.4 * t;
-  const runnerY = 9.32 * t;
+  const runnerY = 9.25 * t;
   const runnerW = (map.width - 2.8) * t;
-  const runnerH = 1.36 * t;
+  const runnerH = 1.5 * t;
   rrect(ctx, runnerX, runnerY, runnerW, runnerH, 6);
-  ctx.fillStyle = 'rgba(182, 134, 76, 0.24)';
+  ctx.fillStyle = 'rgba(23, 45, 61, 0.36)';
   ctx.fill();
-  ctx.strokeStyle = 'rgba(140, 94, 42, 0.35)';
-  ctx.lineWidth = 1.2;
+  ctx.strokeStyle = 'rgba(0, 223, 255, 0.32)';
+  ctx.lineWidth = 1.1;
   ctx.stroke();
 
-  // Garis bordir dalam karpet koridor
-  ctx.strokeStyle = 'rgba(242, 198, 108, 0.42)';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([6, 4]);
-  ctx.strokeRect(runnerX + 4, runnerY + 3.5, runnerW - 8, runnerH - 7);
-  ctx.setLineDash([]);
-
-  // 3 Medali Kompas Kuningan di Persimpangan Koridor
-  for (const mxTile of [13, 25, 37]) {
-    const mx = mxTile * t;
-    const my = 10.0 * t;
-    ctx.save();
-    ctx.fillStyle = 'rgba(218, 168, 78, 0.32)';
-    ctx.strokeStyle = 'rgba(122, 78, 32, 0.45)';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.arc(mx, my, 9.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // Bintang belah ketupat Nusantara di tengah medali
-    ctx.fillStyle = 'rgba(46, 130, 116, 0.38)';
-    ctx.beginPath();
-    ctx.moveTo(mx, my - 6);
-    ctx.lineTo(mx + 6, my);
-    ctx.lineTo(mx, my + 6);
-    ctx.lineTo(mx - 6, my);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
+  // Chevron Horizontal (>>>) Bercahaya Amber di Sepanjang Koridor Utama
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255, 201, 107, 0.78)';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  for (const cxTile of [10, 21, 33]) {
+    for (let i = 0; i < 3; i += 1) {
+      const cx = (cxTile + i * 0.45) * t;
+      const cy = 10.0 * t;
+      ctx.beginPath();
+      ctx.moveTo(cx - 4, cy - 5);
+      ctx.lineTo(cx + 2, cy);
+      ctx.lineTo(cx - 4, cy + 5);
+      ctx.stroke();
+    }
   }
+
+  // Chevron Vertikal (^^^) Bercahaya Amber di Lorong Penghubung
+  for (const [vxTile, vyTile] of [
+    [14, 15.5],
+    [28.8, 15.5],
+    [21, 20.8],
+  ] as const) {
+    for (let i = 0; i < 3; i += 1) {
+      const cx = vxTile * t;
+      const cy = (vyTile - i * 0.38) * t;
+      ctx.beginPath();
+      ctx.moveTo(cx - 5, cy + 3);
+      ctx.lineTo(cx, cy - 2);
+      ctx.lineTo(cx + 5, cy + 3);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
 }
 
 function paintWall25D(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, t: number): void {
@@ -653,28 +888,33 @@ function paintWall25D(ctx: CanvasRenderingContext2D, x: number, y: number, w: nu
   const ph = h * t;
 
   // Bayangan jatuh dinding ke lantai bawah
-  ctx.fillStyle = 'rgba(62, 37, 23, 0.16)';
-  ctx.fillRect(px, py + ph, pw, 6);
+  ctx.fillStyle = 'rgba(6, 15, 26, 0.38)';
+  ctx.fillRect(px, py + ph, pw, 7);
 
-  // Sisi depan dinding (plaster hangat 2.5D)
-  const frontH = Math.min(ph * 0.42, 11);
-  ctx.fillStyle = '#d9c5a3';
+  // Sisi depan dinding (Panel Metalik Industri 2.5D)
+  const frontH = Math.min(ph * 0.44, 12);
+  const frontGrad = ctx.createLinearGradient(px, py + ph - frontH, px, py + ph);
+  frontGrad.addColorStop(0, '#33485c');
+  frontGrad.addColorStop(1, '#1d2d3d');
+  ctx.fillStyle = frontGrad;
   ctx.fillRect(px, py + ph - frontH, pw, frontH);
-  ctx.fillStyle = '#b99b72';
-  ctx.fillRect(px, py + ph - 3, pw, 3);
 
-  // Permukaan atas dinding (kayu espresso hangat bergaya blueprint diorama)
+  // Strip Aksentuasi Lampu Dasar Dinding (Warm Amber & Cyan)
+  ctx.fillStyle = (x + y) % 2 === 0 ? 'rgba(255, 181, 71, 0.78)' : 'rgba(0, 223, 255, 0.68)';
+  ctx.fillRect(px + 2, py + ph - 2.5, Math.max(0, pw - 4), 2);
+
+  // Permukaan atas dinding (Baja Dark Navy #0c1f30 -> #172D3D)
   const capGrad = ctx.createLinearGradient(px, py, px, py + ph - frontH);
-  capGrad.addColorStop(0, '#784c31');
-  capGrad.addColorStop(1, '#5a3620');
+  capGrad.addColorStop(0, '#223b50');
+  capGrad.addColorStop(1, '#112233');
   ctx.fillStyle = capGrad;
   ctx.fillRect(px, py, pw, Math.max(4, ph - frontH));
 
-  // Garis sorotan tipis atas & outline espresso tajam
-  ctx.fillStyle = 'rgba(255, 232, 192, 0.25)';
-  ctx.fillRect(px + 1, py + 1, Math.max(0, pw - 2), 2.2);
+  // Garis bevel metalik terang di puncak dinding
+  ctx.fillStyle = 'rgba(0, 223, 255, 0.35)';
+  ctx.fillRect(px + 1, py + 1, Math.max(0, pw - 2), 1.8);
 
-  ctx.strokeStyle = INK;
+  ctx.strokeStyle = '#06131f';
   ctx.lineWidth = 1.6;
   ctx.strokeRect(px + 0.5, py + 0.5, pw - 1, ph - 1);
 }
@@ -1030,8 +1270,8 @@ export function drawIllustratedFurniture(
       break;
     }
     case 'meja-diskusi': {
-      // Kursi warna-warni mengelilingi meja diskusi besar
-      const chairColors = ['#e57368', '#4ba894', '#f2b844', '#6d8be0'];
+      // Kursi kolaborasi modern mengelilingi meja diskusi besar
+      const chairColors = ['#168BFF', '#FFB547', '#00DFFF', '#38bdf8'];
       const chairCount = Math.max(2, Math.floor(w / 34));
       for (let i = 0; i < chairCount; i += 1) {
         const cx = x + (i + 0.5) * (w / chairCount);
@@ -1045,50 +1285,57 @@ export function drawIllustratedFurniture(
           ctx.stroke();
         }
       }
-      drawTableBase(ctx, x, y, w, h, '#e8c589', '#bd9254', 10);
-      // Kertas sketsa, sticky notes & laptop kecil di meja diskusi
-      rrect(ctx, x + 14, y + 6, 18, 12, 2);
-      ctx.fillStyle = '#3b4a66';
+      drawTableBase(ctx, x, y, w, h, '#9e7b56', '#6b4f35', 10);
+      // 2 Blueprint Hologram Berlian Cyan di Atas Meja Diskusi (sesuai referensi gambar)
+      for (const hx of [x + w * 0.36, x + w * 0.56]) {
+        const hy = y + h * 0.5;
+        ctx.save();
+        ctx.translate(hx, hy);
+        ctx.rotate(0.45);
+        rrect(ctx, -9, -7, 18, 14, 2);
+        ctx.fillStyle = 'rgba(0, 223, 255, 0.28)';
+        ctx.fill();
+        ctx.strokeStyle = '#00E5FF';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.restore();
+      }
+      rrect(ctx, x + 12, y + 6, 16, 11, 2);
+      ctx.fillStyle = '#1e293b';
       ctx.fill();
-      ctx.fillStyle = '#fffdf6';
-      ctx.fillRect(x + w * 0.45, y + 7, 16, 11);
-      ctx.fillStyle = '#ffe58f';
-      ctx.fillRect(x + w * 0.68, y + 9, 8, 8);
-      ctx.fillStyle = '#fbcfe8';
-      ctx.fillRect(x + w * 0.77, y + 6, 8, 8);
       break;
     }
     case 'meja-desain': {
-      drawTableBase(ctx, x, y, w, h, '#f2e8fa', '#b79cd4', 7);
+      drawTableBase(ctx, x, y, w, h, '#b8a9c9', '#7d6b91', 7);
       const count = Math.max(1, Math.floor(w / 52));
       const step = w / count;
       for (let i = 0; i < count; i += 1) {
         const mx = x + i * step + step / 2 - 16;
-        // Layar desain lebar + palet warna ceria
-        rrect(ctx, mx, y - 5, 32, 17, 3);
-        ctx.fillStyle = '#2d2645';
+        // Workstation Dual-Display Studio Desain Berlampu Ungu-Sian
+        rrect(ctx, mx, y - 6, 32, 18, 3);
+        ctx.fillStyle = '#1e1633';
         ctx.fill();
-        ctx.strokeStyle = INK;
-        ctx.lineWidth = 1.4;
+        ctx.strokeStyle = '#c084fc';
+        ctx.lineWidth = 1.3;
         ctx.stroke();
-        ctx.fillStyle = '#f8f2ff';
-        ctx.fillRect(mx + 3, y - 2, 26, 11);
-        ctx.fillStyle = '#e56256';
-        ctx.fillRect(mx + 5, y, 7, 7);
-        ctx.fillStyle = '#f5be42';
-        ctx.fillRect(mx + 13, y, 6, 7);
-        ctx.fillStyle = '#3aa08e';
-        ctx.fillRect(mx + 20, y, 7, 7);
-        // Pen tablet tipis
+        ctx.fillStyle = '#2e1d52';
+        ctx.fillRect(mx + 2.5, y - 3.5, 27, 13);
+        ctx.fillStyle = '#e879f9';
+        ctx.fillRect(mx + 4.5, y - 1.5, 8, 8);
+        ctx.fillStyle = '#00E5FF';
+        ctx.fillRect(mx + 14, y - 1.5, 13, 5);
+        ctx.fillStyle = '#a855f7';
+        ctx.fillRect(mx + 14, y + 5, 10, 3);
+        // Pen tablet kreatif
         rrect(ctx, mx + 5, y + 14, 22, 6, 2);
-        ctx.fillStyle = '#3b3259';
+        ctx.fillStyle = '#3b2854';
         ctx.fill();
       }
       break;
     }
     case 'meja-baca': {
-      drawTableBase(ctx, x, y, w, h, '#d7aa74', '#9e703f', 9);
-      // Buku terbuka + lampu baca kuningan menyala lembut
+      drawTableBase(ctx, x, y, w, h, '#a87e51', '#73512c', 9);
+      // Buku referensi terbuka + Globe / Lampu Baca Amber Hangat
       rrect(ctx, x + 12, y + 7, 18, 12, 2);
       ctx.fillStyle = '#fffdf5';
       ctx.fill();
@@ -1099,40 +1346,38 @@ export function drawIllustratedFurniture(
       ctx.moveTo(x + 21, y + 7);
       ctx.lineTo(x + 21, y + 19);
       ctx.stroke();
-      // Lampu baca hangat
-      const lx = x + w - 16;
+      // Globe & Lampu Amber Pojok Baca
+      const lx = x + w - 18;
       const ly = y + 10;
-      ctx.fillStyle = 'rgba(255, 224, 130, 0.36)';
+      ctx.fillStyle = 'rgba(255, 181, 71, 0.42)';
       ctx.beginPath();
-      ctx.arc(lx, ly, 13, 0, Math.PI * 2);
+      ctx.arc(lx, ly, 15, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#f5c249';
+      ctx.fillStyle = '#FFB547';
       ctx.strokeStyle = INK;
       ctx.lineWidth = 1.3;
       ctx.beginPath();
-      ctx.arc(lx, ly, 5.5, 0, Math.PI * 2);
+      ctx.arc(lx, ly, 6, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
       break;
     }
     case 'sofa': {
-      // Sofa empuk bergaya kafe/ruang istirahat
-      rrect(ctx, x + 2, y + 4, w, h, 9);
-      ctx.fillStyle = 'rgba(62, 37, 23, 0.18)';
+      // Sofa hijau-zamrud modern (Ruang Istirahat & Pojok Baca)
+      rrect(ctx, x + 2, y + 4, w, h, 8);
+      ctx.fillStyle = 'rgba(6, 15, 26, 0.35)';
       ctx.fill();
-      rrect(ctx, x, y, w, h, 9);
-      ctx.fillStyle = '#4f9687';
+      rrect(ctx, x, y, w, h, 8);
+      ctx.fillStyle = '#1f7a5c';
       ctx.fill();
       ctx.strokeStyle = INK;
       ctx.lineWidth = 1.6;
       ctx.stroke();
-      // Sandaran & bantal empuk
       rrect(ctx, x + 4, y + 3, w - 8, Math.max(8, h * 0.36), 5);
-      ctx.fillStyle = '#3c7a6d';
+      ctx.fillStyle = '#165e46';
       ctx.fill();
-      // Bantal hias krem-mustard
       rrect(ctx, x + 8, y + 6, 12, 10, 4);
-      ctx.fillStyle = '#ffe294';
+      ctx.fillStyle = '#FFC96B';
       ctx.fill();
       ctx.strokeStyle = INK;
       ctx.lineWidth = 1.1;
@@ -1289,38 +1534,27 @@ export function drawIllustratedZoneLabel(
   const py = cy - ph / 2;
 
   // Bayangan kontak plakat
-  rrect(ctx, px, py + 2.2, pw, ph, 9.5);
-  ctx.fillStyle = 'rgba(48, 28, 16, 0.28)';
+  rrect(ctx, px, py + 2.5, pw, ph, 9.5);
+  ctx.fillStyle = 'rgba(4, 12, 22, 0.62)';
   ctx.fill();
 
-  // Kapsul Plakat Atelier Berpaku Kuningan (Brass-Rivet Nameplate)
+  // Kapsul Plakat HUD Dark Glass Berbingkai Neon (sesuai gambar referensi AAA)
   rrect(ctx, px, py, pw, ph, 9.5);
   ctx.fillStyle = selected ? meta.accent : meta.bg;
   ctx.fill();
-  ctx.strokeStyle = selected ? '#ffe694' : INK;
-  ctx.lineWidth = selected ? 2.2 : 1.6;
+  ctx.strokeStyle = selected ? '#EAF6FF' : meta.accent;
+  ctx.lineWidth = selected ? 2.2 : 1.4;
   ctx.stroke();
 
-  // Garis aksen warna zona di tepi bawah plakat (saat tidak sedang dipilih)
-  if (!selected) {
-    ctx.save();
-    rrect(ctx, px, py, pw, ph, 9.5);
-    ctx.clip();
-    ctx.fillStyle = meta.accent;
-    ctx.globalAlpha = 0.22;
-    ctx.fillRect(px, py + ph - 3, pw, 3);
-    ctx.restore();
-  }
-
-  // Dua paku keling kuningan mungil di ujung kiri & kanan plakat
+  // Dua titik indikator LED di ujung kiri & kanan plakat ruangan
   for (const rx of [px + 5.5, px + pw - 5.5]) {
-    ctx.fillStyle = selected ? '#ffe694' : '#d89e3a';
+    ctx.fillStyle = selected ? '#061522' : meta.accent;
     ctx.beginPath();
-    ctx.arc(rx, cy, 1.7, 0, Math.PI * 2);
+    ctx.arc(rx, cy, 1.6, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  ctx.fillStyle = selected ? '#fffdf6' : INK;
+  ctx.fillStyle = selected ? '#061522' : '#EAF6FF';
   ctx.fillText(label, cx, cy + 0.5, pw - 16);
   ctx.restore();
 }
