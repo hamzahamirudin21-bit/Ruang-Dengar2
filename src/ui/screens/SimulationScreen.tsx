@@ -1390,8 +1390,8 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       {/* =====================================================================
           2. FLOATING TOP GAME HUD (AAA SCI-FI DARK GLASS & METALLIC CYAN/AMBER)
          ===================================================================== */}
-      <header className="pointer-events-none absolute inset-x-3 top-2.5 z-20 flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
-        {/* Kiri Atas: Beranda, Waktu & Hari, 3-Nyawa, Progres Kisah, & Kecepatan */}
+      <header className="pointer-events-none absolute inset-x-3 top-2 z-20 flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
+        {/* Kiri Atas: Identitas RUANG DENGAR + Waktu & Hari, 3-Nyawa, Progres Kisah, & Kecepatan */}
         <div className="pointer-events-auto flex shrink-0 flex-wrap items-center gap-1.5 lg:flex-nowrap">
           <button
             type="button"
@@ -1401,22 +1401,23 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
             }}
             aria-label={STRINGS.statusBar.backToStart}
             title={STRINGS.statusBar.backToStart}
-            className="sim-hud-round-btn sim-hud-round-btn--gold !h-10 !w-10"
+            className="group flex cursor-pointer items-center gap-2.5 rounded-full border border-[#fbbf24]/55 bg-gradient-to-b from-[#132a3e]/95 to-[#091826]/98 px-3 py-1 text-left shadow-[0_4px_12px_rgba(2,8,16,0.7)] transition hover:border-[#fbbf24]"
           >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              className="h-4.5 w-4.5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M3 10.5 12 3l9 7.5" />
-              <path d="M5.5 9v10.5a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9" />
-              <path d="M9.5 20.5v-6h5v6" />
-            </svg>
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#fbbf24]/65 bg-[#fbbf24]/15 text-[#fbbf24] shadow-[0_0_10px_rgba(251,191,36,0.28)]">
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="7" y="7" width="10" height="10" rx="2" />
+                <rect x="10" y="10" width="4" height="4" fill="currentColor" />
+                <path d="M9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4" />
+              </svg>
+            </span>
+            <span className="hidden flex-col leading-tight xl:flex">
+              <span className="font-['Plus_Jakarta_Sans'] text-xs font-extrabold tracking-wide text-[#f8fafc]">
+                RUANG DENGAR
+              </span>
+              <span className="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold text-[#94a3b8]">
+                Simulasi Laboratorium Elektronika &amp; IoT
+              </span>
+            </span>
           </button>
 
           {/* Pil Hari & Jam Kampus dengan garis progres hari cyan-gold mungil */}
@@ -1920,22 +1921,24 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         ) : (
           <div
             aria-hidden="true"
-            className="sim-legend-pill pointer-events-none hidden sm:inline-flex"
+            className="pointer-events-none hidden items-center gap-2 sm:inline-flex"
           >
-            <span className="inline-flex items-center gap-1.5">
-              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#10b981]/25 text-[10px] font-bold text-[#34d399] ring-1 ring-[#10b981]/60">
-                ✓
+            <span className="sim-legend-pill inline-flex">
+              <span className="inline-flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#38bdf8]/20 text-[11px] text-[#38bdf8]">
+                💬
               </span>
               <span className="text-[#EAF6FF]">Mengobrol (+)</span>
             </span>
-            <span className="opacity-35">|</span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="text-xs text-[#FFC96B]">✦</span>
+            <span className="sim-legend-pill inline-flex">
+              <span className="inline-flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#fbbf24]/20 text-[11px] text-[#fbbf24]">
+                🛡️
+              </span>
               <span className="text-[#EAF6FF]">Waspada</span>
             </span>
-            <span className="opacity-35">|</span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="text-xs text-[#f87171]">❤️</span>
+            <span className="sim-legend-pill inline-flex">
+              <span className="inline-flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#ef4444]/20 text-[11px] text-[#f87171]">
+                🚨
+              </span>
               <span className="text-[#EAF6FF]">Terisolasi (&lt;35%)</span>
             </span>
           </div>

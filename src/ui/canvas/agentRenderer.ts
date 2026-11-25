@@ -13,7 +13,7 @@ import {
   selectBubbles,
   type BubbleSpec,
 } from '../world/speechBubble';
-import { computeSunLighting, type CampusWeatherMode } from '../gpu/sunLighting';
+import type { CampusWeatherMode } from '../gpu/sunLighting';
 
 export interface AgentRenderOptions {
   tileSizePx: number;
@@ -498,29 +498,14 @@ export function drawAgentSprite(
     ctx.restore();
   }
 
-  // Cincin pijakan holografik halus di lantai bawah setiap karakter (tidak mengubah tubuh sprite)
-  ctx.save();
-  const baseRingColor =
-    agent.energy < 0.35
-      ? 'rgba(239, 68, 68, 0.38)'
-      : agent.energy < 0.6
-        ? 'rgba(255, 181, 71, 0.32)'
-        : 'rgba(0, 223, 255, 0.28)';
-  ctx.strokeStyle = baseRingColor;
-  ctx.lineWidth = 1.15;
-  ctx.beginPath();
-  ctx.ellipse(feet.x, feet.y - 0.8, 15.5, 5.4, 0, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.restore();
-
   // Cincin radar peringatan merah stabil di kaki bila energi mahasiswa kritis (< 35%)
   if (agent.energy < 0.35) {
     ctx.save();
     ctx.strokeStyle = 'rgba(239, 68, 68, 0.72)';
     ctx.fillStyle = 'rgba(239, 68, 68, 0.12)';
-    ctx.lineWidth = 1.8;
+    ctx.lineWidth = 1.6;
     ctx.beginPath();
-    ctx.ellipse(feet.x, feet.y, 19.5, 7.8, 0, 0, Math.PI * 2);
+    ctx.ellipse(feet.x, feet.y, 18.5, 7.2, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.restore();
@@ -535,43 +520,17 @@ export function drawAgentSprite(
     ctx.ellipse(feet.x, feet.y, SPRITE_WORLD_W / 2 - 4, 7.2, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-    if (isSelected) {
-      ctx.strokeStyle = 'rgba(0, 223, 255, 0.78)';
-      ctx.lineWidth = 1.2;
-      ctx.setLineDash([4, 2.5]);
-      ctx.beginPath();
-      ctx.ellipse(feet.x, feet.y, SPRITE_WORLD_W / 2 - 1.5, 8.8, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
     ctx.restore();
   }
 
   const dir = facingOf(agent, (id) => allById.get(id)?.position);
   const moving = isWalking(agent);
 
-  // Bayangan matahari terarah waktu nyata + bayangan kontak AO di bawah kaki chibi
-  const sun = computeSunLighting(
-    options.clockMinutesOfDay ?? 660,
-    options.weatherMode ?? 'otomatis'
-  );
+  // Bayangan kontak oval 2D realistis tepat di bawah sepatu karakter (sesuai referensi top-down 2D)
   ctx.save();
-  ctx.fillStyle = sun.shadowColor;
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.38)';
   ctx.beginPath();
-  ctx.ellipse(
-    feet.x + sun.shadowDirX * 7.5,
-    feet.y + 1 + sun.shadowDirY * 4.5,
-    14 * (0.85 + sun.shadowLength * 0.35),
-    5.2,
-    sun.shadowDirX * 0.24,
-    0,
-    Math.PI * 2
-  );
-  ctx.fill();
-
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.24)';
-  ctx.beginPath();
-  ctx.ellipse(feet.x, feet.y - 1, 13.5, 4.8, 0, 0, Math.PI * 2);
+  ctx.ellipse(feet.x, feet.y - 0.5, 12.5, 4.6, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
