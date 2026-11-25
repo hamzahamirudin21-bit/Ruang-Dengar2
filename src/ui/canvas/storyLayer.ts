@@ -132,33 +132,33 @@ export function drawRouteLine(ctx: CanvasRenderingContext2D, opts: StoryRenderOp
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
 
-  // Jalur luar biru-dongker/toska halus
-  ctx.strokeStyle = 'rgba(15, 27, 51, 0.28)';
-  ctx.lineWidth = 4.6;
+  // Jalur luar cyan-navy bercahaya
+  ctx.strokeStyle = 'rgba(0, 223, 255, 0.26)';
+  ctx.lineWidth = 5.0;
   tracePath();
   ctx.stroke();
 
-  // Jejak emas-gading bergerak menuntun arah jalan
-  ctx.strokeStyle = 'rgba(253, 224, 132, 0.92)';
+  // Jejak warm-gold & cyan bergerak menuntun arah jalan
+  ctx.strokeStyle = 'rgba(255, 201, 107, 0.94)';
   ctx.lineWidth = 2.2;
   ctx.setLineDash([6, 6]);
   ctx.lineDashOffset = opts.reducedMotion ? 0 : -opts.timeSeconds * 24;
   tracePath();
   ctx.stroke();
 
-  // Ujung rute: suar cincin berdenyut di lantai tujuan
+  // Ujung rute: suar cincin holografik berdenyut di lantai tujuan
   const p = pulse(opts, 1.3);
   ctx.setLineDash([]);
   ctx.lineDashOffset = 0;
-  ctx.strokeStyle = `rgba(229, 172, 63, ${(0.5 + 0.45 * (1 - p)).toFixed(3)})`;
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = `rgba(0, 223, 255, ${(0.55 + 0.4 * (1 - p)).toFixed(3)})`;
+  ctx.lineWidth = 1.9;
   ctx.beginPath();
   ctx.ellipse(end.x, end.y + 4, 8 + 5 * p, 3.8 + 2.2 * p, 0, 0, Math.PI * 2);
   ctx.stroke();
 
-  ctx.fillStyle = '#fef08a';
-  ctx.strokeStyle = '#0f1b33';
-  ctx.lineWidth = 1.2;
+  ctx.fillStyle = '#FFC96B';
+  ctx.strokeStyle = '#061522';
+  ctx.lineWidth = 1.25;
   ctx.beginPath();
   ctx.moveTo(end.x, end.y - 1);
   ctx.lineTo(end.x + 4, end.y + 3);
@@ -350,20 +350,25 @@ export function drawAvatar(ctx: CanvasRenderingContext2D, opts: StoryRenderOptio
 
   ctx.save();
 
-  // Cincin kompas emas-toska saat idle (statis bila gerak dikurangi)
+  // Cincin kompas holografik cyan-emas di lantai bawah kaki Ibu Dosen
+  const p = pulse(opts, 1.8);
+  ctx.fillStyle = 'rgba(0, 223, 255, 0.10)';
+  ctx.beginPath();
+  ctx.ellipse(feet.x, feet.y - 0.8, 17, 6.4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
   if (idle) {
-    const p = pulse(opts, 1.8);
-    ctx.strokeStyle = `rgba(15, 118, 110, ${(0.35 + 0.35 * (opts.reducedMotion ? 0.5 : 1 - p)).toFixed(3)})`;
-    ctx.lineWidth = 2.1;
+    ctx.strokeStyle = `rgba(0, 223, 255, ${(0.42 + 0.35 * (opts.reducedMotion ? 0.5 : 1 - p)).toFixed(3)})`;
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.ellipse(feet.x, feet.y - 1, 16.5 + 3.2 * p, 7.2 + 1.5 * p, 0, 0, Math.PI * 2);
+    ctx.ellipse(feet.x, feet.y - 0.8, 16.5 + 2.8 * p, 6.8 + 1.3 * p, 0, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.strokeStyle = 'rgba(229, 172, 63, 0.72)';
+    ctx.strokeStyle = 'rgba(255, 201, 107, 0.82)';
     ctx.lineWidth = 1.25;
     ctx.setLineDash([4, 3]);
     ctx.beginPath();
-    ctx.ellipse(feet.x, feet.y - 1, 13.5, 5.8, 0, 0, Math.PI * 2);
+    ctx.ellipse(feet.x, feet.y - 0.8, 13.5, 5.4, 0, 0, Math.PI * 2);
     ctx.stroke();
     ctx.setLineDash([]);
   }
@@ -387,7 +392,7 @@ export function drawAvatar(ctx: CanvasRenderingContext2D, opts: StoryRenderOptio
   );
   ctx.fill();
 
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.22)';
+  ctx.fillStyle = 'rgba(6, 21, 34, 0.32)';
   ctx.beginPath();
   ctx.ellipse(feet.x, feet.y - 0.5, 11.5, 4.2, 0, 0, Math.PI * 2);
   ctx.fill();
@@ -409,28 +414,45 @@ export function drawAvatar(ctx: CanvasRenderingContext2D, opts: StoryRenderOptio
     fallback: { hairStyle: 'pendek', avatarHue: 190 },
   });
 
-  // Lencana kapsul ilustrasi "Ibu Dosen" bersih di atas kepala (bebas piksel kotak-kotak!)
+  // Lencana kapsul sci-fi "Ibu Dosen" dark-teal berbingkai cyan bercahaya di atas kepala (sesuai referensi)
   const label = 'Ibu Dosen';
-  ctx.font = '700 10px Fredoka, Plus Jakarta Sans, ui-sans-serif, sans-serif';
+  ctx.font = '700 9.5px Outfit, Plus Jakarta Sans, ui-sans-serif, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const tw = ctx.measureText(label).width;
-  const bw = tw + 14;
-  const bh = 17;
+  const bw = tw + 16;
+  const bh = 16.5;
   const bx = feet.x - bw / 2;
   const by = feet.y - SPRITE_WORLD_H - bh - 4;
-  ctx.fillStyle = 'rgba(62, 37, 23, 0.28)';
+
+  // Aura luar cyan lembut
+  ctx.fillStyle = 'rgba(0, 223, 255, 0.16)';
   ctx.beginPath();
-  ctx.roundRect(bx, by + 2, bw, bh, 8.5);
+  ctx.roundRect(bx - 1.5, by - 1.5, bw + 3, bh + 3, 9.5);
   ctx.fill();
-  ctx.fillStyle = '#267769';
-  ctx.strokeStyle = '#3e2517';
-  ctx.lineWidth = 1.6;
+
+  // Bayangan bawah kapsul
+  ctx.fillStyle = 'rgba(3, 10, 18, 0.52)';
   ctx.beginPath();
-  ctx.roundRect(bx, by, bw, bh, 8.5);
+  ctx.roundRect(bx, by + 1.8, bw, bh, 8.2);
+  ctx.fill();
+
+  const pillGrad = ctx.createLinearGradient(bx, by, bx, by + bh);
+  pillGrad.addColorStop(0, '#0f5e6e');
+  pillGrad.addColorStop(1, '#083744');
+  ctx.fillStyle = pillGrad;
+  ctx.strokeStyle = '#00DFFF';
+  ctx.lineWidth = 1.35;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 8.2);
   ctx.fill();
   ctx.stroke();
-  ctx.fillStyle = '#fffdf6';
+
+  // Kilau spekular atas kapsul
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+  ctx.fillRect(bx + 4, by + 1, Math.max(4, bw - 8), 1);
+
+  ctx.fillStyle = '#EAF6FF';
   ctx.fillText(label, feet.x, by + bh / 2 + 0.5);
 
   ctx.restore();

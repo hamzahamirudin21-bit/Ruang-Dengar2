@@ -34,37 +34,79 @@ function drawStatusIndicator(
   tileSizePx: number
 ): void {
   const feet = spriteFeet(agent.position, tileSizePx);
-  const bx = feet.x + 14;
-  const by = feet.y - SPRITE_WORLD_H - 4;
+  const bx = feet.x + 14.5;
+  const by = feet.y - SPRITE_WORLD_H - 3.5;
 
+  ctx.save();
   if (agent.socialStatus === 'konflik-ringan') {
-    // Segitiga kecil tanda gesekan ringan (bentuk + warna untuk aksesibilitas)
-    ctx.fillStyle = '#dc2626';
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.2;
+    // Segitiga tanda gesekan ringan berbingkai neon merah-amber (bentuk + warna untuk aksesibilitas)
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
     ctx.beginPath();
-    ctx.moveTo(bx, by - 5);
-    ctx.lineTo(bx + 5, by + 4);
-    ctx.lineTo(bx - 5, by + 4);
+    ctx.arc(bx, by, 7.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ef4444';
+    ctx.strokeStyle = '#FFC96B';
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(bx, by - 5.2);
+    ctx.lineTo(bx + 5.2, by + 4);
+    ctx.lineTo(bx - 5.2, by + 4);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+    ctx.restore();
     return;
   }
 
   let fill = '#64748b';
-  if (agent.status === 'bekerja') fill = '#1d5d7a';
-  else if (agent.status === 'mengobrol') fill = '#0f766e';
-  else if (agent.status === 'istirahat') fill = '#b45309';
-  else if (agent.status === 'berpindah') fill = '#0284c7';
+  let glow = 'rgba(148, 163, 184, 0.22)';
+  let border = '#EAF6FF';
+  if (agent.status === 'bekerja') {
+    fill = '#00DFFF';
+    glow = 'rgba(0, 223, 255, 0.28)';
+    border = '#061522';
+  } else if (agent.status === 'mengobrol') {
+    fill = '#10b981';
+    glow = 'rgba(16, 185, 129, 0.30)';
+    border = '#061522';
+  } else if (agent.status === 'istirahat') {
+    fill = '#FFB547';
+    glow = 'rgba(255, 181, 71, 0.30)';
+    border = '#061522';
+  } else if (agent.status === 'berpindah') {
+    fill = '#168BFF';
+    glow = 'rgba(22, 139, 255, 0.28)';
+    border = '#EAF6FF';
+  }
+
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(bx, by, 6.2, 0, Math.PI * 2);
+  ctx.fill();
 
   ctx.fillStyle = fill;
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 1.3;
+  ctx.strokeStyle = border;
+  ctx.lineWidth = 1.25;
   ctx.beginPath();
-  ctx.arc(bx, by, 4, 0, Math.PI * 2);
+  ctx.arc(bx, by, 3.8, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
+
+  // Titik kilau spekular mikro
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.beginPath();
+  ctx.arc(bx - 1.1, by - 1.1, 1.0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+/** Mengambil kode nomor urut mahasiswa (#01..#18) dari agent.id ('mhs-1' -> '#01'). */
+function formatAgentIdBadge(agentId: string): string {
+  const m = /(\d+)$/.exec(agentId);
+  if (!m) return '#00';
+  const num = Number.parseInt(m[1], 10);
+  return `#${String(num).padStart(2, '0')}`;
 }
 
 function drawAgentEnergyBar(
@@ -79,6 +121,8 @@ function drawAgentEnergyBar(
   const reduced = options.reducedMotion ?? false;
   const isCritical = energy < 0.35;
   const isWarning = energy >= 0.35 && energy < 0.6;
+  const isSelected = agent.id === options.selectedAgentId;
+  const isHovered = agent.id === options.hoveredAgentId;
   const isCommunicating =
     agent.interactingWithIds.length > 0 ||
     agent.socialStatus === 'berinteraksi' ||
@@ -86,85 +130,147 @@ function drawAgentEnergyBar(
   const showNumber =
     isCritical ||
     isWarning ||
-    agent.id === options.selectedAgentId ||
-    agent.id === options.hoveredAgentId ||
+    isSelected ||
+    isHovered ||
     options.camera.scale >= 1.15;
 
-  const barW = 34;
-  const barH = 5.5;
-  const bx = feet.x - barW / 2;
-  const by = feet.y + 1.5;
+  // Sesuai referensi AAA: kapsul komposit [#ID | ====Energy Bar====] di bawah kaki karakter
+  const idCode = formatAgentIdBadge(agent.id);
+  const badgeW = 17.5;
+  const barW = 28;
+  const totalW = badgeW + barW + 3;
+  const barH = 6.2;
+  const totalH = 9.6;
+  const startX = feet.x - totalW / 2;
+  const startY = feet.y + 0.8;
+  const bx = startX + badgeW + 2;
+  const by = startY + (totalH - barH) / 2;
 
   ctx.save();
-  // Latar bilah tinta biru-dongker
-  ctx.fillStyle = '#0f1b33';
+
+  // Bayangan bawah kapsul HUD kaki
+  ctx.fillStyle = 'rgba(3, 10, 18, 0.55)';
   ctx.beginPath();
-  ctx.roundRect(bx - 1.2, by - 1.2, barW + 2.4, barH + 2.4, 3);
+  ctx.roundRect(startX - 0.5, startY + 1.2, totalW + 1, totalH, 4.5);
   ctx.fill();
 
-  ctx.fillStyle = '#24324d';
+  // Sasis utama kapsul dark-glass (#061522 -> #0A2636)
+  ctx.fillStyle = isSelected ? 'rgba(10, 38, 54, 0.96)' : 'rgba(6, 21, 34, 0.92)';
+  ctx.strokeStyle = isCritical
+    ? 'rgba(239, 68, 68, 0.85)'
+    : isSelected
+      ? '#FFC96B'
+      : isHovered
+        ? '#00DFFF'
+        : 'rgba(0, 223, 255, 0.42)';
+  ctx.lineWidth = isSelected ? 1.35 : 1.0;
   ctx.beginPath();
-  ctx.roundRect(bx, by, barW, barH, 2);
+  ctx.roundRect(startX, startY, totalW, totalH, 4.5);
+  ctx.fill();
+  ctx.stroke();
+
+  // Pill kiri untuk kode #ID (#01..#18)
+  ctx.fillStyle = isSelected
+    ? 'rgba(255, 181, 71, 0.22)'
+    : 'rgba(15, 43, 62, 0.95)';
+  ctx.beginPath();
+  ctx.roundRect(startX + 1.2, startY + 1.2, badgeW - 1, totalH - 2.4, 3.2);
   ctx.fill();
 
-  // Isi warna dinamis: hijau (stabil/naik), kuning (waspada), merah berdenyut (kritis)
-  const fillW = Math.max(2, barW * energy);
+  ctx.font = '800 6.8px Outfit, Inter, ui-sans-serif, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = isSelected ? '#FFC96B' : '#EAF6FF';
+  ctx.fillText(idCode, startX + badgeW / 2 + 0.5, startY + totalH / 2 + 0.3);
+
+  // Track bilah energi gelap
+  ctx.fillStyle = '#091a28';
+  ctx.beginPath();
+  ctx.roundRect(bx, by, barW - 1.5, barH, 2.5);
+  ctx.fill();
+
+  // Isi warna dinamis: cyan-emerald (stabil), amber (waspada), merah berdenyut (kritis)
+  const trackW = barW - 1.5;
+  const fillW = Math.max(2.2, trackW * energy);
   const pulse = reduced ? 0.5 : 0.5 + 0.5 * Math.sin(timeSec * 6.5);
-  ctx.fillStyle = isCritical
-    ? pulse > 0.5
-      ? '#ef4444'
-      : '#f87171'
-    : isWarning
-      ? '#f59e0b'
-      : '#10b981';
+
+  const barGrad = ctx.createLinearGradient(bx, by, bx + fillW, by);
+  if (isCritical) {
+    barGrad.addColorStop(0, pulse > 0.5 ? '#ef4444' : '#f87171');
+    barGrad.addColorStop(1, '#fb7185');
+  } else if (isWarning) {
+    barGrad.addColorStop(0, '#f59e0b');
+    barGrad.addColorStop(1, '#FFC96B');
+  } else {
+    barGrad.addColorStop(0, '#10b981');
+    barGrad.addColorStop(1, '#00DFFF');
+  }
+
+  ctx.fillStyle = barGrad;
   ctx.beginPath();
-  ctx.roundRect(bx, by, fillW, barH, 2);
+  ctx.roundRect(bx, by, fillW, barH, 2.5);
   ctx.fill();
 
-  // Kilau atas tipis pada bilah energi
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.32)';
-  ctx.fillRect(bx + 1, by + 0.6, Math.max(0, fillW - 2), 1.4);
+  // Garis segmen mikro (3 takik ala bar sci-fi)
+  ctx.fillStyle = 'rgba(6, 21, 34, 0.45)';
+  for (let s = 1; s <= 2; s += 1) {
+    const sx = bx + (trackW * s) / 3;
+    ctx.fillRect(sx, by + 0.5, 0.8, barH - 1);
+  }
 
-  // Indikator aliran energi hidup (+ hijau saat mengobrol, - merah/amber saat terisolasi & menurun)
+  // Kilau spekular atas tipis pada bilah energi
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.36)';
+  ctx.fillRect(bx + 1, by + 0.6, Math.max(0, fillW - 2), 1.3);
+
+  // Indikator aliran energi hidup (+ hijau/cyan saat mengobrol, ▼ merah/amber saat menurun)
   if (!reduced) {
     if (isCommunicating) {
       const lift = ((timeSec * 1.4 + phaseOffsetFor(agent.id)) % 1) * 7;
       const alpha = Math.max(0, 1 - lift / 7);
-      ctx.font = '800 9px Outfit, ui-sans-serif, sans-serif';
+      ctx.font = '800 8.5px Outfit, ui-sans-serif, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = `rgba(16, 185, 129, ${alpha.toFixed(2)})`;
-      ctx.fillText('+', bx + barW + 2.5, by + 2 - lift);
+      ctx.fillStyle = `rgba(0, 223, 255, ${alpha.toFixed(2)})`;
+      ctx.fillText('+', startX + totalW + 2, by + 2 - lift);
     } else if (energy < 0.6 && agent.status !== 'istirahat') {
       const drop = ((timeSec * 1.2 + phaseOffsetFor(agent.id)) % 1) * 5;
       const alpha = Math.max(0, 1 - drop / 5);
-      ctx.font = '800 9px Outfit, ui-sans-serif, sans-serif';
+      ctx.font = '800 8.5px Outfit, ui-sans-serif, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = isCritical
         ? `rgba(239, 68, 68, ${alpha.toFixed(2)})`
-        : `rgba(217, 119, 6, ${alpha.toFixed(2)})`;
-      ctx.fillText('▼', bx + barW + 2, by + 1 + drop);
+        : `rgba(255, 181, 71, ${alpha.toFixed(2)})`;
+      ctx.fillText('▼', startX + totalW + 2, by + 1 + drop);
     }
   }
 
-  // Angka persentase mungil tajam di sisi kiri bilah energi
+  // Angka persentase mungil tajam di sisi kanan kapsul bila dipilih/waspada/zoom dekat
   if (showNumber) {
     const label = `${pct}%`;
-    ctx.font = '800 7.5px Outfit, ui-sans-serif, sans-serif';
-    ctx.textAlign = 'right';
+    ctx.font = '800 7px Outfit, ui-sans-serif, sans-serif';
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     const tw = ctx.measureText(label).width;
+    const px = startX + totalW + 2;
+    const py = startY + 0.3;
     ctx.fillStyle = isCritical
-      ? 'rgba(153, 27, 27, 0.94)'
+      ? 'rgba(127, 29, 29, 0.94)'
       : isWarning
         ? 'rgba(120, 53, 15, 0.92)'
-        : 'rgba(15, 27, 51, 0.88)';
+        : 'rgba(6, 21, 34, 0.92)';
+    ctx.strokeStyle = isCritical
+      ? 'rgba(248, 113, 113, 0.7)'
+      : isWarning
+        ? 'rgba(255, 181, 71, 0.7)'
+        : 'rgba(0, 223, 255, 0.45)';
+    ctx.lineWidth = 0.85;
     ctx.beginPath();
-    ctx.roundRect(bx - tw - 6.5, by - 2.2, tw + 4.5, 10, 2.5);
+    ctx.roundRect(px, py, tw + 4.5, 9, 2.5);
     ctx.fill();
-    ctx.fillStyle = isCritical ? '#fecaca' : isWarning ? '#fde68a' : '#d1fae5';
-    ctx.fillText(label, bx - 4.2, by + 3);
+    ctx.stroke();
+    ctx.fillStyle = isCritical ? '#fecaca' : isWarning ? '#FFC96B' : '#EAF6FF';
+    ctx.fillText(label, px + 2.2, py + 4.7);
   }
   ctx.restore();
 }
@@ -179,31 +285,36 @@ function drawAgentNameTag(
   const feet = spriteFeet(agent.position, tileSizePx);
   ctx.save();
   ctx.font = emphasized
-    ? '700 10px Outfit, ui-sans-serif, system-ui, sans-serif'
-    : '600 9px Outfit, ui-sans-serif, system-ui, sans-serif';
+    ? '700 9.5px Outfit, Inter, ui-sans-serif, system-ui, sans-serif'
+    : '600 8.5px Outfit, Inter, ui-sans-serif, system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const tw = ctx.measureText(label).width;
-  const bw = tw + 11;
-  const bh = 15;
+  const bw = tw + 13;
+  const bh = 14.5;
   const bx = feet.x - bw / 2;
-  const by = feet.y + 10.5;
+  const by = feet.y + 11.5;
 
-  // Bayangan cetak 3D tipis ala Batik-Blueprint Atelier
-  ctx.fillStyle = 'rgba(15, 27, 51, 0.32)';
+  // Bayangan bawah dark-glass
+  ctx.fillStyle = 'rgba(3, 10, 18, 0.55)';
   ctx.beginPath();
-  ctx.roundRect(bx + 1, by + 1.5, bw, bh, [2, 6, 2, 6]);
+  ctx.roundRect(bx, by + 1.5, bw, bh, 5);
   ctx.fill();
 
-  ctx.fillStyle = emphasized ? '#14233f' : 'rgba(255, 250, 240, 0.95)';
-  ctx.strokeStyle = emphasized ? '#e5ac3f' : '#0f1b33';
-  ctx.lineWidth = emphasized ? 1.5 : 1.15;
+  // Panel kapsul dark-glass dengan bingkai neon cyan / warm gold saat dipilih
+  ctx.fillStyle = emphasized ? 'rgba(10, 38, 54, 0.96)' : 'rgba(6, 21, 34, 0.90)';
+  ctx.strokeStyle = emphasized ? '#FFC96B' : 'rgba(0, 223, 255, 0.55)';
+  ctx.lineWidth = emphasized ? 1.4 : 1.05;
   ctx.beginPath();
-  ctx.roundRect(bx, by, bw, bh, [2, 6, 2, 6]);
+  ctx.roundRect(bx, by, bw, bh, 5);
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = emphasized ? '#fff8e6' : '#0f1b33';
+  // Aksen garis kilau atas tipis
+  ctx.fillStyle = emphasized ? 'rgba(255, 201, 107, 0.45)' : 'rgba(0, 223, 255, 0.32)';
+  ctx.fillRect(bx + 3, by + 0.8, Math.max(4, bw - 6), 1);
+
+  ctx.fillStyle = emphasized ? '#FFC96B' : '#EAF6FF';
   ctx.fillText(label, feet.x, by + bh / 2 + 0.5);
   ctx.restore();
 }
@@ -222,36 +333,52 @@ function drawBubble(
   ctx.textBaseline = 'middle';
   const tw = ctx.measureText(text).width;
   const bw = Math.max(24, tw + 14);
-  const bh = 18;
+  const bh = 17.5;
   const bx = feet.x - bw / 2;
-  const by = feet.y - SPRITE_WORLD_H - 12 - bh - spec.hopPx * 2;
+  // Diposisikan di atas kepala agar tidak pernah menutupi wajah karakter
+  const by = feet.y - SPRITE_WORLD_H - 13 - bh - spec.hopPx * 2;
 
-  // Bayangan gelembung
-  ctx.fillStyle = 'rgba(62, 37, 23, 0.22)';
+  // Pendaran luar halus di sekitar balon ucapan
+  ctx.fillStyle = 'rgba(0, 223, 255, 0.14)';
   ctx.beginPath();
-  ctx.roundRect(bx, by + 2, bw, bh, 9);
+  ctx.roundRect(bx - 1.5, by - 1.5, bw + 3, bh + 3, 9.5);
   ctx.fill();
 
-  // Awan bicara vektor halus berbingkai tinta espresso
-  ctx.fillStyle = '#fffdf7';
-  ctx.strokeStyle = '#3e2517';
-  ctx.lineWidth = 1.6;
+  // Bayangan gelembung
+  ctx.fillStyle = 'rgba(6, 21, 34, 0.42)';
   ctx.beginPath();
-  ctx.roundRect(bx, by, bw, bh, 9);
+  ctx.roundRect(bx, by + 2, bw, bh, 8.5);
+  ctx.fill();
+
+  // Balon ucapan putih-gading bersih berbingkai dark-navy & aksen cyan halus (sesuai referensi)
+  ctx.fillStyle = '#F8FDFF';
+  ctx.strokeStyle = '#0A2636';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 8.5);
   ctx.fill();
   ctx.stroke();
 
-  // Ekor awan kecil
-  ctx.fillStyle = '#fffdf7';
+  // Garis rim dalam cyan lembut
+  ctx.strokeStyle = 'rgba(0, 223, 255, 0.45)';
+  ctx.lineWidth = 0.8;
   ctx.beginPath();
-  ctx.moveTo(feet.x - 3.5, by + bh - 1);
-  ctx.lineTo(feet.x, by + bh + 4.5);
-  ctx.lineTo(feet.x + 3.5, by + bh - 1);
+  ctx.roundRect(bx + 1, by + 1, bw - 2, bh - 2, 7.5);
+  ctx.stroke();
+
+  // Ekor balon kecil di tengah bawah
+  ctx.fillStyle = '#F8FDFF';
+  ctx.strokeStyle = '#0A2636';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(feet.x - 3.5, by + bh - 0.8);
+  ctx.lineTo(feet.x, by + bh + 4.2);
+  ctx.lineTo(feet.x + 3.5, by + bh - 0.8);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = '#3e2517';
+  ctx.fillStyle = '#061522';
   ctx.fillText(text, feet.x, by + bh / 2 + 0.5);
   ctx.restore();
 }
@@ -395,15 +522,30 @@ export function drawAgentSprite(
     ctx.restore();
   }
 
+  // Cincin pijakan holografik halus di lantai bawah setiap karakter (tidak mengubah tubuh sprite)
+  ctx.save();
+  const baseRingColor =
+    agent.energy < 0.35
+      ? 'rgba(239, 68, 68, 0.38)'
+      : agent.energy < 0.6
+        ? 'rgba(255, 181, 71, 0.32)'
+        : 'rgba(0, 223, 255, 0.28)';
+  ctx.strokeStyle = baseRingColor;
+  ctx.lineWidth = 1.15;
+  ctx.beginPath();
+  ctx.ellipse(feet.x, feet.y - 0.8, 15.5, 5.4, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
   // Cincin radar peringatan merah berdenyut di kaki bila energi mahasiswa kritis (< 35%)
   if (agent.energy < 0.35) {
     const p = reducedMotion ? 0.5 : 0.5 + 0.5 * Math.sin(timeSeconds * 5.2 + phaseOffsetFor(agent.id) * 6);
     ctx.save();
     ctx.strokeStyle = `rgba(239, 68, 68, ${(0.45 + 0.45 * p).toFixed(3)})`;
     ctx.fillStyle = `rgba(239, 68, 68, ${(0.08 + 0.1 * p).toFixed(3)})`;
-    ctx.lineWidth = 2.2;
+    ctx.lineWidth = 2.0;
     ctx.beginPath();
-    ctx.ellipse(feet.x, feet.y, 18 + 5 * p, 7.5 + 2.2 * p, 0, 0, Math.PI * 2);
+    ctx.ellipse(feet.x, feet.y, 18 + 5 * p, 7.2 + 2.0 * p, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.restore();
@@ -411,19 +553,21 @@ export function drawAgentSprite(
 
   if (isSelected || isHovered) {
     ctx.save();
-    ctx.fillStyle = isSelected ? 'rgba(229, 172, 63, 0.20)' : 'rgba(29, 93, 122, 0.14)';
-    ctx.strokeStyle = isSelected ? '#0f1b33' : '#1d5d7a';
-    ctx.lineWidth = isSelected ? 2.4 : 1.6;
+    ctx.fillStyle = isSelected ? 'rgba(255, 181, 71, 0.22)' : 'rgba(0, 223, 255, 0.16)';
+    ctx.strokeStyle = isSelected ? '#FFC96B' : '#00DFFF';
+    ctx.lineWidth = isSelected ? 2.2 : 1.5;
     ctx.beginPath();
-    ctx.ellipse(feet.x, feet.y, SPRITE_WORLD_W / 2 - 4, 7.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(feet.x, feet.y, SPRITE_WORLD_W / 2 - 4, 7.2, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     if (isSelected) {
-      ctx.strokeStyle = '#f5c249';
-      ctx.lineWidth = 1.4;
+      ctx.strokeStyle = 'rgba(0, 223, 255, 0.78)';
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([4, 2.5]);
       ctx.beginPath();
-      ctx.ellipse(feet.x, feet.y, SPRITE_WORLD_W / 2 - 1.5, 9, 0, 0, Math.PI * 2);
+      ctx.ellipse(feet.x, feet.y, SPRITE_WORLD_W / 2 - 1.5, 8.8, 0, 0, Math.PI * 2);
       ctx.stroke();
+      ctx.setLineDash([]);
     }
     ctx.restore();
   }
