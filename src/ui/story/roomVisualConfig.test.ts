@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { LAB_MAP } from '../../data/map';
+import { COMPACT_STORY_GRAPHS } from '../../data/storiesCompact';
+import { STRINGS } from '../../data/strings';
 import type { ZoneType } from '../../types';
 import {
   ROOM_VISUAL_CONFIGS,
@@ -90,4 +94,41 @@ test('Phase 3 Multi-Room Personalization: perpindahan antar-11 ruangan mengubah 
   assert.notEqual(beforeWalk.theme.accentPrimary, afterWalk.theme.accentPrimary);
   assert.notEqual(beforeWalk.wallDisplayKind, afterWalk.wallDisplayKind);
 });
+
+test('Phase 8 & 9 Regression: seluruh 6 tombol kontrol dialog, ghost full-text reservation, stage nameplates, dan 18 graf mahasiswa utuh', () => {
+  // 1. Verifikasi 18 graf mahasiswa tetap utuh
+  assert.equal(Object.keys(COMPACT_STORY_GRAPHS).length, 18);
+
+  // 2. Verifikasi 6 tombol kontrol wajib di VnDialogBox.tsx (History, Auto, Skip, Simpan, Muat, Akhiri Sesi)
+  const dialogSrc = readFileSync(resolve(process.cwd(), 'src/ui/story/VnDialogBox.tsx'), 'utf8');
+  for (const handler of [
+    'onOpenHistory',
+    'onToggleAuto',
+    'onSkip',
+    'onSave',
+    'onLoad',
+    'onEndSession',
+  ]) {
+    assert.ok(dialogSrc.includes(handler), `Handler ${handler} hilang dari VnDialogBox.tsx`);
+  }
+  assert.ok(dialogSrc.includes('vn-text--ghost'), 'Ghost full-text layout reservation hilang dari VnDialogBox.tsx');
+  assert.ok(dialogSrc.includes('vn-box-soundwave'), 'Soundwave emblem hilang dari VnDialogBox.tsx');
+
+  // 3. Verifikasi label 6 tombol di STRINGS.story
+  assert.ok(STRINGS.story.historyBtn.length > 0);
+  assert.ok(STRINGS.story.autoBtn.length > 0);
+  assert.ok(STRINGS.story.skipBtn.length > 0);
+  assert.ok(STRINGS.story.saveBtn.length > 0);
+  assert.ok(STRINGS.story.loadBtn.length > 0);
+  assert.ok(STRINGS.story.endSessionBtn.length > 0);
+
+  // 4. Verifikasi StoryScreen.tsx memuat RoomEnvironmentLayer, Stage Nameplates, dan Zero-Rerender CSS Parallax
+  const screenSrc = readFileSync(resolve(process.cwd(), 'src/ui/story/StoryScreen.tsx'), 'utf8');
+  assert.ok(screenSrc.includes('RoomEnvironmentLayer'), 'RoomEnvironmentLayer belum terpasang di StoryScreen.tsx');
+  assert.ok(screenSrc.includes('vn-stage-nameplate--left'), 'Left stage nameplate hilang');
+  assert.ok(screenSrc.includes('vn-stage-nameplate--right'), 'Right stage nameplate hilang');
+  assert.ok(screenSrc.includes("setProperty('--vn-px'"), 'Zero-rerender CSS parallax --vn-px hilang');
+  assert.ok(!screenSrc.includes('key={`cloud-'), 'VnDialogBox tidak boleh remount dengan key per beat');
+});
+
 
