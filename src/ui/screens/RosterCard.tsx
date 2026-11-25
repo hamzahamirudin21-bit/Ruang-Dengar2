@@ -17,30 +17,22 @@ export interface RosterCardProps {
   /** Kontrol balik kartu eksternal opsional (mis. tombol Balik Semua). */
   flipped?: boolean;
   onToggleFlip?: () => void;
+  /** Indeks urutan kartu untuk animasi masuk bertahap (staggered entrance). */
+  index?: number;
 }
 
-const TYPE_TONE_CLASSES: Record<StudentBackgroundInfo['typeTone'], string> = {
-  teal: 'border-[#1f6b5f] bg-[#dcf5ee] text-[#175248]',
-  amber: 'border-[#9c5a0e] bg-[#ffefc9] text-[#7a4207]',
-  rose: 'border-[#a5353a] bg-[#ffe3e4] text-[#832327]',
-  indigo: 'border-[#38478a] bg-[#e5e9ff] text-[#283369]',
-  emerald: 'border-[#256f49] bg-[#ddf6e8] text-[#1a5536]',
-};
+/** Ringkasan jabatan/peran singkat di bawah nama sesuai data asli STUDENT_BACKGROUNDS */
+function shortRoleLabel(bg: StudentBackgroundInfo): string {
+  const raw = bg.typeTag.split('·')[0]?.trim() || bg.typeTag;
+  return raw.length > 22 ? raw.slice(0, 22).trim() : raw;
+}
 
-const PORTRAIT_BACKDROP_GRADIENT: Record<StudentBackgroundInfo['typeTone'], string> = {
-  teal: 'from-[#b5e4dc] via-[#def4ef] to-[#f4e4c4]',
-  amber: 'from-[#f9dca6] via-[#fceed1] to-[#f2dec0]',
-  rose: 'from-[#f8cbd2] via-[#fce7ea] to-[#f5e1c5]',
-  indigo: 'from-[#c6d3f7] via-[#e6ecfc] to-[#f4e3c5]',
-  emerald: 'from-[#bde8ce] via-[#e2f6ea] to-[#f4e5c6]',
-};
-
-const CARD_ACCENT_BAR: Record<StudentBackgroundInfo['typeTone'], string> = {
-  teal: 'bg-gradient-to-r from-[#2e8274] to-[#46a897]',
-  amber: 'bg-gradient-to-r from-[#d4882a] to-[#f0b44c]',
-  rose: 'bg-gradient-to-r from-[#c94e53] to-[#e5787c]',
-  indigo: 'bg-gradient-to-r from-[#4b5ca8] to-[#7485d1]',
-  emerald: 'bg-gradient-to-r from-[#2c8a58] to-[#52b37f]',
+const BACK_TONE_BADGE: Record<StudentBackgroundInfo['typeTone'], string> = {
+  teal: 'border-[#00e5ff]/55 bg-[#00e5ff]/15 text-[#7ef4ff]',
+  amber: 'border-[#ffbd59]/60 bg-[#ffbd59]/16 text-[#ffd794]',
+  rose: 'border-[#ff6b8b]/55 bg-[#ff6b8b]/15 text-[#ffb4c4]',
+  indigo: 'border-[#5ea8ff]/55 bg-[#168bff]/18 text-[#a8d1ff]',
+  emerald: 'border-[#2ef2b8]/55 bg-[#2ef2b8]/15 text-[#98fce0]',
 };
 
 const SpriteCanvas: React.FC<{ studentId: string }> = ({ studentId }) => {
@@ -70,7 +62,7 @@ const SpriteCanvas: React.FC<{ studentId: string }> = ({ studentId }) => {
       aria-hidden="true"
       width={SPRITE_W * 6}
       height={SPRITE_H * 6}
-      className="h-[3.15rem] w-[2.1rem] drop-shadow-[0_2px_4px_rgba(15,23,42,0.55)]"
+      className="h-[2.35rem] w-[1.55rem] drop-shadow-[0_2px_6px_rgba(0,229,255,0.45)]"
     />
   );
 };
@@ -82,7 +74,7 @@ const InterestIcon: React.FC<{ id: InterestLabel['iconId'] }> = ({ id }) => {
     height: 12,
     fill: 'none',
     stroke: 'currentColor',
-    strokeWidth: 1.6,
+    strokeWidth: 1.65,
     strokeLinecap: 'round' as const,
     strokeLinejoin: 'round' as const,
     'aria-hidden': true,
@@ -91,7 +83,7 @@ const InterestIcon: React.FC<{ id: InterestLabel['iconId'] }> = ({ id }) => {
     case 'chip':
       return (
         <svg {...common}>
-          <rect x="4" y="4" width="8" height="8" />
+          <rect x="4" y="4" width="8" height="8" rx="1" />
           <path d="M6 1v3M10 1v3M6 12v3M10 12v3M1 6h3M1 10h3M12 6h3M12 10h3" />
         </svg>
       );
@@ -124,14 +116,16 @@ export const RosterCard: React.FC<RosterCardProps> = ({
   height,
   flipped,
   onToggleFlip,
+  index = 0,
 }) => {
   const [internalFlipped, setInternalFlipped] = useState(false);
   const [tiltStyle, setTiltStyle] = useState<React.CSSProperties | undefined>(undefined);
   const isFlipped = flipped ?? internalFlipped;
-  const h = height ?? 150;
+  const h = height ?? 154;
   const interests = model.interests.slice(0, 2);
   const firstName = model.name.split(' ')[0];
   const bgInfo = getStudentBackground(model.studentId);
+  const roleSubtitle = shortRoleLabel(bgInfo);
 
   const handleToggle = () => {
     playFeedbackSfx('flip');
@@ -145,14 +139,14 @@ export const RosterCard: React.FC<RosterCardProps> = ({
     if (rect.width <= 0 || rect.height <= 0) return;
     const px = (e.clientX - rect.left) / rect.width;
     const py = (e.clientY - rect.top) / rect.height;
-    const rotY = ((px - 0.5) * 9).toFixed(2);
-    const rotX = ((0.5 - py) * 7).toFixed(2);
+    const rotY = ((px - 0.5) * 7.5).toFixed(2);
+    const rotX = ((0.5 - py) * 6).toFixed(2);
     setTiltStyle({
       '--holo-rx': `${rotX}deg`,
       '--holo-ry': `${rotY}deg`,
       '--holo-gx': `${Math.round(px * 100)}%`,
       '--holo-gy': `${Math.round(py * 100)}%`,
-      '--holo-opacity': '0.32',
+      '--holo-opacity': '0.38',
     } as React.CSSProperties);
   };
 
@@ -161,13 +155,20 @@ export const RosterCard: React.FC<RosterCardProps> = ({
     setTiltStyle(undefined);
   };
 
+  const staggerDelay = reducedMotion ? undefined : `${Math.min(index * 28, 380)}ms`;
+
   return (
     <li
       aria-label={cardAltText(model.number, model.name)}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      className="roster-flip-scene holo-card-scene min-w-0"
-      style={{ width: width ?? '100%', height: h, ...tiltStyle }}
+      className="roster-flip-scene holo-card-scene rtx-card-entrance min-w-0"
+      style={{
+        width: width ?? '100%',
+        height: h,
+        animationDelay: staggerDelay,
+        ...tiltStyle,
+      }}
     >
       <button
         type="button"
@@ -180,38 +181,37 @@ export const RosterCard: React.FC<RosterCardProps> = ({
         }
         data-testid={`roster-card-${model.studentId}`}
         data-flipped={isFlipped ? 'true' : 'false'}
-        className="group relative block h-full w-full cursor-pointer text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#ffe694]"
+        className="rtx-card-btn group relative block h-full w-full cursor-pointer text-left focus-visible:outline-none"
       >
         <div
           className={`roster-flip-inner ${reducedMotion ? 'roster-flip-inner--reduced' : ''}`}
           data-flipped={isFlipped ? 'true' : 'false'}
         >
-          {/* SISI DEPAN: Kartu ID Lencana Kampus Vokasi (Atelier Collectible Pass) */}
-          <div className="roster-flip-face roster-flip-front roster-card-chamfer yearbook-card holo-card-face grid grid-cols-[44%_56%] overflow-hidden bg-gradient-to-br from-[#fffdf7] via-[#f9efd8] to-[#efe0c2]">
+          {/* =================================================================
+              SISI DEPAN: KARTU HOLOGRAFIK AAA SCI-FI LAB (100% KARAKTER ASLI)
+             ================================================================= */}
+          <div className="roster-flip-face roster-flip-front rtx-card-surface grid grid-cols-[46%_54%] overflow-hidden">
+            {/* Sapuan cahaya holografik halus saat hover */}
             <span aria-hidden="true" className="holo-card-glare" />
-            {/* Pita aksen jurusan tipis di puncak kartu */}
-            <span
-              aria-hidden="true"
-              className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-[3.5px] ${CARD_ACCENT_BAR[bgInfo.typeTone]}`}
-            />
-            {/* Pin kuningan buku tahunan mungil di tengah atas kartu */}
-            <span aria-hidden="true" className="yearbook-pin" />
+            {/* Sudut braket teknikal cyan-gold */}
+            <span aria-hidden="true" className="rtx-card-corner rtx-card-corner--tl" />
+            <span aria-hidden="true" className="rtx-card-corner rtx-card-corner--tr" />
+            <span aria-hidden="true" className="rtx-card-corner rtx-card-corner--bl" />
+            <span aria-hidden="true" className="rtx-card-corner rtx-card-corner--br" />
 
-            {/* Kolom Kiri (44%): Bingkai Potret Setengah Badan Berlatar Nada Jurusan */}
-            <div
-              className={`relative h-full overflow-hidden border-r-2 border-[#3e2517]/20 bg-gradient-to-b ${PORTRAIT_BACKDROP_GRADIENT[bgInfo.typeTone]}`}
-            >
+            {/* Kolom Kiri (46%): Potret Asli Mahasiswa + Lencana Nomor #01 Emas-Hitam */}
+            <div className="rtx-card-portrait-well relative h-full overflow-hidden">
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_24%,rgba(255,253,242,0.72),transparent_68%)]"
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_28%,rgba(0,229,255,0.22),transparent_70%)] transition-opacity duration-300 group-hover:opacity-100"
               />
               <span
-                className="absolute left-1.5 top-2 z-10 rounded-md border border-[#ffe694]/55 bg-[#3e2517] px-1.5 py-0.5 font-['Fredoka',sans-serif] text-[9.5px] font-bold leading-none text-[#ffe694] tabular-nums shadow-[0_1.5px_0_rgba(0,0,0,0.35)]"
+                className="rtx-card-number-badge"
                 aria-hidden="true"
               >
                 #{model.number}
               </span>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 top-1.5 flex items-end justify-center [&>canvas]:!h-full [&>canvas]:!w-full [&>canvas]:object-contain [&>canvas]:object-bottom [&>img]:!h-full [&>img]:!w-full">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 top-1.5 flex items-end justify-center transition-transform duration-300 group-hover:scale-[1.03] [&>canvas]:!h-full [&>canvas]:!w-full [&>canvas]:object-contain [&>canvas]:object-bottom [&>img]:!h-full [&>img]:!w-full">
                 <PixelPortrait
                   studentId={model.studentId}
                   name={model.name}
@@ -223,40 +223,34 @@ export const RosterCard: React.FC<RosterCardProps> = ({
               </div>
             </div>
 
-            {/* Kolom Kanan (56%): Identitas Lega + Lencana Tipe + Pita Minat + Panggung Mini Chibi */}
-            <div className="relative z-10 flex min-w-0 flex-col justify-between px-2.5 pb-1.5 pt-2.5">
+            {/* Kolom Kanan (54%): Nama, Peran Singkat, 2 Badge Keahlian Cyan, & Tombol Profil Emas */}
+            <div className="relative z-10 flex min-w-0 flex-col justify-between px-2.5 py-2">
               <div className="min-w-0">
                 <div className="flex items-start justify-between gap-1">
                   <div className="min-w-0">
                     <span
                       title={model.name}
-                      className="block truncate font-['Fredoka',sans-serif] text-[0.9rem] font-bold leading-tight text-[#3e2517]"
+                      className="block truncate font-['Plus_Jakarta_Sans','Fredoka',sans-serif] text-[0.98rem] font-extrabold tracking-tight text-[#EAF7FF] drop-shadow-[0_1px_4px_rgba(0,0,0,0.65)]"
                     >
                       {firstName}
                     </span>
                     <span
-                      className="mt-0.5 block truncate font-['Plus_Jakarta_Sans',sans-serif] text-[9px] font-semibold leading-tight text-[#7a5234]"
                       title={bgInfo.typeTag}
+                      className="mt-0.5 block truncate font-['Plus_Jakarta_Sans',sans-serif] text-[0.68rem] font-medium leading-tight text-[#9EB7C7]"
                     >
-                      {bgInfo.typeTag}
+                      {roleSubtitle}
                     </span>
                   </div>
-                  <span
-                    aria-hidden="true"
-                    className="shrink-0 rounded-full border border-[#3e2517]/35 bg-gradient-to-b from-[#fff2be] to-[#f7cf65] px-1.5 py-0.5 font-['Fredoka',sans-serif] text-[8.5px] font-bold leading-none text-[#3e2517] shadow-[0_1.5px_0_#3e2517] transition group-hover:scale-105"
-                  >
-                    ↻ Profil
-                  </span>
                 </div>
 
-                {/* Daftar minat praktikum rapi dengan batas aman */}
+                {/* 2 Badge Bidang Keahlian Holografik */}
                 <div className="mt-1.5 flex flex-col gap-1">
                   {interests.map((it) => (
                     <span
                       key={it.key}
-                      className="inline-flex max-w-full min-w-0 items-center gap-1 rounded-lg border border-[#3e2517]/22 bg-[#fffdf8]/95 px-1.5 py-0.5 text-[0.61rem] font-bold leading-tight text-[#3e2517] shadow-[0_1px_0_rgba(62,37,23,0.12)]"
+                      className="rtx-skill-badge"
                     >
-                      <span className="shrink-0 text-[#2e8274]">
+                      <span className="shrink-0 text-[#00E5FF]">
                         <InterestIcon id={it.iconId} />
                       </span>
                       <span className="truncate">{it.text}</span>
@@ -265,56 +259,72 @@ export const RosterCard: React.FC<RosterCardProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-end justify-between gap-1 pt-0.5">
-                <span
-                  aria-hidden="true"
-                  className="truncate font-['Fredoka',sans-serif] text-[8.5px] font-semibold tracking-wide text-[#8c623e] uppercase"
-                >
-                  ID Vokasi
+              {/* Baris Bawah: Avatar Mini Chibi (opsional halus) + Tombol Profil → Emas Bercahaya */}
+              <div className="flex items-center justify-between gap-1.5 pt-1">
+                <span className="rtx-profile-cta">
+                  <span>Profil</span>
+                  <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5">
+                    →
+                  </span>
                 </span>
-                <div className="roster-chibi-hop shrink-0 rounded-xl border border-[#3e2517]/25 bg-gradient-to-b from-[#fffdf6] to-[#f4e2be] px-1.5 py-0.5 shadow-[inset_0_-2px_0_#dfc391,0_2px_0_rgba(62,37,23,0.18)]">
+                <div
+                  className="roster-chibi-hop shrink-0 rounded-lg border border-[#00e5ff]/25 bg-[#061522]/75 px-1 py-0.5 shadow-[inset_0_0_8px_rgba(0,229,255,0.16)]"
+                  title="Avatar Chibi Lab"
+                >
                   <SpriteCanvas studentId={model.studentId} />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* SISI BELAKANG: Dossier Latar Belakang, Tipe, & Kesukaan Mahasiswa */}
-          <div className="roster-flip-face roster-flip-back roster-card-chamfer flex flex-col overflow-hidden bg-gradient-to-br from-[#fffaf0] via-[#f9edd3] to-[#f0ddb6]">
-            <div className="flex shrink-0 items-center justify-between gap-1.5 border-b-2 border-[#3e2517] bg-gradient-to-r from-[#5a3520] to-[#3e2517] px-2.5 py-1.5 text-[#fffdf6]">
+          {/* =================================================================
+              SISI BELAKANG: DOSSIER HOLOGRAFIK LATAR BELAKANG, TIPE, & KESUKAAN
+             ================================================================= */}
+          <div className="roster-flip-face roster-flip-back rtx-card-surface rtx-card-surface--back flex flex-col overflow-hidden">
+            <span aria-hidden="true" className="rtx-card-corner rtx-card-corner--tl" />
+            <span aria-hidden="true" className="rtx-card-corner rtx-card-corner--tr" />
+            <span aria-hidden="true" className="rtx-card-corner rtx-card-corner--bl" />
+            <span aria-hidden="true" className="rtx-card-corner rtx-card-corner--br" />
+
+            <div className="flex shrink-0 items-center justify-between gap-1.5 border-b border-[#00e5ff]/30 bg-gradient-to-r from-[#092b38]/95 via-[#0c3747]/95 to-[#061522]/95 px-2.5 py-1.5 text-[#EAF7FF]">
               <div className="min-w-0">
-                <span className="block truncate font-['Fredoka',sans-serif] text-[11px] font-bold leading-tight text-[#ffe694]">
+                <span className="block truncate font-['Plus_Jakarta_Sans','Fredoka',sans-serif] text-[11px] font-bold leading-tight text-[#FFBD59]">
                   #{model.number} {model.name}
                 </span>
-                <span className="block truncate text-[9px] font-medium text-[#f5dec0]">
+                <span className="block truncate text-[9.5px] font-medium text-[#9EB7C7]">
                   {bgInfo.originAndCohort}
                 </span>
               </div>
               <span
                 aria-hidden="true"
-                className="shrink-0 rounded-full border border-[#ffe694]/50 bg-[#fffdf6]/15 px-1.5 py-0.5 font-['Fredoka',sans-serif] text-[9px] font-bold leading-none text-[#ffe694]"
+                className="shrink-0 rounded-full border border-[#ffbd59]/55 bg-[#ffbd59]/15 px-2 py-0.5 font-['Plus_Jakarta_Sans',sans-serif] text-[9px] font-bold leading-none text-[#FFBD59]"
               >
                 ↺ Foto
               </span>
             </div>
 
-            <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-2.5 py-1.5 text-[10px] leading-[1.32] text-[#3e2517]">
+            <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-2.5 py-1.5 text-[10px] leading-[1.35] text-[#EAF7FF]">
               <div className="flex flex-wrap items-center gap-1">
                 <span
-                  className={`inline-block max-w-full truncate rounded-full border px-2 py-0.5 font-['Fredoka',sans-serif] text-[9.5px] font-bold leading-none ${TYPE_TONE_CLASSES[bgInfo.typeTone]}`}
+                  className={`inline-block max-w-full truncate rounded-full border px-2 py-0.5 font-['Plus_Jakarta_Sans',sans-serif] text-[9.5px] font-bold leading-none ${BACK_TONE_BADGE[bgInfo.typeTone]}`}
                 >
                   ✦ {bgInfo.typeTag}
                 </span>
               </div>
 
-              <p className="text-[#4a2e1b]">
-                <strong className="font-['Fredoka',sans-serif] text-[#2e8274]">Suka:</strong>{' '}
+              <p className="text-[#d4ebf7]">
+                <strong className="font-bold text-[#00E5FF]">Suka:</strong>{' '}
                 {bgInfo.likes}
               </p>
 
-              <p className="text-[#3e2517]">
-                <strong className="font-['Fredoka',sans-serif] text-[#9c4c1b]">Latar:</strong>{' '}
+              <p className="text-[#EAF7FF]">
+                <strong className="font-bold text-[#FFBD59]">Latar:</strong>{' '}
                 {bgInfo.background}
+              </p>
+
+              <p className="mt-auto rounded-md border border-[#00e5ff]/25 bg-[#061522]/75 px-2 py-1 text-[9.5px] text-[#9EB7C7]">
+                <strong className="font-bold text-[#00E5FF]">Kunci Komunikasi:</strong>{' '}
+                {bgInfo.communicationStyle}
               </p>
             </div>
           </div>

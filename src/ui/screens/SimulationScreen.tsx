@@ -1340,7 +1340,9 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
     story.avatarMode === 'idle';
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-[#7fb479]">
+    <div className="sim-rtx-shell relative h-screen w-screen overflow-hidden bg-[#061522]">
+      {/* Bingkai Bevel Luar Viewport Simulator Futuristik (Phase 1 Outer Frame) */}
+      <div aria-hidden="true" className="sim-rtx-outer-bezel pointer-events-none" />
       {/* Vinyet darurat lembut di tepi layar bila ada mahasiswa di bawah 25% energi */}
       {hasUrgentStudent && !story.storyVisible && (
         <div aria-hidden="true" className="hud-urgency-vignette" />

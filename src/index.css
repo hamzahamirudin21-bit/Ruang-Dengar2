@@ -3715,3 +3715,585 @@ html[data-reduced-motion='true'] .vn-choice-card::after {
     opacity: 0 !important;
   }
 }
+
+/* ============================================================================
+   7. AAA SCI-FI / RTX HOLOGRAPHIC CHARACTER GALLERY DESIGN SYSTEM
+   Palet wajib:
+   - Deep Navy: #061522
+   - Dark Teal: #092B38
+   - Electric Cyan: #00E5FF
+   - Neon Blue: #168BFF
+   - Warm Gold: #FFBD59
+   - Soft White: #EAF7FF
+   - Secondary Text: #9EB7C7
+   ============================================================================ */
+:root {
+  --rtx-navy: #061522;
+  --rtx-teal: #092B38;
+  --rtx-cyan: #00E5FF;
+  --rtx-blue: #168BFF;
+  --rtx-gold: #FFBD59;
+  --rtx-white: #EAF7FF;
+  --rtx-muted: #9EB7C7;
+  --rtx-glass-bg: rgba(9, 43, 56, 0.72);
+  --rtx-glass-deep: rgba(6, 21, 34, 0.86);
+  --rtx-cyan-glow: 0 0 16px rgba(0, 229, 255, 0.42);
+  --rtx-gold-glow: 0 0 14px rgba(255, 189, 89, 0.38);
+}
+
+/* Lingkungan Laboratorium Futuristik Berlapis */
+.rtx-roster-lab {
+  background-color: var(--rtx-navy);
+  background-image:
+    radial-gradient(ellipse 55% 65% at 6% 42%, rgba(0, 229, 255, 0.20) 0%, rgba(22, 139, 255, 0.08) 48%, transparent 78%),
+    radial-gradient(ellipse 46% 42% at 92% 14%, rgba(255, 189, 89, 0.22) 0%, rgba(255, 145, 48, 0.07) 52%, transparent 78%),
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(9, 43, 56, 0.85) 0%, rgba(6, 21, 34, 0.98) 100%);
+  color: var(--rtx-white);
+  isolation: isolate;
+}
+
+.rtx-lab-environment {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.rtx-lab-window-glow {
+  position: absolute;
+  left: -4%;
+  top: 8%;
+  width: 24%;
+  height: 72%;
+  background:
+    linear-gradient(90deg, rgba(0, 229, 255, 0.18) 0%, rgba(0, 229, 255, 0.03) 65%, transparent 100%);
+  border-right: 1px solid rgba(0, 229, 255, 0.14);
+  transform: perspective(600px) rotateY(14deg);
+  filter: blur(2px);
+}
+
+.rtx-lab-warm-lamp {
+  position: absolute;
+  right: 4%;
+  top: -3%;
+  width: 32rem;
+  height: 18rem;
+  background: radial-gradient(circle, rgba(255, 189, 89, 0.26) 0%, rgba(255, 150, 54, 0.08) 52%, transparent 74%);
+  filter: blur(8px);
+}
+
+.rtx-lab-tech-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at 50% 48%, rgba(0, 0, 0, 0.85) 20%, transparent 82%);
+}
+
+/* Partikel Debu Cahaya Laboratorium */
+@keyframes rtx-particle-float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(0.9); opacity: 0.35; }
+  50% { transform: translate3d(8px, -14px, 0) scale(1.2); opacity: 0.85; }
+}
+.rtx-particle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  animation: rtx-particle-float 6.5s ease-in-out infinite;
+}
+.rtx-particle--cyan {
+  background: var(--rtx-cyan);
+  box-shadow: 0 0 10px var(--rtx-cyan);
+}
+.rtx-particle--gold {
+  background: var(--rtx-gold);
+  box-shadow: 0 0 10px var(--rtx-gold);
+}
+
+/* 1. Cinematic Top HUD Header */
+.rtx-hud-header {
+  position: relative;
+  background: linear-gradient(180deg, rgba(9, 43, 56, 0.88) 0%, rgba(6, 21, 34, 0.92) 100%);
+  border: 1px solid rgba(0, 229, 255, 0.38);
+  clip-path: polygon(
+    16px 0,
+    calc(100% - 16px) 0,
+    100% 16px,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    10px 100%,
+    0 calc(100% - 10px),
+    0 16px
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(234, 247, 255, 0.22),
+    0 10px 28px rgba(2, 10, 18, 0.65),
+    0 0 22px rgba(0, 229, 255, 0.14);
+  backdrop-filter: blur(10px);
+}
+
+.rtx-header-circuit-line {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 229, 255, 0.75) 18%,
+    rgba(255, 189, 89, 0.85) 50%,
+    rgba(0, 229, 255, 0.75) 82%,
+    transparent 100%
+  );
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.65);
+}
+
+/* Emblem Gelombang Akustik Emas di Kiri Judul */
+@keyframes rtx-wave-pulse {
+  0%, 100% { transform: scaleY(0.65); opacity: 0.82; }
+  50% { transform: scaleY(1.12); opacity: 1; }
+}
+.rtx-soundwave-emblem {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0.3rem 0.55rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 189, 89, 0.45);
+  background: radial-gradient(circle, rgba(255, 189, 89, 0.22) 0%, rgba(6, 21, 34, 0.85) 100%);
+  box-shadow: 0 0 14px rgba(255, 189, 89, 0.28);
+}
+.rtx-soundwave-emblem span {
+  display: block;
+  width: 2.5px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff3c4 0%, #ffbd59 55%, #e08b22 100%);
+  box-shadow: 0 0 6px rgba(255, 189, 89, 0.75);
+  animation: rtx-wave-pulse 1.5s ease-in-out infinite;
+}
+.rtx-soundwave-emblem span:nth-child(2) { animation-delay: 0.18s; }
+.rtx-soundwave-emblem span:nth-child(3) { animation-delay: 0.36s; }
+.rtx-soundwave-emblem span:nth-child(4) { animation-delay: 0.54s; }
+.rtx-soundwave-emblem span:nth-child(5) { animation-delay: 0.26s; }
+.rtx-soundwave-emblem span:nth-child(6) { animation-delay: 0.42s; }
+
+.rtx-title-gold {
+  background: linear-gradient(180deg, #fff6d6 0%, #ffbd59 55%, #d98a26 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 10px rgba(255, 189, 89, 0.32));
+}
+
+.rtx-header-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.15rem;
+  padding: 0.35rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 229, 255, 0.42);
+  background: linear-gradient(180deg, rgba(14, 58, 76, 0.78) 0%, rgba(6, 21, 34, 0.92) 100%);
+  color: var(--rtx-white);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(234, 247, 255, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.45);
+  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+.rtx-header-pill:hover {
+  transform: translateY(-1.5px);
+  border-color: var(--rtx-cyan);
+  box-shadow:
+    inset 0 1px 0 rgba(234, 247, 255, 0.35),
+    var(--rtx-cyan-glow);
+}
+.rtx-header-pill--active {
+  border-color: var(--rtx-cyan);
+  background: linear-gradient(180deg, rgba(0, 229, 255, 0.24) 0%, rgba(9, 43, 56, 0.95) 100%);
+  box-shadow: var(--rtx-cyan-glow);
+}
+
+/* 2. Holographic Filter & Search Bar */
+.rtx-filter-bar {
+  border-radius: 14px;
+  border: 1px solid rgba(0, 229, 255, 0.26);
+  background: linear-gradient(90deg, rgba(6, 21, 34, 0.82) 0%, rgba(9, 43, 56, 0.74) 50%, rgba(6, 21, 34, 0.82) 100%);
+  box-shadow: inset 0 1px 0 rgba(234, 247, 255, 0.1), 0 6px 18px rgba(2, 8, 16, 0.48);
+  backdrop-filter: blur(8px);
+}
+
+.rtx-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.32rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(158, 183, 199, 0.32);
+  background: rgba(6, 21, 34, 0.72);
+  color: var(--rtx-muted);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+.rtx-filter-chip:hover {
+  color: var(--rtx-white);
+  border-color: rgba(0, 229, 255, 0.6);
+  background: rgba(9, 43, 56, 0.88);
+}
+.rtx-filter-chip--active {
+  color: var(--rtx-white);
+  border-color: var(--rtx-cyan);
+  background: linear-gradient(180deg, rgba(0, 229, 255, 0.28) 0%, rgba(12, 68, 86, 0.92) 100%);
+  box-shadow:
+    inset 0 0 10px rgba(0, 229, 255, 0.32),
+    0 0 14px rgba(0, 229, 255, 0.45);
+}
+
+.rtx-search-input {
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  background: rgba(6, 21, 34, 0.85);
+  color: var(--rtx-white);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 500;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.55);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.rtx-search-input::placeholder {
+  color: rgba(158, 183, 199, 0.72);
+}
+.rtx-search-input:focus {
+  outline: none;
+  border-color: var(--rtx-cyan);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.55),
+    0 0 12px rgba(0, 229, 255, 0.45);
+}
+
+/* 3. Kartu Karakter Holografik AAA (6x3 Grid) */
+@keyframes rtx-card-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.rtx-card-entrance {
+  animation: rtx-card-fade-up 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.rtx-card-surface {
+  border-radius: 14px;
+  border: 1.5px solid rgba(0, 229, 255, 0.42);
+  background:
+    linear-gradient(145deg, rgba(11, 49, 64, 0.88) 0%, rgba(6, 21, 34, 0.95) 68%, rgba(16, 40, 54, 0.92) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(234, 247, 255, 0.22),
+    inset 0 -1px 0 rgba(255, 189, 89, 0.18),
+    0 8px 20px rgba(2, 8, 16, 0.65),
+    0 0 12px rgba(0, 229, 255, 0.12);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.rtx-card-btn:hover .rtx-card-surface,
+.rtx-card-btn:focus-visible .rtx-card-surface {
+  border-color: var(--rtx-cyan);
+  box-shadow:
+    inset 0 1px 0 rgba(234, 247, 255, 0.4),
+    inset 0 0 18px rgba(0, 229, 255, 0.16),
+    0 12px 26px rgba(2, 8, 16, 0.78),
+    0 0 18px rgba(0, 229, 255, 0.45);
+}
+
+.rtx-card-btn[aria-pressed='true'] .rtx-card-surface {
+  border-color: var(--rtx-gold);
+  box-shadow:
+    inset 0 0 16px rgba(255, 189, 89, 0.18),
+    0 10px 24px rgba(2, 8, 16, 0.75),
+    0 0 18px rgba(255, 189, 89, 0.42);
+}
+
+/* Ornamen Siku Metalik Kartu (Chamfered Tech Brackets) */
+.rtx-card-corner {
+  position: absolute;
+  z-index: 15;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  border-color: rgba(0, 229, 255, 0.75);
+  transition: border-color 180ms ease;
+}
+.rtx-card-btn:hover .rtx-card-corner {
+  border-color: var(--rtx-gold);
+}
+.rtx-card-corner--tl {
+  top: 3px;
+  left: 3px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+  border-top-left-radius: 6px;
+}
+.rtx-card-corner--tr {
+  top: 3px;
+  right: 3px;
+  border-top: 2px solid;
+  border-right: 2px solid;
+  border-top-right-radius: 6px;
+}
+.rtx-card-corner--bl {
+  bottom: 3px;
+  left: 3px;
+  border-bottom: 2px solid;
+  border-left: 2px solid;
+  border-bottom-left-radius: 6px;
+}
+.rtx-card-corner--br {
+  bottom: 3px;
+  right: 3px;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+  border-bottom-right-radius: 6px;
+}
+
+.rtx-card-portrait-well {
+  border-right: 1px solid rgba(0, 229, 255, 0.24);
+  background:
+    radial-gradient(circle at 50% 35%, rgba(22, 139, 255, 0.24) 0%, transparent 70%),
+    linear-gradient(180deg, rgba(14, 56, 74, 0.75) 0%, rgba(6, 21, 34, 0.92) 85%, rgba(255, 189, 89, 0.14) 100%);
+}
+
+.rtx-card-number-badge {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  z-index: 12;
+  padding: 0.14rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 189, 89, 0.65);
+  background: rgba(6, 21, 34, 0.9);
+  color: var(--rtx-gold);
+  font-family: 'Plus Jakarta Sans', 'Fredoka', sans-serif;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.rtx-skill-badge {
+  display: inline-flex;
+  max-width: 100%;
+  min-w: 0;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 229, 255, 0.36);
+  background: linear-gradient(90deg, rgba(6, 21, 34, 0.88) 0%, rgba(9, 43, 56, 0.78) 100%);
+  color: var(--rtx-white);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.15;
+  box-shadow: inset 0 0 8px rgba(0, 229, 255, 0.12);
+}
+
+.rtx-profile-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.32rem;
+  padding: 0.24rem 0.78rem;
+  border-radius: 999px;
+  border: 1.2px solid rgba(255, 189, 89, 0.78);
+  background: linear-gradient(180deg, rgba(255, 189, 89, 0.22) 0%, rgba(84, 52, 16, 0.68) 100%);
+  color: #ffe2a8;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 200, 0.35),
+    0 0 10px rgba(255, 189, 89, 0.25);
+  transition: all 160ms ease;
+}
+.rtx-card-btn:hover .rtx-profile-cta {
+  border-color: #ffd98e;
+  background: linear-gradient(180deg, rgba(255, 189, 89, 0.38) 0%, rgba(122, 74, 18, 0.85) 100%);
+  color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 220, 0.55),
+    0 0 14px rgba(255, 189, 89, 0.55);
+}
+
+/* 4. Footer Desk Props & Hexagonal Chamfer Navigation Buttons */
+.rtx-footer-bar {
+  border-top: 1px solid rgba(0, 229, 255, 0.24);
+}
+
+.rtx-desk-book {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.28rem 0.85rem;
+  border-radius: 6px 10px 10px 6px;
+  border: 1px solid rgba(255, 189, 89, 0.45);
+  border-left: 4px solid var(--rtx-gold);
+  background: linear-gradient(135deg, #102536 0%, #071420 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.55);
+}
+.rtx-desk-book-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--rtx-gold);
+}
+.rtx-desk-book-sub {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--rtx-muted);
+}
+
+.rtx-desk-mug {
+  position: relative;
+  display: flex;
+  width: 2.1rem;
+  height: 2.1rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px 8px 12px 12px;
+  border: 1px solid rgba(255, 189, 89, 0.42);
+  background: linear-gradient(180deg, #152c3d 0%, #081520 100%);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.55);
+}
+.rtx-desk-mug-wave {
+  width: 0.9rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, #ffbd59 0%, transparent 72%);
+  box-shadow: 0 0 8px var(--rtx-gold);
+}
+
+.rtx-desk-holopad {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.34rem 0.95rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 229, 255, 0.55);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.16) 0%, rgba(6, 21, 34, 0.85) 100%);
+  box-shadow:
+    inset 0 0 12px rgba(0, 229, 255, 0.25),
+    0 0 16px rgba(0, 229, 255, 0.28);
+  overflow: hidden;
+}
+.rtx-desk-holopad-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.18) 1px, transparent 1px);
+  background-size: 8px 8px;
+  opacity: 0.45;
+}
+
+.rtx-nav-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 2.55rem;
+  padding: 0.48rem 1.75rem;
+  font-family: 'Plus Jakarta Sans', 'Fredoka', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0 50%);
+  transition: transform 160ms ease, filter 160ms ease;
+}
+.rtx-nav-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.1);
+}
+.rtx-nav-btn--back {
+  color: var(--rtx-white);
+  background: linear-gradient(180deg, rgba(16, 48, 64, 0.9) 0%, rgba(6, 21, 34, 0.96) 100%);
+  border: 1.5px solid rgba(158, 183, 199, 0.55);
+  filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.18));
+}
+.rtx-nav-btn--continue {
+  padding-left: 2.1rem;
+  padding-right: 2.1rem;
+  color: #ffffff;
+  background: linear-gradient(135deg, #00c4e0 0%, #0b6e87 52%, #093b4d 100%);
+  border: 1.5px solid var(--rtx-cyan);
+  filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.55));
+}
+
+html[data-reduced-motion='true'] .rtx-card-entrance,
+html[data-reduced-motion='true'] .rtx-particle,
+html[data-reduced-motion='true'] .rtx-soundwave-emblem span,
+html[data-reduced-motion='true'] .rtx-nav-btn,
+html[data-reduced-motion='true'] .rtx-header-pill {
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rtx-card-entrance,
+  .rtx-particle,
+  .rtx-soundwave-emblem span,
+  .rtx-nav-btn,
+  .rtx-header-pill {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ============================================================================
+   8. PHASE 1 — SIMULATION MAIN FRAME & FUTURISTIC LAB OUTER ENVIRONMENT
+   ============================================================================ */
+.sim-rtx-shell {
+  background-color: #061522;
+  color: #EAF6FF;
+}
+
+.sim-rtx-outer-bezel {
+  position: fixed;
+  inset: 4px;
+  z-index: 18;
+  border: 1.5px solid rgba(0, 223, 255, 0.34);
+  clip-path: polygon(
+    14px 0,
+    calc(100% - 14px) 0,
+    100% 14px,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    14px 100%,
+    0 calc(100% - 14px),
+    0 14px
+  );
+  box-shadow:
+    inset 0 0 28px rgba(0, 223, 255, 0.10),
+    inset 0 1px 0 rgba(255, 201, 107, 0.22);
+}

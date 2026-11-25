@@ -58,8 +58,29 @@ function rrect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h
 }
 
 // ---------------------------------------------------------------------------
-// 1. Halaman Kampus Hidup di Luar Gedung (Rumput, Jalan Batu, Pohon Bergoyang)
+// 1. Lingkungan Luar Kampus Teknologi Futuristik & Bezel Metalik Utama (Phase 1)
 // ---------------------------------------------------------------------------
+
+function drawBeveledRectPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  cut: number
+): void {
+  const c = Math.max(2, Math.min(cut, w * 0.25, h * 0.25));
+  ctx.beginPath();
+  ctx.moveTo(x + c, y);
+  ctx.lineTo(x + w - c, y);
+  ctx.lineTo(x + w, y + c);
+  ctx.lineTo(x + w, y + h - c);
+  ctx.lineTo(x + w - c, y + h);
+  ctx.lineTo(x + c, y + h);
+  ctx.lineTo(x, y + h - c);
+  ctx.lineTo(x, y + c);
+  ctx.closePath();
+}
 
 export function drawOutdoorCampusCourtyard(
   ctx: CanvasRenderingContext2D,
@@ -75,247 +96,300 @@ export function drawOutdoorCampusCourtyard(
   const sun = computeSunLighting(clockMinutesOfDay, weatherMode);
   const isRain = weatherMode === 'hujan';
   const isAfternoon = sun.phase === 'sore' && !isRain;
-  const isMorning = sun.phase === 'pagi' && !isRain;
-  const lawn = ctx.createLinearGradient(0, 0, 0, heightCss);
+
+  ctx.save();
+
+  // 1. Base Background: Deep Navy (#061522) & Dark Teal (#0A2636) Futuristic Campus Atmosphere
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, heightCss);
   if (isRain) {
-    lawn.addColorStop(0, '#6e9c78');
-    lawn.addColorStop(0.5, '#5e8d6a');
-    lawn.addColorStop(1, '#4f7c5b');
+    bgGrad.addColorStop(0, '#040e18');
+    bgGrad.addColorStop(0.5, '#071c2b');
+    bgGrad.addColorStop(1, '#04101a');
   } else if (isAfternoon) {
-    lawn.addColorStop(0, '#a6bf6d');
-    lawn.addColorStop(0.5, '#91ad5f');
-    lawn.addColorStop(1, '#799952');
-  } else if (isMorning) {
-    lawn.addColorStop(0, '#99cd80');
-    lawn.addColorStop(0.5, '#87bd70');
-    lawn.addColorStop(1, '#75ac60');
+    bgGrad.addColorStop(0, '#081826');
+    bgGrad.addColorStop(0.45, '#0b2434');
+    bgGrad.addColorStop(1, '#05121d');
   } else {
-    lawn.addColorStop(0, '#96c77c');
-    lawn.addColorStop(0.5, '#86ba6d');
-    lawn.addColorStop(1, '#75a95e');
+    bgGrad.addColorStop(0, '#061522');
+    bgGrad.addColorStop(0.5, '#0A2636');
+    bgGrad.addColorStop(1, '#05121e');
   }
-  ctx.fillStyle = lawn;
+  ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, widthCss, heightCss);
 
-  // Tekstur padang rumput lembut bergaris matahari diagonal
-  ctx.save();
-  ctx.fillStyle = 'rgba(255, 252, 224, 0.08)';
-  for (let i = -heightCss; i < widthCss + heightCss; i += 96) {
-    ctx.beginPath();
-    ctx.moveTo(i, 0);
-    ctx.lineTo(i + 42, 0);
-    ctx.lineTo(i - heightCss * 0.45 + 42, heightCss);
-    ctx.lineTo(i - heightCss * 0.45, heightCss);
-    ctx.closePath();
-    ctx.fill();
-  }
+  // 2. Ambient Edge Lighting (Electric Cyan di sisi kiri/kanan & Warm Amber di puncak/bawah)
+  const leftGlow = ctx.createRadialGradient(
+    widthCss * 0.06,
+    heightCss * 0.5,
+    10,
+    widthCss * 0.06,
+    heightCss * 0.5,
+    widthCss * 0.42
+  );
+  leftGlow.addColorStop(0, 'rgba(0, 223, 255, 0.16)');
+  leftGlow.addColorStop(0.55, 'rgba(22, 139, 255, 0.05)');
+  leftGlow.addColorStop(1, 'rgba(6, 21, 34, 0)');
+  ctx.fillStyle = leftGlow;
+  ctx.fillRect(0, 0, widthCss, heightCss);
 
-  // Detail helai rumput & bunga mungil deterministik di seluruh halaman
-  for (let i = 0; i < 65; i += 1) {
-    const gx = ((i * 197.3 + 41) % Math.max(1, widthCss));
-    const gy = ((i * 113.7 + 29) % Math.max(1, heightCss));
-    ctx.fillStyle = i % 3 === 0 ? 'rgba(65, 114, 52, 0.28)' : 'rgba(182, 224, 144, 0.34)';
-    ctx.beginPath();
-    ctx.ellipse(gx, gy, 5, 2.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    if (i % 7 === 0) {
-      ctx.fillStyle = i % 14 === 0 ? '#fff5c4' : '#ffdbe4';
-      ctx.beginPath();
-      ctx.arc(gx + 2, gy - 2, 2.1, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
+  const rightGlow = ctx.createRadialGradient(
+    widthCss * 0.94,
+    heightCss * 0.5,
+    10,
+    widthCss * 0.94,
+    heightCss * 0.5,
+    widthCss * 0.42
+  );
+  rightGlow.addColorStop(0, 'rgba(0, 223, 255, 0.15)');
+  rightGlow.addColorStop(0.55, 'rgba(22, 139, 255, 0.05)');
+  rightGlow.addColorStop(1, 'rgba(6, 21, 34, 0)');
+  ctx.fillStyle = rightGlow;
+  ctx.fillRect(0, 0, widthCss, heightCss);
 
-  // Teras batu krem & tanaman hias mengelilingi gedung laboratorium
+  const topAmberGlow = ctx.createRadialGradient(
+    widthCss * 0.5,
+    0,
+    8,
+    widthCss * 0.5,
+    0,
+    widthCss * 0.38
+  );
+  topAmberGlow.addColorStop(0, isAfternoon ? 'rgba(255, 181, 71, 0.24)' : 'rgba(255, 201, 107, 0.14)');
+  topAmberGlow.addColorStop(0.6, 'rgba(0, 223, 255, 0.05)');
+  topAmberGlow.addColorStop(1, 'rgba(6, 21, 34, 0)');
+  ctx.fillStyle = topAmberGlow;
+  ctx.fillRect(0, 0, widthCss, heightCss);
+
+  // 3. Jaring Grid Teknikal Halus di Area Luar Denah
+  ctx.strokeStyle = 'rgba(0, 223, 255, 0.05)';
+  ctx.lineWidth = 1;
+  const gridStep = Math.max(28, Math.round(36 * camera.scale));
+  ctx.beginPath();
+  for (let gx = 0; gx < widthCss; gx += gridStep) {
+    ctx.moveTo(gx, 0);
+    ctx.lineTo(gx, heightCss);
+  }
+  for (let gy = 0; gy < heightCss; gy += gridStep) {
+    ctx.moveTo(0, gy);
+    ctx.lineTo(widthCss, gy);
+  }
+  ctx.stroke();
+
+  // Koordinat Presisi Kotak Denah Utama
   const worldW = map.width * map.tileSizePx;
   const worldH = map.height * map.tileSizePx;
   const bx = camera.offsetX;
   const by = camera.offsetY;
   const bw = worldW * camera.scale;
   const bh = worldH * camera.scale;
-  const pad = Math.max(12, 18 * camera.scale);
+  const s = camera.scale;
 
-  // Pelataran batu krem mengelilingi gedung
-  rrect(ctx, bx - pad, by - pad, bw + pad * 2, bh + pad * 2, 18 * camera.scale);
-  ctx.fillStyle = '#e7d7b9';
+  // 4. Panorama Siluet Gedung Kampus Teknologi di Cakrawala Atas (bila tersedia ruang di atas denah)
+  if (by >= 38) {
+    const vistaW = Math.min(bw * 0.42, 460);
+    const vistaH = Math.min(by - 10, 52);
+    const vx = bx + (bw - vistaW) / 2;
+    const vy = 4;
+
+    ctx.save();
+    drawBeveledRectPath(ctx, vx, vy, vistaW, vistaH, 12);
+    const skyGrad = ctx.createLinearGradient(vx, vy, vx, vy + vistaH);
+    skyGrad.addColorStop(0, '#071d2e');
+    skyGrad.addColorStop(0.65, '#113850');
+    skyGrad.addColorStop(1, '#1c4d66');
+    ctx.fillStyle = skyGrad;
+    ctx.fill();
+    ctx.clip();
+
+    // Siluet gedung akademik futuristik bertingkat dengan jendela warm gold & cyan
+    const bCenter = vx + vistaW / 2;
+    ctx.fillStyle = '#0c2336';
+    ctx.fillRect(bCenter - 110, vy + vistaH - 26, 220, 26);
+    ctx.fillStyle = '#133147';
+    ctx.fillRect(bCenter - 64, vy + vistaH - 34, 128, 34);
+    // Atap pedimen tengah
+    ctx.beginPath();
+    ctx.moveTo(bCenter - 42, vy + vistaH - 34);
+    ctx.lineTo(bCenter, vy + vistaH - 44);
+    ctx.lineTo(bCenter + 42, vy + vistaH - 34);
+    ctx.closePath();
+    ctx.fillStyle = '#1b435e';
+    ctx.fill();
+
+    // Jendela-jendela menyala hangat di fasad kampus
+    for (let wx = -92; wx <= 84; wx += 16) {
+      if (Math.abs(wx) < 12) continue;
+      ctx.fillStyle = Math.abs(wx) % 32 === 0 ? 'rgba(0, 223, 255, 0.65)' : 'rgba(255, 201, 107, 0.78)';
+      ctx.fillRect(bCenter + wx, vy + vistaH - 20, 7, 10);
+    }
+    // Kubah portal tengah bercahaya
+    ctx.fillStyle = 'rgba(255, 181, 71, 0.85)';
+    ctx.fillRect(bCenter - 5, vy + vistaH - 24, 10, 18);
+
+    ctx.restore();
+
+    // Garis sayap diagonal cyan-amber di kiri & kanan panorama kampus
+    drawBeveledRectPath(ctx, vx, vy, vistaW, vistaH, 12);
+    ctx.strokeStyle = 'rgba(0, 223, 255, 0.48)';
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+  }
+
+  // 5. MAIN SIMULATION CONTAINER — Metallic Beveled Outer Chassis & Cyan/Amber Illuminated Frame
+  const outerPad = Math.max(12, 18 * s);
+  const midPad = Math.max(7, 10 * s);
+  const innerPad = Math.max(3, 4 * s);
+  const bevelOuter = Math.max(14, 20 * s);
+  const bevelMid = Math.max(10, 14 * s);
+
+  // 5a. Deep Drop Shadow & Cyan Outer Halo di bawah sasis utama
+  ctx.save();
+  ctx.shadowColor = 'rgba(0, 223, 255, 0.28)';
+  ctx.shadowBlur = 24 * s;
+  drawBeveledRectPath(
+    ctx,
+    bx - outerPad,
+    by - outerPad,
+    bw + outerPad * 2,
+    bh + outerPad * 2,
+    bevelOuter
+  );
+  const chassisGrad = ctx.createLinearGradient(bx, by - outerPad, bx, by + bh + outerPad);
+  chassisGrad.addColorStop(0, '#172D3D');
+  chassisGrad.addColorStop(0.5, '#0A2636');
+  chassisGrad.addColorStop(1, '#061522');
+  ctx.fillStyle = chassisGrad;
   ctx.fill();
-  ctx.strokeStyle = '#b4986d';
-  ctx.lineWidth = Math.max(1.5, 2.5 * camera.scale);
+  ctx.restore();
+
+  // Garis tepi luar Electric Cyan (#00DFFF)
+  drawBeveledRectPath(
+    ctx,
+    bx - outerPad,
+    by - outerPad,
+    bw + outerPad * 2,
+    bh + outerPad * 2,
+    bevelOuter
+  );
+  ctx.strokeStyle = 'rgba(0, 223, 255, 0.68)';
+  ctx.lineWidth = Math.max(1.5, 2.2 * s);
   ctx.stroke();
 
-  // Jalan setapak masuk selatan menuju gerbang kampus + batu pijakan & bangku taman cozy
-  const pathW = 92 * camera.scale;
-  const pathX = bx + bw * 0.48 - pathW / 2;
-  const southStartY = by + bh + pad - 2;
-  const southH = Math.max(0, heightCss - southStartY + 4);
-  ctx.fillStyle = '#decba8';
-  ctx.fillRect(pathX, southStartY, pathW, southH);
-  // Tepian batu setapak
-  ctx.fillStyle = '#bda57d';
-  ctx.fillRect(pathX - 3, southStartY, 3, southH);
-  ctx.fillRect(pathX + pathW, southStartY, 3, southH);
-  // Batu pijakan krem hangat
-  for (let sy = southStartY + 10 * camera.scale; sy < heightCss - 6; sy += 22 * camera.scale) {
-    rrect(ctx, pathX + 12 * camera.scale, sy, pathW - 24 * camera.scale, 13 * camera.scale, 5 * camera.scale);
-    ctx.fillStyle = '#efe2c6';
-    ctx.fill();
-    ctx.strokeStyle = '#c4ab82';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  }
-  // Dua bangku taman kayu di kiri & kanan jalan masuk selatan bila ada ruang halaman bawah
-  if (southH >= 38 * camera.scale) {
-    for (const benchX of [pathX - 78 * camera.scale, pathX + pathW + 24 * camera.scale]) {
-      const benchY = southStartY + 14 * camera.scale;
-      const bwBench = 52 * camera.scale;
-      const bhBench = 14 * camera.scale;
-      rrect(ctx, benchX + 2, benchY + 4, bwBench, bhBench, 4);
-      ctx.fillStyle = 'rgba(38, 72, 32, 0.24)';
-      ctx.fill();
-      rrect(ctx, benchX, benchY, bwBench, bhBench, 4);
-      ctx.fillStyle = '#b97b45';
-      ctx.fill();
-      ctx.strokeStyle = INK;
-      ctx.lineWidth = 1.4;
-      ctx.stroke();
-      ctx.fillStyle = '#8b5528';
-      ctx.fillRect(benchX + 4, benchY + bhBench * 0.48, bwBench - 8, 2);
-    }
-  }
-
-  // Bayangan gedung dinamis mengikuti arah & panjang matahari waktu nyata
-  const bShadowDx = sun.shadowDirX * 13 * camera.scale;
-  const bShadowDy = (6 + sun.shadowDirY * 14) * camera.scale;
-  rrect(ctx, bx + bShadowDx, by + bShadowDy, bw, bh, 12 * camera.scale);
-  ctx.fillStyle = sun.shadowColor;
+  // 5b. Lapisan Kedua: Bezel Metalik Gelap (#071926) dengan Pendaran Warm Amber (#FFB547)
+  drawBeveledRectPath(
+    ctx,
+    bx - midPad,
+    by - midPad,
+    bw + midPad * 2,
+    bh + midPad * 2,
+    bevelMid
+  );
+  ctx.fillStyle = '#081b29';
   ctx.fill();
+  ctx.strokeStyle = 'rgba(255, 181, 71, 0.82)';
+  ctx.lineWidth = Math.max(1.4, 2 * s);
+  ctx.stroke();
 
-  // Kolam Ikan Koi & Air Mancur Taman Kampus (Shader Caustics & Riak Air Hidup) di halaman selatan-tengah-kanan (bebas dari HUD kiri & dok kanan!)
-  if (southH >= 34 * camera.scale) {
-    const pondW = 104 * camera.scale;
-    const pondH = Math.min(40 * camera.scale, Math.max(24 * camera.scale, southH - 12 * camera.scale));
-    const pondX = bx + bw * 0.66 - pondW / 2;
-    const pondY = southStartY + 8 * camera.scale;
+  // 5c. Lapisan Ketiga: Lis Dalam Gelap & Rim Pemisah Kanvas Bersih
+  rrect(ctx, bx - innerPad, by - innerPad, bw + innerPad * 2, bh + innerPad * 2, 6 * s);
+  ctx.fillStyle = '#05111b';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0, 223, 255, 0.35)';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
 
-    // Bingkai batu alam kolam
-    rrect(ctx, pondX - 4 * camera.scale, pondY - 3 * camera.scale, pondW + 8 * camera.scale, pondH + 6 * camera.scale, 16 * camera.scale);
-    ctx.fillStyle = '#c5b498';
+  // 5d. Segmen Lampu Indikator Bezel (Warm Amber & Electric Cyan LED Bars di sepanjang bingkai)
+  const pulse = reducedMotion ? 0.85 : 0.72 + 0.28 * Math.sin(timeSeconds * 2.4);
+  const topLedY = by - (outerPad + midPad) * 0.5 - 1.5 * s;
+  const botLedY = by + bh + (outerPad + midPad) * 0.5 - 1.5 * s;
+  for (const frac of [0.14, 0.32, 0.5, 0.68, 0.86]) {
+    const lx = bx + bw * frac - 18 * s;
+    const lw = 36 * s;
+    const lh = Math.max(2, 3 * s);
+    ctx.fillStyle =
+      frac === 0.5
+        ? `rgba(0, 223, 255, ${(0.88 * pulse).toFixed(3)})`
+        : `rgba(255, 181, 71, ${(0.85 * pulse).toFixed(3)})`;
+    rrect(ctx, lx, topLedY, lw, lh, 1.5);
     ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = Math.max(1.2, 1.8 * camera.scale);
-    ctx.stroke();
-
-    // Air kolam berlapis gradasi biru-zamrud
-    rrect(ctx, pondX, pondY, pondW, pondH, 13 * camera.scale);
-    const waterGrad = ctx.createLinearGradient(pondX, pondY, pondX + pondW, pondY + pondH);
-    waterGrad.addColorStop(0, isAfternoon ? '#389393' : '#2d96a8');
-    waterGrad.addColorStop(0.55, isAfternoon ? '#2a7b88' : '#23798e');
-    waterGrad.addColorStop(1, '#18596b');
-    ctx.fillStyle = waterGrad;
+    rrect(ctx, lx, botLedY, lw, lh, 1.5);
     ctx.fill();
-
-    // Jaring cahaya air (water caustics) & ikan koi berenang halus
-    ctx.save();
-    rrect(ctx, pondX, pondY, pondW, pondH, 13 * camera.scale);
-    ctx.clip();
-    const animT = reducedMotion ? 1.5 : timeSeconds;
-    ctx.strokeStyle = 'rgba(195, 248, 255, 0.30)';
-    ctx.lineWidth = Math.max(1, 1.3 * camera.scale);
-    for (let wi = 0; wi < 4; wi += 1) {
-      const rx = pondX + ((wi + 0.5) * pondW) / 4 + Math.sin(animT * 1.4 + wi) * 6 * camera.scale;
-      const ry = pondY + pondH * 0.5 + Math.cos(animT * 1.1 + wi * 1.3) * 4 * camera.scale;
-      ctx.beginPath();
-      ctx.ellipse(rx, ry, (11 + Math.sin(animT * 2 + wi) * 3) * camera.scale, 4.5 * camera.scale, 0.2, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-
-    // 2 Ikan Koi berenang melingkar lembut
-    for (let ki = 0; ki < 2; ki += 1) {
-      const ang = animT * (0.65 + ki * 0.22) + ki * 3.1;
-      const kx = pondX + pondW * (0.35 + ki * 0.3) + Math.cos(ang) * 14 * camera.scale;
-      const ky = pondY + pondH * 0.52 + Math.sin(ang) * 6 * camera.scale;
-      ctx.save();
-      ctx.translate(kx, ky);
-      ctx.rotate(ang + Math.PI / 2);
-      ctx.fillStyle = ki === 0 ? '#ff7847' : '#ffd15c';
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 5.2 * camera.scale, 2.2 * camera.scale, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#fffdf6';
-      ctx.beginPath();
-      ctx.arc(-2 * camera.scale, 0, 1.4 * camera.scale, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-
-    // Daun teratai & bunga lotus merah muda
-    for (const [lx, ly] of [
-      [pondX + pondW * 0.22, pondY + pondH * 0.38],
-      [pondX + pondW * 0.78, pondY + pondH * 0.62],
-    ]) {
-      ctx.fillStyle = '#4ea865';
-      ctx.beginPath();
-      ctx.arc(lx, ly, 5.5 * camera.scale, 0.25, Math.PI * 1.9);
-      ctx.lineTo(lx, ly);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = '#fda4af';
-      ctx.beginPath();
-      ctx.arc(lx + 1.5 * camera.scale, ly - 1 * camera.scale, 2.2 * camera.scale, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
   }
 
-  // Pohon-pohon kampus bergoyang halus di sudut-sudut halaman dengan bayangan matahari terarah
-  const sway = reducedMotion ? 0 : Math.sin(timeSeconds * 1.15) * 2.4;
-  const trees: Array<{ x: number; y: number; r: number; hue: number }> = [
-    { x: bx - pad - 26 * camera.scale, y: by - 4 * camera.scale, r: 28 * camera.scale, hue: 0 },
-    { x: bx + bw + pad + 26 * camera.scale, y: by + 10 * camera.scale, r: 30 * camera.scale, hue: 1 },
-    { x: bx - pad - 22 * camera.scale, y: by + bh - 12 * camera.scale, r: 26 * camera.scale, hue: 1 },
-    { x: bx + bw + pad + 24 * camera.scale, y: by + bh - 22 * camera.scale, r: 29 * camera.scale, hue: 0 },
-    { x: bx + bw * 0.22, y: by - pad - 22 * camera.scale, r: 24 * camera.scale, hue: 0 },
-    { x: bx + bw * 0.78, y: by - pad - 20 * camera.scale, r: 25 * camera.scale, hue: 1 },
+  // Indikator vertikal di sisi kiri & kanan bezel
+  const leftLedX = bx - (outerPad + midPad) * 0.5 - 1.5 * s;
+  const rightLedX = bx + bw + (outerPad + midPad) * 0.5 - 1.5 * s;
+  for (const frac of [0.22, 0.5, 0.78]) {
+    const ly = by + bh * frac - 16 * s;
+    const lw = Math.max(2, 3 * s);
+    const lh = 32 * s;
+    ctx.fillStyle =
+      frac === 0.5
+        ? `rgba(0, 223, 255, ${(0.85 * pulse).toFixed(3)})`
+        : `rgba(255, 181, 71, ${(0.82 * pulse).toFixed(3)})`;
+    rrect(ctx, leftLedX, ly, lw, lh, 1.5);
+    ctx.fill();
+    rrect(ctx, rightLedX, ly, lw, lh, 1.5);
+    ctx.fill();
+  }
+
+  // 5e. 4 Braket Perangkat Keras Sudut Beveled (Corner Armor Plates)
+  const cornerLen = 28 * s;
+  const cornerThick = Math.max(2.2, 3.2 * s);
+  ctx.strokeStyle = '#FFC96B';
+  ctx.lineWidth = cornerThick;
+  ctx.lineCap = 'round';
+  const corners: ReadonlyArray<readonly [number, number, number, number]> = [
+    [bx - outerPad - 2 * s, by - outerPad - 2 * s, 1, 1],
+    [bx + bw + outerPad + 2 * s, by - outerPad - 2 * s, -1, 1],
+    [bx - outerPad - 2 * s, by + bh + outerPad + 2 * s, 1, -1],
+    [bx + bw + outerPad + 2 * s, by + bh + outerPad + 2 * s, -1, -1],
   ];
-
-  for (let idx = 0; idx < trees.length; idx += 1) {
-    const tr = trees[idx];
-    if (tr.r < 6) continue;
-    const dx = sway * (idx % 2 === 0 ? 1 : -0.8);
-    // Bayangan tajuk di rumput bergeser mengikuti arah matahari
-    const tShadowX = tr.x + sun.shadowDirX * tr.r * 0.65;
-    const tShadowY = tr.y + tr.r * (0.48 + sun.shadowDirY * 0.55);
-    ctx.fillStyle = sun.shadowColor;
+  for (const [cx, cy, dx, dy] of corners) {
     ctx.beginPath();
-    ctx.ellipse(
-      tShadowX,
-      tShadowY,
-      tr.r * (0.85 + Math.abs(sun.shadowDirX) * 0.28),
-      tr.r * 0.46,
-      sun.shadowDirX * 0.22,
-      0,
-      Math.PI * 2
-    );
-    ctx.fill();
-    // Tajuk gelap bawah
-    ctx.fillStyle = tr.hue === 0 ? '#4d8c4d' : '#3f7f56';
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = Math.max(1.4, 2 * camera.scale);
-    ctx.beginPath();
-    ctx.arc(tr.x + dx, tr.y, tr.r, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(cx + dx * cornerLen, cy);
+    ctx.lineTo(cx + dx * bevelOuter * 0.85, cy);
+    ctx.lineTo(cx, cy + dy * bevelOuter * 0.85);
+    ctx.lineTo(cx, cy + dy * cornerLen);
     ctx.stroke();
-    // Lapisan daun terang atas
-    ctx.fillStyle = tr.hue === 0 ? '#74b862' : '#65ad74';
-    ctx.beginPath();
-    ctx.arc(tr.x - tr.r * 0.22 + dx, tr.y - tr.r * 0.2, tr.r * 0.68, 0, Math.PI * 2);
-    ctx.fill();
-    // Sorotan sinar matahari hangat
-    ctx.fillStyle = 'rgba(255, 248, 198, 0.42)';
-    ctx.beginPath();
-    ctx.arc(tr.x - tr.r * 0.34 + dx, tr.y - tr.r * 0.34, tr.r * 0.32, 0, Math.PI * 2);
-    ctx.fill();
   }
+
+  // 6. Portal Tangga Masuk Bawah Berpendar Amber & Cyan (sesuai bagian tengah bawah gambar referensi)
+  const southStartY = by + bh + outerPad;
+  const southH = Math.max(0, heightCss - southStartY);
+  if (southH >= 16) {
+    const portalW = Math.min(bw * 0.28, 340 * s);
+    const portalX = bx + bw * 0.5 - portalW / 2;
+
+    // Trapesium pelataran portal
+    ctx.beginPath();
+    ctx.moveTo(portalX + 26 * s, southStartY);
+    ctx.lineTo(portalX + portalW - 26 * s, southStartY);
+    ctx.lineTo(portalX + portalW + 18 * s, heightCss);
+    ctx.lineTo(portalX - 18 * s, heightCss);
+    ctx.closePath();
+    const portalGrad = ctx.createLinearGradient(0, southStartY, 0, heightCss);
+    portalGrad.addColorStop(0, '#0e283b');
+    portalGrad.addColorStop(1, '#061522');
+    ctx.fillStyle = portalGrad;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0, 223, 255, 0.55)';
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+
+    // 4 Anak tangga bercahaya Warm Amber (#FFB547) di tengah portal
+    const stepCount = 4;
+    for (let si = 0; si < stepCount; si += 1) {
+      const tFrac = (si + 0.45) / (stepCount + 0.5);
+      const sy = southStartY + tFrac * Math.min(southH - 4, 46);
+      const sw = (54 + si * 10) * s;
+      const sx = bx + bw * 0.5 - sw / 2;
+      rrect(ctx, sx, sy, sw, Math.max(2.5, 4 * s), 2);
+      ctx.fillStyle = `rgba(255, 189, 89, ${(0.88 - si * 0.14).toFixed(2)})`;
+      ctx.fill();
+    }
+  }
+
   ctx.restore();
 }
 
@@ -1506,64 +1580,21 @@ export function drawOutdoorAmbientParticles(
     return;
   }
 
-  // Bayangan awan lembut (Cloud Shadows) yang melintas pelan di atas halaman & gedung
-  for (let ci = 0; ci < 3; ci += 1) {
-    const cx = ((ci * 480 + timeSeconds * 16) % (widthCss + 360)) - 180;
-    const cy = heightCss * (0.22 + ci * 0.28) + Math.sin(timeSeconds * 0.2 + ci) * 18;
-    const cGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, 155);
-    cGrad.addColorStop(0, 'rgba(22, 40, 28, 0.085)');
-    cGrad.addColorStop(1, 'rgba(22, 40, 28, 0)');
-    ctx.fillStyle = cGrad;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, 155, 68, -0.15, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  // 8 kelopak/daun halus melayang di luar gedung (hanya di area halaman rumput)
-  for (let i = 0; i < 8; i += 1) {
-    const speedX = 12 + (i % 3) * 5;
-    const speedY = 6 + (i % 4) * 2.5;
+  // Partikel energi cyan & amber halus melayang di area bezel luar gedung (tidak mengganggu pembacaan dalam ruangan)
+  for (let i = 0; i < 10; i += 1) {
+    const speedX = 8 + (i % 3) * 4;
+    const speedY = 5 + (i % 4) * 2;
     const px = ((i * 187 + timeSeconds * speedX) % (widthCss + 40)) - 20;
-    const py = ((i * 109 + timeSeconds * speedY + Math.sin(timeSeconds * 1.4 + i) * 14) % (heightCss + 40)) - 20;
-    // Skip bila di atas bagian tengah dalam gedung agar tak mengganggu pembacaan ruangan
-    if (px > bx + 14 && px < bx + worldW - 14 && py > by + 14 && py < by + worldH - 14) continue;
-    ctx.save();
-    ctx.translate(px, py);
-    ctx.rotate(timeSeconds * 0.9 + i * 1.2);
-    ctx.fillStyle = i % 3 === 0 ? 'rgba(255, 224, 232, 0.82)' : 'rgba(232, 245, 178, 0.78)';
+    const py = ((i * 109 + timeSeconds * speedY + Math.sin(timeSeconds * 1.2 + i) * 10) % (heightCss + 40)) - 20;
+    if (px > bx - 8 && px < bx + worldW + 8 && py > by - 8 && py < by + worldH + 8) continue;
+    const alpha = 0.25 + 0.35 * (0.5 + 0.5 * Math.sin(timeSeconds * 2 + i));
+    ctx.fillStyle =
+      i % 2 === 0
+        ? `rgba(0, 223, 255, ${alpha.toFixed(3)})`
+        : `rgba(255, 181, 71, ${alpha.toFixed(3)})`;
     ctx.beginPath();
-    ctx.ellipse(0, 0, 4.2, 2.1, 0, 0, Math.PI * 2);
+    ctx.arc(px, py, i % 3 === 0 ? 2.2 : 1.5, 0, Math.PI * 2);
     ctx.fill();
-    ctx.restore();
-  }
-
-  // 2 kupu-kupu kampus mungil menari di taman bagian bawah & kiri luar gedung
-  const butterflies = [
-    {
-      cx: Math.max(40, bx + worldW * 0.28),
-      cy: Math.min(heightCss - 26, by + worldH + 34),
-      col: '#ffe58f',
-      phase: 0,
-    },
-    {
-      cx: Math.min(widthCss - 50, bx + worldW * 0.72),
-      cy: Math.max(26, by - 26),
-      col: '#bae6fd',
-      phase: 2.3,
-    },
-  ];
-  for (const b of butterflies) {
-    const x = b.cx + Math.sin(timeSeconds * 0.9 + b.phase) * 34;
-    const y = b.cy + Math.cos(timeSeconds * 1.6 + b.phase) * 8;
-    const flap = Math.abs(Math.sin(timeSeconds * 11 + b.phase));
-    const wingW = 1.6 + flap * 3.4;
-    ctx.fillStyle = b.col;
-    ctx.strokeStyle = 'rgba(62, 37, 23, 0.7)';
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.ellipse(x - wingW * 0.6, y, wingW, 2.8, -0.3, 0, Math.PI * 2);
-    ctx.ellipse(x + wingW * 0.6, y, wingW, 2.8, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
   }
   ctx.restore();
 }
