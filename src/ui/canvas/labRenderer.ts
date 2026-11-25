@@ -36,6 +36,7 @@ import {
 } from '../world/furnitureArt';
 import { paintPlaque } from '../world/plaque';
 import {
+  drawAnimatedLabHolograms,
   drawEquippedBkDecorOnMap,
   drawIllustratedFurniture,
   drawIllustratedZoneLabel,
@@ -476,15 +477,15 @@ function drawClickRipple(
   const alpha = Math.max(0, 1 - progress);
 
   ctx.save();
-  // Cincin luar emas-kuningan
-  ctx.strokeStyle = `rgba(229, 172, 63, ${(alpha * 0.92).toFixed(3)})`;
-  ctx.lineWidth = 2.4 * (1 - progress * 0.45);
+  // Cincin luar warm gold
+  ctx.strokeStyle = `rgba(255, 201, 107, ${(alpha * 0.92).toFixed(3)})`;
+  ctx.lineWidth = 2.2 * (1 - progress * 0.45);
   ctx.beginPath();
   ctx.ellipse(ripple.x, ripple.y, 7 + ease * 24, 3.5 + ease * 11, 0, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Cincin dalam biru-toska tajam
-  ctx.strokeStyle = `rgba(23, 126, 152, ${(alpha * 0.78).toFixed(3)})`;
+  // Cincin dalam electric cyan tajam
+  ctx.strokeStyle = `rgba(0, 223, 255, ${(alpha * 0.85).toFixed(3)})`;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.ellipse(ripple.x, ripple.y, 3 + ease * 14, 1.8 + ease * 6.5, 0, 0, Math.PI * 2);
@@ -597,6 +598,8 @@ export function renderLabCanvas(
     ctx.drawImage(illustratedBg, 0, 0, worldW, worldH);
     // Hiasan Ruang BK yang dibeli pemain langsung tampak hidup di dalam peta 2D!
     drawEquippedBkDecorOnMap(ctx, map, input.equippedDecor, timeSec, reduced);
+    // PHASE 6: Denyut hologram & layar gelombang akustik hidup di ruangan laboratorium
+    drawAnimatedLabHolograms(ctx, map, timeSec, reduced);
   } else {
     const tilemap = getTilemapCanvas(map, doorMode);
     if (tilemap) {
@@ -606,7 +609,7 @@ export function renderLabCanvas(
     }
   }
 
-  // 3. Sorot zona (terpilih/hover) dan slot berdiri (hanya saat grid aktif)
+  // 3. Sorot zona (terpilih/hover) dengan siku neon sci-fi dan slot berdiri (hanya saat grid aktif)
   for (const zone of map.zones) {
     const zx = zone.bounds.x * t;
     const zy = zone.bounds.y * t;
@@ -615,11 +618,42 @@ export function renderLabCanvas(
     const isSelected = selectedZoneId === zone.id;
     const isHovered = hoveredZoneId === zone.id;
     if (isSelected || isHovered) {
-      ctx.fillStyle = isSelected ? 'rgba(29, 93, 122, 0.10)' : 'rgba(100, 116, 139, 0.08)';
+      ctx.save();
+      const pulse = reduced ? 0.5 : 0.5 + 0.5 * Math.sin(timeSec * 3.2);
+      ctx.fillStyle = isSelected
+        ? `rgba(0, 223, 255, ${(0.07 + 0.04 * pulse).toFixed(3)})`
+        : 'rgba(0, 223, 255, 0.045)';
       ctx.fillRect(zx, zy, zw, zh);
-      ctx.strokeStyle = isSelected ? palette.accent : '#64748b';
-      ctx.lineWidth = isSelected ? 2.5 : 1.5;
-      ctx.strokeRect(zx + 1, zy + 1, zw - 2, zh - 2);
+
+      ctx.strokeStyle = isSelected
+        ? `rgba(255, 201, 107, ${(0.65 + 0.25 * pulse).toFixed(3)})`
+        : 'rgba(0, 223, 255, 0.45)';
+      ctx.lineWidth = isSelected ? 1.8 : 1.2;
+      ctx.strokeRect(zx + 1.5, zy + 1.5, zw - 3, zh - 3);
+
+      // Siku sudut sci-fi (Corner Brackets) saat ruangan dipilih atau di-hover
+      const bLen = 10;
+      ctx.strokeStyle = isSelected ? '#FFC96B' : '#00DFFF';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      // Kiri-Atas
+      ctx.moveTo(zx + 2, zy + 2 + bLen);
+      ctx.lineTo(zx + 2, zy + 2);
+      ctx.lineTo(zx + 2 + bLen, zy + 2);
+      // Kanan-Atas
+      ctx.moveTo(zx + zw - 2 - bLen, zy + 2);
+      ctx.lineTo(zx + zw - 2, zy + 2);
+      ctx.lineTo(zx + zw - 2, zy + 2 + bLen);
+      // Kiri-Bawah
+      ctx.moveTo(zx + 2, zy + zh - 2 - bLen);
+      ctx.lineTo(zx + 2, zy + zh - 2);
+      ctx.lineTo(zx + 2 + bLen, zy + zh - 2);
+      // Kanan-Bawah
+      ctx.moveTo(zx + zw - 2 - bLen, zy + zh - 2);
+      ctx.lineTo(zx + zw - 2, zy + zh - 2);
+      ctx.lineTo(zx + zw - 2, zy + zh - 2 - bLen);
+      ctx.stroke();
+      ctx.restore();
     }
   }
 
@@ -856,22 +890,56 @@ export function renderLabCanvas(
       }
     }
 
-    ctx.font = '700 9.5px Fredoka, ui-sans-serif, system-ui, sans-serif';
+    ctx.save();
+    ctx.font = '700 9.5px Outfit, Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const doorBadgeText = doorMode === 'lab' ? '🚪 Pintu Lab' : '🚪 Pintu Samping';
     const doorBadgeX = doorMode === 'lab' ? 28.4 * t : 35.8 * t;
     const doorBadgeY = doorMode === 'lab' ? 13.5 * t : 16.5 * t;
-    const bw = ctx.measureText(doorBadgeText).width + 12;
-    ctx.fillStyle = doorMode === 'lab' ? '#fff3cc' : '#dcfbf3';
-    ctx.strokeStyle = '#3e2517';
-    ctx.lineWidth = 1.4;
+    const bw = ctx.measureText(doorBadgeText).width + 14;
+    const bh = 17.5;
+    const doorPulse = reduced ? 0.5 : 0.5 + 0.5 * Math.sin(timeSec * 2.8);
+
+    // Aura pendaran luar indikator pintu (sesuai referensi gambar: lencana emas-amber Pintu Lab)
+    ctx.fillStyle =
+      doorMode === 'lab'
+        ? `rgba(255, 181, 71, ${(0.18 + 0.14 * doorPulse).toFixed(3)})`
+        : `rgba(0, 223, 255, ${(0.18 + 0.14 * doorPulse).toFixed(3)})`;
     ctx.beginPath();
-    ctx.roundRect(doorBadgeX - bw / 2, doorBadgeY - 8.5, bw, 17, 8.5);
+    ctx.roundRect(doorBadgeX - bw / 2 - 2, doorBadgeY - bh / 2 - 2, bw + 4, bh + 4, 10);
+    ctx.fill();
+
+    // Bayangan bawah lencana
+    ctx.fillStyle = 'rgba(3, 10, 18, 0.52)';
+    ctx.beginPath();
+    ctx.roundRect(doorBadgeX - bw / 2, doorBadgeY - bh / 2 + 1.8, bw, bh, 8.5);
+    ctx.fill();
+
+    const doorGrad = ctx.createLinearGradient(
+      doorBadgeX,
+      doorBadgeY - bh / 2,
+      doorBadgeX,
+      doorBadgeY + bh / 2
+    );
+    if (doorMode === 'lab') {
+      doorGrad.addColorStop(0, '#FFE49E');
+      doorGrad.addColorStop(1, '#E8A331');
+    } else {
+      doorGrad.addColorStop(0, '#0f5e6e');
+      doorGrad.addColorStop(1, '#083744');
+    }
+    ctx.fillStyle = doorGrad;
+    ctx.strokeStyle = doorMode === 'lab' ? '#061522' : '#00DFFF';
+    ctx.lineWidth = 1.35;
+    ctx.beginPath();
+    ctx.roundRect(doorBadgeX - bw / 2, doorBadgeY - bh / 2, bw, bh, 8.5);
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = doorMode === 'lab' ? '#78350f' : '#134e4a';
+
+    ctx.fillStyle = doorMode === 'lab' ? '#161006' : '#EAF6FF';
     ctx.fillText(doorBadgeText, doorBadgeX, doorBadgeY + 0.5);
+    ctx.restore();
   }
 
   // 9. Cahaya matahari dinamis (pagi/siang/sore), debu cahaya, riak klik, & teks pop-up dunia

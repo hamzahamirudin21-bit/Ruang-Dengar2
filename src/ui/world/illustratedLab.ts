@@ -1797,6 +1797,101 @@ export function drawEquippedBkDecorOnMap(
 }
 
 // ---------------------------------------------------------------------------
+// 5b. PHASE 6 — Efek Hologram Hidup & Animasi Ambient Halus per Ruangan
+// ---------------------------------------------------------------------------
+
+export function drawAnimatedLabHolograms(
+  ctx: CanvasRenderingContext2D,
+  map: LabMapData,
+  timeSeconds: number,
+  reducedMotion: boolean
+): void {
+  const t = map.tileSizePx;
+  const pulse = reducedMotion ? 0.5 : 0.5 + 0.5 * Math.sin(timeSeconds * 2.4);
+  const scan = reducedMotion ? 0.5 : (timeSeconds * 0.45) % 1;
+
+  ctx.save();
+
+  // 1. Ruang Cetak 3D: Cincin pemindai holografik & denyut kubus isometrik di lantai
+  const z3d = map.zones.find((z) => z.id === 'cetak-3d');
+  if (z3d) {
+    const hcx = (z3d.bounds.x + z3d.bounds.w * 0.44) * t;
+    const hcy = (z3d.bounds.y + z3d.bounds.h * 0.66) * t;
+    const r = 18 + pulse * 4.5;
+
+    ctx.strokeStyle = `rgba(0, 223, 255, ${(0.28 + 0.32 * pulse).toFixed(3)})`;
+    ctx.lineWidth = 1.25;
+    ctx.setLineDash([4, 3]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -timeSeconds * 12;
+    ctx.beginPath();
+    ctx.ellipse(hcx, hcy + 9, r, r * 0.42, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Garis laser pemindai vertikal yang naik-turun lembut di dalam kubus hologram
+    const scanY = hcy - 12 + scan * 22;
+    ctx.strokeStyle = `rgba(165, 243, 252, ${(0.45 + 0.35 * pulse).toFixed(3)})`;
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(hcx - 11, scanY);
+    ctx.lineTo(hcx + 11, scanY);
+    ctx.stroke();
+  }
+
+  // 2. Ruang Elektronika & IoT: Denyut sinyal pada papan skematik PCB dinding utara
+  const zIot = map.zones.find((z) => z.id === 'elektronik-iot');
+  if (zIot) {
+    const sx = (zIot.bounds.x + 2.5) * t;
+    const sy = (zIot.bounds.y + 0.18) * t;
+    const sw = 3.6 * t;
+    const sh = 1.35 * t;
+    const nodeX = sx + 8 + scan * (sw - 16);
+    const nodeY = sy + sh * 0.5;
+
+    ctx.fillStyle = `rgba(0, 223, 255, ${(0.55 + 0.35 * pulse).toFixed(3)})`;
+    ctx.beginPath();
+    ctx.arc(nodeX, nodeY, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 3. Ruang Studio Desain: Denyut cincin stylus pada holo-sketchpad lantai
+  const zDesain = map.zones.find((z) => z.id === 'studio-desain');
+  if (zDesain) {
+    const padX = (zDesain.bounds.x + zDesain.bounds.w * 0.58) * t + 18;
+    const padY = (zDesain.bounds.y + zDesain.bounds.h * 0.58) * t + 11;
+    ctx.strokeStyle = `rgba(192, 132, 252, ${(0.32 + 0.38 * pulse).toFixed(3)})`;
+    ctx.lineWidth = 1.15;
+    ctx.beginPath();
+    ctx.ellipse(padX, padY, 12 + pulse * 3, 6 + pulse * 1.5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // 4. Ruang Meja Diskusi: Gelombang akustik hidup pada panel layar sudut kanan atas & kilau blueprint meja
+  const zDiskusi = map.zones.find((z) => z.id === 'diskusi');
+  if (zDiskusi) {
+    const wx = (zDiskusi.bounds.x + zDiskusi.bounds.w - 3.6) * t;
+    const wy = (zDiskusi.bounds.y + 0.45) * t;
+    const ww = 3.1 * t;
+    const wh = 1.25 * t;
+
+    ctx.strokeStyle = `rgba(0, 223, 255, ${(0.55 + 0.35 * pulse).toFixed(3)})`;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    for (let i = 0; i <= 16; i += 1) {
+      const px = wx + 6 + (i / 16) * (ww - 12);
+      const phase = reducedMotion ? i * 0.7 : timeSeconds * 4.2 + i * 0.65;
+      const amp = Math.sin(phase) * (wh * 0.24);
+      const py = wy + wh * 0.5 + amp;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// ---------------------------------------------------------------------------
 // 6. Partikel Hidup Taman Luar (Daun/Kelopak Melayang & 2 Kupu-Kupu Kampus)
 // ---------------------------------------------------------------------------
 
