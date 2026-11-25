@@ -931,37 +931,61 @@ function paintIllustratedDoor(
   const px = tx * t;
   const py = ty * t;
   ctx.save();
-  // Ambang lantai kayu hangat
-  ctx.fillStyle = isConsultDoor
+  // Ambang lantai metalik dengan pelat sensor bercahaya (Amber untuk Pintu Lab, Cyan untuk Pintu Samping/Umum)
+  const glowCol = isConsultDoor
     ? doorMode === 'lab'
-      ? 'rgba(232, 167, 48, 0.26)'
-      : 'rgba(46, 130, 116, 0.25)'
-    : 'rgba(180, 140, 96, 0.22)';
-  ctx.fillRect(px, py, t, t);
+      ? 'rgba(255, 181, 71, 0.28)'
+      : 'rgba(0, 223, 255, 0.28)'
+    : 'rgba(0, 223, 255, 0.18)';
+  ctx.fillStyle = glowCol;
+  ctx.fillRect(px + 1, py + 1, t - 2, t - 2);
 
-  const woodCol = isConsultDoor ? (doorMode === 'lab' ? '#c97828' : '#258070') : '#9c683e';
-  ctx.strokeStyle = woodCol;
-  ctx.lineWidth = 3.2;
-  ctx.lineCap = 'round';
+  const frameCol = isConsultDoor
+    ? doorMode === 'lab'
+      ? '#FFB547'
+      : '#00DFFF'
+    : '#38bdf8';
 
+  // Rel pemandu pintu geser laboratorium
+  ctx.strokeStyle = 'rgba(23, 45, 61, 0.85)';
+  ctx.lineWidth = 4;
   if (orientation === 'horizontal') {
+    ctx.beginPath();
+    ctx.moveTo(px, py + t * 0.5);
+    ctx.lineTo(px + t, py + t * 0.5);
+    ctx.stroke();
+
+    // Panel daun pintu kaca berbingkai neon
+    ctx.strokeStyle = frameCol;
+    ctx.lineWidth = 2.6;
+    ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(px + 3, py + t * 0.52);
     ctx.lineTo(px + t - 3, py + 5);
     ctx.stroke();
-    ctx.strokeStyle = 'rgba(62, 37, 23, 0.35)';
-    ctx.lineWidth = 1.2;
+
+    ctx.strokeStyle = 'rgba(234, 246, 255, 0.38)';
+    ctx.lineWidth = 1.1;
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
     ctx.arc(px + 3, py + t * 0.52, t - 7, -Math.PI / 3, 0);
     ctx.stroke();
   } else {
     ctx.beginPath();
+    ctx.moveTo(px + t * 0.5, py);
+    ctx.lineTo(px + t * 0.5, py + t);
+    ctx.stroke();
+
+    ctx.strokeStyle = frameCol;
+    ctx.lineWidth = 2.6;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
     ctx.moveTo(px + t * 0.52, py + 3);
     ctx.lineTo(px + 5, py + t - 3);
     ctx.stroke();
-    ctx.strokeStyle = 'rgba(62, 37, 23, 0.35)';
-    ctx.lineWidth = 1.2;
+
+    ctx.strokeStyle = 'rgba(234, 246, 255, 0.38)';
+    ctx.lineWidth = 1.1;
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
     ctx.arc(px + t * 0.52, py + 3, t - 7, Math.PI / 2, (Math.PI * 5) / 6);
@@ -991,39 +1015,48 @@ function buildIllustratedBackdrop(map: LabMapData, doorMode: ConsultationDoorMod
     paintZoneFloor(ctx, zone, t);
   }
 
-  // 3. Pembatas rendah (sekat ruang modern berkayu tipis)
+  // 3. Partisi Kaca Laboratorium Modern (Glass Laboratory Partitions untuk lowDividers)
   for (const div of map.lowDividers) {
     const dx = div.x * t;
     const dy = div.y * t;
     const dw = div.w * t;
     const dh = div.h * t;
-    ctx.fillStyle = 'rgba(62, 37, 23, 0.14)';
-    rrect(ctx, dx + 2, dy + dh * 0.45, dw - 4, dh * 0.36, 4);
+    // Bayangan jatuh partisi kaca
+    ctx.fillStyle = 'rgba(4, 12, 22, 0.35)';
+    rrect(ctx, dx + 2, dy + dh * 0.5, dw - 4, dh * 0.34, 4);
     ctx.fill();
-    ctx.fillStyle = '#c49a6c';
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 1.4;
-    rrect(ctx, dx + 2, dy + dh * 0.3, dw - 4, dh * 0.34, 4);
+    // Dasar bingkai metalik
+    rrect(ctx, dx + 2, dy + dh * 0.25, dw - 4, dh * 0.42, 4);
+    ctx.fillStyle = 'rgba(14, 52, 74, 0.78)';
     ctx.fill();
+    ctx.strokeStyle = '#00DFFF';
+    ctx.lineWidth = 1.3;
     ctx.stroke();
+    // Kilau pantulan kaca tipis di atas partisi
+    ctx.fillStyle = 'rgba(234, 246, 255, 0.45)';
+    ctx.fillRect(dx + 6, dy + dh * 0.32, Math.max(4, dw - 12), 2);
   }
 
-  // 4. Dinding 2.5D + kusen jendela eksterior di tepi utara
+  // 4. Dinding 2.5D + panel kaca observasi di tepi utara
   for (const wall of map.walls) {
     paintWall25D(ctx, wall.x, wall.y, wall.w, wall.h, t);
   }
 
-  // Jendela kaca biru muda menghadap taman di dinding utara (y = 0)
+  // Jendela Panel Kaca Observasi Berpendar Cyan-Amber di Dinding Utara (y = 0)
   for (const wx of [3, 12, 22, 33, 43]) {
     const px = wx * t;
-    rrect(ctx, px, 5, 4 * t, 12, 4);
-    ctx.fillStyle = '#bae6fd';
+    rrect(ctx, px, 4, 4 * t, 13, 4);
+    const winGrad = ctx.createLinearGradient(px, 4, px, 17);
+    winGrad.addColorStop(0, '#0ea5e9');
+    winGrad.addColorStop(1, '#0369a1');
+    ctx.fillStyle = winGrad;
     ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 1.6;
+    ctx.strokeStyle = '#00DFFF';
+    ctx.lineWidth = 1.4;
     ctx.stroke();
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-    ctx.fillRect(px + 4, 7, 4 * t - 8, 3);
+    // Pantulan kaca miring
+    ctx.fillStyle = 'rgba(234, 246, 255, 0.55)';
+    ctx.fillRect(px + 5, 6, 4 * t - 10, 2.5);
   }
 
   // 5. Pintu aktif / tertutup (sesuai mode Pintu Konsultasi)
@@ -1118,30 +1151,32 @@ function drawTableBase(
   h: number,
   topCol: string,
   sideCol: string,
-  radius = 6
+  radius = 6,
+  rimHighlight = 'rgba(234, 246, 255, 0.32)'
 ): void {
-  // Bayangan lembut di lantai
-  rrect(ctx, x + 2, y + 5, w, h, radius);
-  ctx.fillStyle = 'rgba(62, 37, 23, 0.2)';
+  // 1. Cast Shadow dalam di lantai
+  rrect(ctx, x + 2, y + 6, w, h, radius);
+  ctx.fillStyle = 'rgba(4, 10, 18, 0.44)';
   ctx.fill();
 
-  // Sisi ketebalan 2.5D
+  // 2. Sisi ketebalan 2.5D (Bevel Bawah)
   rrect(ctx, x, y + 3, w, h, radius);
   ctx.fillStyle = sideCol;
   ctx.fill();
   ctx.strokeStyle = INK;
-  ctx.lineWidth = 1.6;
+  ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // Permukaan meja atas
-  rrect(ctx, x, y, w, Math.max(6, h - 4), radius);
+  // 3. Permukaan meja atas dengan gradien material halus
+  const topH = Math.max(6, h - 4);
+  rrect(ctx, x, y, w, topH, radius);
   ctx.fillStyle = topCol;
   ctx.fill();
   ctx.stroke();
 
-  // Kilau atas lembut
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
-  rrect(ctx, x + 3, y + 2, Math.max(0, w - 6), 3, 2);
+  // 4. Edge Lighting & Specular Reflection di tepi atas
+  ctx.fillStyle = rimHighlight;
+  rrect(ctx, x + 3, y + 1.8, Math.max(0, w - 6), 2.4, 2);
   ctx.fill();
 }
 
@@ -1160,111 +1195,127 @@ export function drawIllustratedFurniture(
   ctx.save();
   switch (item.kind) {
     case 'printer-3d': {
-      drawTableBase(ctx, x, y, w, h, '#e8eef2', '#a8b7c4', 5);
-      // Bingkai kaca printer 3D
-      const bw = Math.min(w - 8, 34);
+      drawTableBase(ctx, x, y, w, h, '#283d52', '#172636', 5, 'rgba(0, 223, 255, 0.45)');
+      // Sasis Printer 3D Futuristik Berbingkai Kaca & Ruang Cetak Bercahaya Amber-Cyan
+      const bw = Math.min(w - 6, 34);
       const bx = x + (w - bw) / 2;
-      rrect(ctx, bx, y - 10, bw, h + 2, 4);
-      ctx.fillStyle = '#334657';
+      rrect(ctx, bx, y - 11, bw, h + 3, 4);
+      ctx.fillStyle = '#142434';
       ctx.fill();
-      ctx.strokeStyle = INK;
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#00DFFF';
+      ctx.lineWidth = 1.3;
       ctx.stroke();
-      // Ruang cetak transparan
-      rrect(ctx, bx + 4, y - 6, bw - 8, h - 8, 2);
-      ctx.fillStyle = '#d4eef7';
+      // Ruang cetak bercahaya amber hangat (seperti di gambar referensi Cetak 3D)
+      rrect(ctx, bx + 3.5, y - 7, bw - 7, h - 7, 2);
+      const chGrad = ctx.createLinearGradient(bx, y - 7, bx, y + h - 14);
+      chGrad.addColorStop(0, 'rgba(255, 181, 71, 0.85)');
+      chGrad.addColorStop(1, 'rgba(0, 223, 255, 0.45)');
+      ctx.fillStyle = chGrad;
       ctx.fill();
-      // Nozzle bergerak halus
-      const headX = bx + 8 + (reducedMotion ? 6 : (0.5 + 0.5 * Math.sin(timeSeconds * 2.2 + x)) * Math.max(2, bw - 18));
-      ctx.fillStyle = '#f28b29';
-      ctx.fillRect(headX, y - 4, 5, 6);
-      // Objek cetakan mini
-      ctx.fillStyle = '#2fa899';
-      ctx.fillRect(bx + bw / 2 - 4, y + h - 20, 8, 5);
-      // LED indikator hidup
-      ctx.fillStyle = !reducedMotion && Math.sin(timeSeconds * 4 + x) > 0 ? '#4ade80' : '#38bdf8';
+      // Nozzle ekstruder bergerak halus
+      const headX =
+        bx +
+        7 +
+        (reducedMotion ? 5 : (0.5 + 0.5 * Math.sin(timeSeconds * 2.4 + x)) * Math.max(2, bw - 16));
+      ctx.fillStyle = '#061522';
+      ctx.fillRect(headX, y - 5, 4.5, 5.5);
+      // Objek prototipe holografik di atas pelat cetak
+      ctx.fillStyle = '#00E5FF';
+      ctx.fillRect(bx + bw / 2 - 4, y + h - 19, 8, 5);
+      // LED status
+      ctx.fillStyle = !reducedMotion && Math.sin(timeSeconds * 4 + x) > 0 ? '#00E5FF' : '#FFB547';
       ctx.beginPath();
-      ctx.arc(bx + bw - 6, y - 7, 2.2, 0, Math.PI * 2);
+      ctx.arc(bx + bw - 5.5, y - 8, 2, 0, Math.PI * 2);
       ctx.fill();
       break;
     }
     case 'meja-komputer': {
-      drawTableBase(ctx, x, y, w, h, '#e5c494', '#b88c58', 6);
+      drawTableBase(ctx, x, y, w, h, '#25394f', '#152333', 6, 'rgba(22, 139, 255, 0.48)');
       const count = Math.max(1, Math.floor(w / 44));
       const step = w / count;
       for (let i = 0; i < count; i += 1) {
         const mx = x + i * step + step / 2 - 14;
-        // Monitor gelap modern
-        rrect(ctx, mx, y - 5, 28, 17, 3);
-        ctx.fillStyle = '#243044';
+        // Monitor Widescreen Sci-Fi Berbingkai Cyan Tipis
+        rrect(ctx, mx, y - 6, 28, 17, 3);
+        ctx.fillStyle = '#091929';
         ctx.fill();
-        ctx.strokeStyle = INK;
-        ctx.lineWidth = 1.4;
+        ctx.strokeStyle = '#00DFFF';
+        ctx.lineWidth = 1.2;
         ctx.stroke();
-        // Layar kode berwarna
-        ctx.fillStyle = '#1b263b';
-        ctx.fillRect(mx + 2.5, y - 2.5, 23, 12);
-        ctx.fillStyle = '#7dd3fc';
-        ctx.fillRect(mx + 4.5, y, 11, 2);
-        ctx.fillStyle = '#86efac';
-        ctx.fillRect(mx + 4.5, y + 3.5, 16, 2);
-        ctx.fillStyle = '#fcd34d';
-        ctx.fillRect(mx + 4.5, y + 7, 9, 2);
-        // Keyboard mini
-        rrect(ctx, mx + 3, y + 14, 22, 5, 2);
-        ctx.fillStyle = '#475569';
+        // Layar IDE Bercahaya Neon Blue & Cyan
+        ctx.fillStyle = '#0c2742';
+        ctx.fillRect(mx + 2, y - 3.5, 24, 12);
+        ctx.fillStyle = '#00E5FF';
+        ctx.fillRect(mx + 4, y - 1, 11, 2);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(mx + 4, y + 2.5, 17, 2);
+        ctx.fillStyle = '#FFB547';
+        ctx.fillRect(mx + 4, y + 6, 9, 2);
+        // Keyboard Mekanik Backlit Cyan
+        rrect(ctx, mx + 3, y + 13.5, 22, 5, 2);
+        ctx.fillStyle = '#172D3D';
         ctx.fill();
+        ctx.strokeStyle = 'rgba(0, 223, 255, 0.45)';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
       }
       break;
     }
     case 'bilik-las': {
-      drawTableBase(ctx, x, y, w, h, '#7b8794', '#4e5964', 5);
-      // Tirai pelindung oranye K3
-      rrect(ctx, x + 4, y - 8, w - 8, 10, 3);
-      ctx.fillStyle = '#e07a32';
+      drawTableBase(ctx, x, y, w, h, '#465362', '#2b3440', 5, 'rgba(255, 181, 71, 0.45)');
+      // Tudung Ventilasi & Panel Pelindung K3 Amber-Metalik
+      rrect(ctx, x + 3, y - 8, w - 6, 10, 3);
+      ctx.fillStyle = '#d97724';
       ctx.fill();
-      ctx.strokeStyle = INK;
-      ctx.lineWidth = 1.4;
+      ctx.strokeStyle = '#FFB547';
+      ctx.lineWidth = 1.3;
       ctx.stroke();
-      // Rangka baja di atas meja
-      ctx.strokeStyle = '#334155';
+      // Pelat baja benda kerja di atas meja
+      ctx.strokeStyle = '#94a3b8';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(x + 12, y + h / 2);
-      ctx.lineTo(x + w - 12, y + h / 2);
+      ctx.moveTo(x + 10, y + h / 2);
+      ctx.lineTo(x + w - 10, y + h / 2);
       ctx.stroke();
-      // Percikan las hangat berkedip lembut
-      if (!reducedMotion && Math.sin(timeSeconds * 9 + x) > 0.55) {
-        ctx.fillStyle = '#fde047';
+      // Indikator Amber selalu aktif + busur las berkedip
+      ctx.fillStyle = '#FFB547';
+      ctx.beginPath();
+      ctx.arc(x + 8, y - 3, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+      if (!reducedMotion && Math.sin(timeSeconds * 9 + x) > 0.48) {
+        ctx.fillStyle = '#fff3c4';
         ctx.beginPath();
-        ctx.arc(x + w * 0.5, y + h / 2, 4.5, 0, Math.PI * 2);
+        ctx.arc(x + w * 0.5, y + h / 2, 5, 0, Math.PI * 2);
         ctx.fill();
       }
       break;
     }
     case 'meja-elektronik': {
-      drawTableBase(ctx, x, y, w, h, '#d6cfc2', '#a89f91', 6);
-      // Alas ESD hijau toska
+      drawTableBase(ctx, x, y, w, h, '#23474e', '#142d33', 6, 'rgba(0, 229, 255, 0.45)');
+      // Matras Solder ESD Hijau-Sian Bercahaya
       rrect(ctx, x + 5, y + 3, w - 10, Math.max(8, h - 10), 3);
-      ctx.fillStyle = '#368a73';
+      ctx.fillStyle = '#0d6e6e';
       ctx.fill();
-      // Osiloskop mini dengan gelombang sinus hidup
-      const ox = x + 10;
-      rrect(ctx, ox, y - 4, 26, 15, 3);
-      ctx.fillStyle = '#e2e8f0';
-      ctx.fill();
-      ctx.strokeStyle = INK;
-      ctx.lineWidth = 1.3;
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.45)';
+      ctx.lineWidth = 1;
       ctx.stroke();
-      ctx.fillStyle = '#0f2933';
-      ctx.fillRect(ox + 3, y - 1.5, 16, 10);
-      ctx.strokeStyle = '#4ade80';
+      // Osiloskop Digital & Layar Telemetri IoT
+      const ox = x + 8;
+      rrect(ctx, ox, y - 5, 28, 16, 3);
+      ctx.fillStyle = '#091e28';
+      ctx.fill();
+      ctx.strokeStyle = '#00E5FF';
       ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.fillStyle = '#05151d';
+      ctx.fillRect(ox + 2.5, y - 2.5, 18, 11);
+      ctx.strokeStyle = '#00E5FF';
+      ctx.lineWidth = 1.3;
       ctx.beginPath();
-      for (let sx = 0; sx <= 14; sx += 2) {
-        const sy = y + 3.5 + Math.sin(sx * 0.7 + (reducedMotion ? 0 : timeSeconds * 4)) * 3;
-        if (sx === 0) ctx.moveTo(ox + 4 + sx, sy);
-        else ctx.lineTo(ox + 4 + sx, sy);
+      for (let sx = 0; sx <= 15; sx += 2) {
+        const sy = y + 3 + Math.sin(sx * 0.75 + (reducedMotion ? 0 : timeSeconds * 4.2)) * 3.2;
+        if (sx === 0) ctx.moveTo(ox + 3.5 + sx, sy);
+        else ctx.lineTo(ox + 3.5 + sx, sy);
       }
       ctx.stroke();
       break;

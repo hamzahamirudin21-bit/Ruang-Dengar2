@@ -42,22 +42,40 @@ export function collectMapPointLights(
   const lights: PointLight2D[] = [];
   const hasDecor = (id: RoomDecorId) => Boolean(equippedDecor?.includes(id));
 
-  // 1. Limpahan cahaya jendela matahari utara di setiap ruangan deret atas (lembut & tidak pernah membuat lantai putih silau)
-  const northWindowZones = ['las', 'cetak-3d', 'elektronik-iot', 'gudang-alat', 'studio-desain'];
+  // 1. Pencahayaan Ambien Jendela & Langit-Langit Berwarna Spesifik Ruangan (Room-Specific Colored Lighting)
+  const zoneLightSpec: Partial<
+    Record<
+      string,
+      { r: number; g: number; b: number; intensity: number; radiusScale: number }
+    >
+  > = {
+    las: { r: 255, g: 181, b: 71, intensity: 0.14, radiusScale: 0.42 },
+    'cetak-3d': { r: 0, g: 223, b: 255, intensity: 0.16, radiusScale: 0.46 },
+    'elektronik-iot': { r: 0, g: 229, b: 255, intensity: 0.15, radiusScale: 0.45 },
+    'gudang-alat': { r: 255, g: 181, b: 71, intensity: 0.12, radiusScale: 0.40 },
+    'studio-desain': { r: 192, g: 132, b: 252, intensity: 0.16, radiusScale: 0.46 },
+    pemrograman: { r: 22, g: 139, b: 255, intensity: 0.15, radiusScale: 0.44 },
+    diskusi: { r: 132, g: 204, b: 22, intensity: 0.12, radiusScale: 0.42 },
+    konsultasi: { r: 255, g: 201, b: 107, intensity: 0.14, radiusScale: 0.44 },
+    'pojok-baca': { r: 255, g: 181, b: 71, intensity: 0.14, radiusScale: 0.42 },
+    istirahat: { r: 255, g: 201, b: 107, intensity: 0.13, radiusScale: 0.40 },
+    'ruang-dosen': { r: 168, g: 85, b: 247, intensity: 0.14, radiusScale: 0.42 },
+  };
+
   for (const z of map.zones) {
-    if (!northWindowZones.includes(z.id)) continue;
+    const spec = zoneLightSpec[z.id];
+    if (!spec) continue;
     const cx = (z.bounds.x + z.bounds.w * 0.5) * t;
-    const cy = (z.bounds.y + 1.25) * t;
-    const isAfternoon = sun.phase === 'sore';
+    const cy = (z.bounds.y + z.bounds.h * 0.42) * t;
     lights.push({
       id: `win-${z.id}`,
-      x: cx + sun.shadowDirX * 14,
-      y: cy + 8,
-      radius: z.bounds.w * t * 0.34,
-      r: isAfternoon ? 255 : 255,
-      g: isAfternoon ? 196 : 238,
-      b: isAfternoon ? 116 : 192,
-      intensity: isAfternoon ? 0.14 : 0.065,
+      x: cx + sun.shadowDirX * 10,
+      y: cy,
+      radius: Math.max(z.bounds.w, z.bounds.h) * t * spec.radiusScale,
+      r: spec.r,
+      g: spec.g,
+      b: spec.b,
+      intensity: spec.intensity,
       kind: 'sun-window',
     });
   }
