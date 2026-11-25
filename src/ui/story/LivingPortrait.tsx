@@ -240,7 +240,7 @@ export function LivingPortrait({
       transformOrigin: 'bottom center',
       transform: `translateY(${pose.breathDy * (fluid ? 2.4 : s) + exprDy + speakPulse}px) rotate(${exprRot}deg) scale(${pose.scaleX * sizeScale}, ${pose.scaleY * sizeScale})`,
       filter: `brightness(${totalBright}) saturate(${sat})`,
-      transition: reduced ? 'none' : 'filter 240ms ease, transform 220ms ease',
+      transition: reduced ? 'none' : 'filter 240ms ease',
       willChange: reduced ? undefined : 'transform',
     };
 
@@ -298,7 +298,7 @@ export function LivingPortrait({
     transformOrigin: 'bottom center',
     transform: `translateY(${pose.breathDy * (fluid ? 2.5 : s)}px) scale(${pose.scaleX * sizeScale}, ${pose.scaleY * sizeScale})`,
     filter: `brightness(${bright})`,
-    transition: reduced ? 'none' : 'filter 240ms ease, transform 220ms ease',
+    transition: reduced ? 'none' : 'filter 240ms ease',
     willChange: reduced ? undefined : 'transform',
   };
 

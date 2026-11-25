@@ -5738,3 +5738,90 @@ html[data-reduced-motion='true'] .sim-dock-btn {
   background: #34D399;
   box-shadow: 0 0 6px rgba(52, 211, 153, 0.7);
 }
+
+/* ============================================================================
+   12. PHASE 5 — ADVANCED DIALOGUE MOTION SYSTEM (ZERO LAYOUT SHIFT & PARALLAX)
+   ============================================================================ */
+
+.vn-stage {
+  --vn-px: 0;
+  --vn-py: 0;
+}
+
+.vn-backdrop {
+  transform: translate3d(calc(var(--vn-px) * -7px), calc(var(--vn-py) * -4.5px), 0) scale(1.022);
+  transition: transform 160ms ease-out;
+}
+
+.vn-cast {
+  transform: translate3d(calc(var(--vn-px) * 3.5px), calc(var(--vn-py) * 1.8px), 0) scale(1);
+  transition: transform 180ms ease-out;
+}
+.vn-cast--climax {
+  transform: translate3d(calc(var(--vn-px) * 3.5px), calc(var(--vn-py) * 1.8px), 0) scale(1.028);
+}
+
+.vn-tabletop {
+  transform: translate3d(calc(var(--vn-px) * 8.5px), 0, 0);
+  transition: transform 150ms ease-out;
+}
+
+/* Ghost Full-Text Reservation: teks penuh menentukan dimensi kontainer sementara typewriter berjalan di atasnya */
+.vn-text-reserve-wrap {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+.vn-text--ghost {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.vn-text--live {
+  grid-area: 1 / 1;
+}
+
+.vn-continue-spacer {
+  display: inline-block;
+  margin-left: 0.45em;
+  padding: 0.05em 0.35em;
+  font-size: 0.85em;
+  line-height: 1;
+  visibility: hidden;
+}
+
+/* Reserved Space untuk Choice Dock agar kotak dialog tidak terpental saat typewriter selesai */
+.vn-choice-dock {
+  min-height: 8.6rem;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+.vn-choice-dock--reserved {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+}
+.vn-choice-dock--visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+html[data-reduced-motion='true'] .vn-backdrop,
+html[data-reduced-motion='true'] .vn-cast,
+html[data-reduced-motion='true'] .vn-tabletop,
+html[data-reduced-motion='true'] .vn-choice-dock {
+  transform: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vn-backdrop,
+  .vn-cast,
+  .vn-tabletop,
+  .vn-choice-dock {
+    transform: none !important;
+    transition: none !important;
+  }
+}

@@ -697,8 +697,7 @@ export function StoryScreen({
     return count;
   }, [turnResults]);
 
-  // Paralaks 2.5D mengikuti gerakan kursor & Kanvas VFX GPU-feel 60 FPS (Partikel Ruangan + Pita Cahaya Empati Bezier)
-  const [parallax, setParallax] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  // PHASE 5: Zero-Rerender 2.5D Pointer Parallax via CSS Custom Properties (--vn-px, --vn-py)
   const vfxCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const empathyArcStartRef = useRef<number | null>(null);
   const isClimaxTurn = state.turn >= 4 && !state.ended && !reducedMotion;
@@ -872,20 +871,21 @@ export function StoryScreen({
       if (!el) return;
       const r = el.getBoundingClientRect();
       if (r.width <= 0 || r.height <= 0) return;
-      const nx = ((e.clientX - r.left) / r.width - 0.5) * 2;
-      const ny = ((e.clientY - r.top) / r.height - 0.5) * 2;
-      setParallax({
-        x: Math.max(-1, Math.min(1, nx)),
-        y: Math.max(-1, Math.min(1, ny)),
-      });
+      const nx = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width - 0.5) * 2));
+      const ny = Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height - 0.5) * 2));
+      el.style.setProperty('--vn-px', nx.toFixed(3));
+      el.style.setProperty('--vn-py', ny.toFixed(3));
     },
     [reducedMotion, rootRef]
   );
 
   const handleStagePointerLeave = useCallback(() => {
     if (reducedMotion) return;
-    setParallax({ x: 0, y: 0 });
-  }, [reducedMotion]);
+    const el = rootRef.current;
+    if (!el) return;
+    el.style.setProperty('--vn-px', '0');
+    el.style.setProperty('--vn-py', '0');
+  }, [reducedMotion, rootRef]);
 
   return (
     <div
@@ -903,18 +903,8 @@ export function StoryScreen({
       data-desk-prop={roomConfig.deskPropKind}
       data-testid="story-screen"
     >
-      {/* 1. Latar adegan selebar layar dengan atmosfer sinematik & paralaks 2.5D */}
-      <div
-        className="vn-backdrop"
-        style={
-          reducedMotion
-            ? undefined
-            : {
-                transform: `translate3d(${(parallax.x * -7).toFixed(1)}px, ${(parallax.y * -4.5).toFixed(1)}px, 0) scale(1.022)`,
-                transition: 'transform 160ms ease-out',
-              }
-        }
-      >
+      {/* 1. Latar adegan selebar layar dengan atmosfer sinematik & paralaks CSS variabel 0-rerender */}
+      <div className="vn-backdrop">
         <StoryBackdrop
           setting={scene?.setting ?? 'ruang-konsultasi'}
           zoneId={startZoneId}
@@ -971,17 +961,7 @@ export function StoryScreen({
       />
 
       {/* 2. Dua karakter simetris berdiri penuh di tepi kiri & kanan + efek ekspresi, paralaks 2.5D, & dorongan kamera klimaks! */}
-      <div
-        className={`vn-cast ${isClimaxTurn ? 'vn-cast--climax' : ''}`}
-        style={
-          reducedMotion
-            ? undefined
-            : {
-                transform: `translate3d(${(parallax.x * 3.5).toFixed(1)}px, ${(parallax.y * 1.8).toFixed(1)}px, 0) scale(${isClimaxTurn ? 1.028 : 1})`,
-                transition: 'transform 180ms ease-out',
-              }
-        }
-      >
+      <div className={`vn-cast ${isClimaxTurn ? 'vn-cast--climax' : ''}`}>
         {/* Jembatan komunikasi visual 2-arah antara Ibu Dosen dan Mahasiswa saat memilih respons */}
         {reactionFx && !reducedMotion && (
           <div
@@ -1130,14 +1110,6 @@ export function StoryScreen({
         className="vn-tabletop"
         data-desk-prop={roomConfig.deskPropKind}
         aria-hidden="true"
-        style={
-          reducedMotion
-            ? undefined
-            : {
-                transform: `translate3d(${(parallax.x * 8.5).toFixed(1)}px, 0, 0)`,
-                transition: 'transform 150ms ease-out',
-              }
-        }
       >
         <div className="vn-tabletop-rim" />
         {/* Tumpukan buku log laboratorium di sisi kiri meja depan */}
@@ -1358,11 +1330,10 @@ export function StoryScreen({
         </div>
       </header>
 
-      {/* 4. Koridor percakapan tengah: Awan Bicara + 2 Pilihan di ruang terbuka antara Dosen (kiri) & Mahasiswa (kanan) */}
+      {/* 4. Koridor percakapan tengah: Panel Dialog Stabil + Slot Respons Terpesan (0 Layout Shift!) */}
       {!showSummary && (
         <div className="vn-center-corridor" data-testid="vn-center-corridor">
           <VnDialogBox
-            key={`cloud-${arrivalKey}-${safeIndex}`}
             speakerName={beat ? speakerName : ''}
             text={beat ? typing.visible : ''}
             fullText={beat?.text}
@@ -1385,14 +1356,21 @@ export function StoryScreen({
             onEndSession={() => setConfirmEnd(true)}
           />
 
-          {atChoices && (
-            <div className="vn-choice-dock">
-              <div className="vn-choice-prompt" aria-hidden="true">
-                <span>💬 Pilih respons Ibu Dosen</span>
-              </div>
-              <VnChoices ref={choicesRef} choices={choices} onChoose={onChoose} />
-            </div>
-          )}
+          <div
+            className={`vn-choice-dock ${
+              atChoices ? 'vn-choice-dock--visible' : 'vn-choice-dock--reserved'
+            }`}
+            aria-hidden={!atChoices}
+          >
+            {atChoices && (
+              <>
+                <div className="vn-choice-prompt" aria-hidden="true">
+                  <span>💬 Pilih respons Ibu Dosen</span>
+                </div>
+                <VnChoices ref={choicesRef} choices={choices} onChoose={onChoose} />
+              </>
+            )}
+          </div>
         </div>
       )}
 

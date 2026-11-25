@@ -138,25 +138,35 @@ export function VnDialogBox({
               <span className="sr-only" aria-live="polite" data-testid="vn-dialog-full-text">
                 {full}
               </span>
-              <p className={`vn-text ${italic || narration ? 'vn-text--narration' : ''}`}>
-                <span aria-hidden="true" data-testid="vn-dialog-text">
-                  {text}
-                </span>
-                {canContinue && (
-                  <button
-                    type="button"
-                    className="vn-continue"
-                    aria-label={S.continueAria}
-                    data-testid="vn-dialog-next"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onAdvance();
-                    }}
-                  >
-                    ▼
-                  </button>
-                )}
-              </p>
+              {/* PHASE 5: Reserved Full-Text Layout Space agar tinggi kotak dialog 100% stabil selama typewriter berjalan */}
+              <div className="vn-text-reserve-wrap">
+                <p
+                  aria-hidden="true"
+                  className={`vn-text vn-text--ghost ${italic || narration ? 'vn-text--narration' : ''}`}
+                >
+                  <span>{full}</span>
+                  <span className="vn-continue-spacer">▼</span>
+                </p>
+                <p className={`vn-text vn-text--live ${italic || narration ? 'vn-text--narration' : ''}`}>
+                  <span aria-hidden="true" data-testid="vn-dialog-text">
+                    {text}
+                  </span>
+                  {canContinue && (
+                    <button
+                      type="button"
+                      className="vn-continue"
+                      aria-label={S.continueAria}
+                      data-testid="vn-dialog-next"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAdvance();
+                      }}
+                    >
+                      ▼
+                    </button>
+                  )}
+                </p>
+              </div>
               {cueText && !narration && (
                 <p className="vn-cue" data-testid="vn-dialog-cue">
                   {cueText}
