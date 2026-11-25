@@ -2413,6 +2413,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               maxLost={MAX_LOST_STUDENTS}
               audioEnabled={audioEnabled}
               onToggleAudio={onToggleAudio}
+              onOpenSettings={onOpenSettings}
             />
           </div>
         )}

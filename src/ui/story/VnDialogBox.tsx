@@ -88,83 +88,89 @@ export function VnDialogBox({
   }, [typing, onTypingChange]);
 
   return (
-    <section
-      role="region"
-      aria-label={S.dialogueRegionLabel}
-      className={`vn-box vn-cloud ${showNameTab ? (isDosen ? 'vn-box--tail-left' : 'vn-box--tail-right') : ''} ${className ?? ''}`}
-      data-testid="vn-dialog-box"
-      onClick={onAdvance}
-    >
-      {/* Tanda awan bicara bulat bertingkat mengarah ke pembicara (kiri: Dosen, kanan: Mahasiswa) */}
-      {showNameTab && (
-        <span
-          aria-hidden="true"
-          className={`vn-cloud-dots ${isDosen ? 'vn-cloud-dots--left' : 'vn-cloud-dots--right'}`}
-        >
-          <span className="vn-cloud-dot vn-cloud-dot--lg" />
-          <span className="vn-cloud-dot vn-cloud-dot--md" />
-          <span className="vn-cloud-dot vn-cloud-dot--sm" />
-        </span>
-      )}
-      {showNameTab && (
-        <div className={`vn-nametab ${isDosen ? 'vn-nametab--left' : 'vn-nametab--right'}`}>
-          {!isDosen && <span aria-hidden="true" className="vn-nametab-line vn-nametab-line--right" />}
-          <span
-            className={`vn-name ${isDosen ? 'vn-name--dosen' : 'vn-name--mhs'}`}
-            data-testid="vn-dialog-speaker"
-          >
-            <span>{speakerName}</span>
-            {(isSpeaking ?? typing) && (
-              <span className="vn-eq" aria-hidden="true">
-                <span />
-                <span />
-                <span />
-                <span />
-              </span>
-            )}
-          </span>
-          {isDosen && <span aria-hidden="true" className="vn-nametab-line" />}
+    <div className="vn-dialog-stack">
+      <section
+        role="region"
+        aria-label={S.dialogueRegionLabel}
+        className={`vn-box vn-cloud ${showNameTab ? (isDosen ? 'vn-box--tail-left' : 'vn-box--tail-right') : ''} ${className ?? ''}`}
+        data-testid="vn-dialog-box"
+        onClick={onAdvance}
+      >
+        {/* Siku bingkai sci-fi pada sudut kotak dialog */}
+        <span aria-hidden="true" className="vn-box-corner vn-box-corner--tl" />
+        <span aria-hidden="true" className="vn-box-corner vn-box-corner--tr" />
+        <span aria-hidden="true" className="vn-box-corner vn-box-corner--bl" />
+        <span aria-hidden="true" className="vn-box-corner vn-box-corner--br" />
+
+        {/* Emblem Gelombang Suara Akustik di Kanan Atas Kotak Dialog (sesuai gambar referensi) */}
+        <div aria-hidden="true" className="vn-box-soundwave">
+          <span style={{ height: '7px' }} />
+          <span style={{ height: '13px' }} />
+          <span style={{ height: '18px' }} />
+          <span style={{ height: '11px' }} />
+          <span style={{ height: '15px' }} />
+          <span style={{ height: '8px' }} />
         </div>
-      )}
 
-      <div className="vn-box-body">
-        {headerSlot}
-        {hasBeat ? (
-          <>
-            <span className="sr-only" aria-live="polite" data-testid="vn-dialog-full-text">
-              {full}
-            </span>
-            <p className={`vn-text ${italic || narration ? 'vn-text--narration' : ''}`}>
-              <span aria-hidden="true" data-testid="vn-dialog-text">
-                {text}
-              </span>
-              {canContinue && (
-                <button
-                  type="button"
-                  className="vn-continue"
-                  aria-label={S.continueAria}
-                  data-testid="vn-dialog-next"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAdvance();
-                  }}
-                >
-                  ▼
-                </button>
+        {showNameTab && (
+          <div className={`vn-nametab ${isDosen ? 'vn-nametab--left' : 'vn-nametab--right'}`}>
+            <span
+              className={`vn-name ${isDosen ? 'vn-name--dosen' : 'vn-name--mhs'}`}
+              data-testid="vn-dialog-speaker"
+            >
+              <span>{speakerName}</span>
+              {(isSpeaking ?? typing) && (
+                <span className="vn-eq" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                </span>
               )}
-            </p>
-            {cueText && !narration && (
-              <p className="vn-cue" data-testid="vn-dialog-cue">
-                {cueText}
-              </p>
-            )}
-          </>
-        ) : (
-          <p className="vn-text vn-text--narration">{S.historyEmpty}</p>
+            </span>
+          </div>
         )}
-        {children}
-      </div>
 
+        <div className="vn-box-body">
+          {headerSlot}
+          {hasBeat ? (
+            <>
+              <span className="sr-only" aria-live="polite" data-testid="vn-dialog-full-text">
+                {full}
+              </span>
+              <p className={`vn-text ${italic || narration ? 'vn-text--narration' : ''}`}>
+                <span aria-hidden="true" data-testid="vn-dialog-text">
+                  {text}
+                </span>
+                {canContinue && (
+                  <button
+                    type="button"
+                    className="vn-continue"
+                    aria-label={S.continueAria}
+                    data-testid="vn-dialog-next"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAdvance();
+                    }}
+                  >
+                    ▼
+                  </button>
+                )}
+              </p>
+              {cueText && !narration && (
+                <p className="vn-cue" data-testid="vn-dialog-cue">
+                  {cueText}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="vn-text vn-text--narration">{S.historyEmpty}</p>
+          )}
+          {children}
+        </div>
+      </section>
+
+      {/* Baris 6 Tombol Kontrol Dialog (History, Auto, Skip, Simpan, Muat, Akhiri Sesi) di bawah kotak dialog */}
       <div
         role="toolbar"
         aria-label={S.dialogueRegionLabel}
@@ -172,8 +178,11 @@ export function VnDialogBox({
         onClick={(e) => e.stopPropagation()}
       >
         <button type="button" className="vn-pill" aria-label={S.historyAria} onClick={onOpenHistory}>
-          <span aria-hidden="true">&lt;</span>
-          {S.historyBtn}
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <circle cx="12" cy="12" r="8.5" />
+            <path d="M12 7.5V12l3 2" />
+          </svg>
+          <span>{S.historyBtn}</span>
         </button>
         <button
           type="button"
@@ -182,16 +191,28 @@ export function VnDialogBox({
           aria-pressed={auto}
           onClick={onToggleAuto}
         >
-          {S.autoBtn}
+          <span aria-hidden="true" className="text-[10px]">▶</span>
+          <span>{S.autoBtn}</span>
         </button>
         <button type="button" className="vn-pill" aria-label={S.skipAria} onClick={onSkip}>
-          {S.skipBtn}
+          <span aria-hidden="true" className="text-[10px]">▶▶</span>
+          <span>{S.skipBtn}</span>
         </button>
         <button type="button" className="vn-pill" aria-label={S.saveAria} onClick={onSave}>
-          {S.saveBtn}
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <path d="M12 3v12" />
+            <path d="m8 11 4 4 4-4" />
+            <path d="M5 19h14" />
+          </svg>
+          <span>{S.saveBtn}</span>
         </button>
         <button type="button" className="vn-pill" aria-label={S.loadAria} onClick={onLoad}>
-          {S.loadBtn}
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <path d="M12 16V4" />
+            <path d="m8 8 4-4 4 4" />
+            <path d="M5 19h14" />
+          </svg>
+          <span>{S.loadBtn}</span>
         </button>
         <button
           type="button"
@@ -200,10 +221,14 @@ export function VnDialogBox({
           disabled={endDisabled}
           onClick={onEndSession}
         >
-          {S.endSessionBtn}
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <path d="M12 3v9" />
+            <path d="M6.4 6.4a8 8 0 1 0 11.2 0" />
+          </svg>
+          <span>{S.endSessionBtn}</span>
         </button>
       </div>
-    </section>
+    </div>
   );
 }
 

@@ -2,10 +2,9 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import type { ForwardedRef } from 'react';
 import { STRINGS } from '../../data/strings';
 import type { CounselorSkillId } from '../../types';
-import { ChoiceStyleIcon, IconObrolan } from '../components/GameIcons';
 import { useReducedMotion } from '../motion/useMotion';
 import { playSfx } from '../motion/sfx';
-import { INITIAL_CARD_STATE, cardReduce, choiceIconFor, commitDelayMs } from './choiceStyle';
+import { INITIAL_CARD_STATE, cardReduce, commitDelayMs } from './choiceStyle';
 import type { CardEvent, CardState } from './choiceStyle';
 
 export interface VnChoiceItem {
@@ -102,12 +101,10 @@ export const VnChoices = forwardRef<HTMLDivElement, VnChoicesProps>(function VnC
             {i + 1}
           </span>
           <span className="flex-1">{choice.text}</span>
-          <span aria-hidden="true" className="shrink-0 opacity-60">
-            {choice.skillId ? (
-              <ChoiceStyleIcon id={choiceIconFor(choice.skillId)} className="h-4 w-4" />
-            ) : (
-              <IconObrolan className="h-4 w-4" />
-            )}
+          <span aria-hidden="true" className="vn-choice-chevron shrink-0">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m9 6 6 6-6 6" />
+            </svg>
           </span>
         </button>
       ))}

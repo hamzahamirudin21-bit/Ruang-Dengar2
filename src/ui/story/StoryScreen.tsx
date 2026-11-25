@@ -87,6 +87,8 @@ export interface StoryScreenProps {
   /** Kontrol cepat musik & efek suara (opsional). */
   audioEnabled?: boolean;
   onToggleAudio?: () => void;
+  /** Buka modal pengaturan sistem (opsional). */
+  onOpenSettings?: () => void;
   className?: string;
 }
 
@@ -323,6 +325,7 @@ export function StoryScreen({
   maxLost = 3,
   audioEnabled,
   onToggleAudio,
+  onOpenSettings,
   className,
 }: StoryScreenProps) {
   const S = STRINGS.story;
@@ -975,6 +978,19 @@ export function StoryScreen({
             reactionKind={reactionFx?.kind ?? null}
             scale={4}
           />
+          {/* Papan Nama Karakter Panggung Kiri (Ibu Dosen) sesuai gambar referensi */}
+          <div
+            aria-hidden="true"
+            className={`vn-stage-nameplate vn-stage-nameplate--left ${
+              counselorSpeaking ? 'vn-stage-nameplate--active' : ''
+            }`}
+          >
+            <span className="vn-stage-nameplate-icon">📖</span>
+            <div className="vn-stage-nameplate-meta">
+              <span className="vn-stage-nameplate-title">{S.speakerCounselor}</span>
+              <span className="vn-stage-nameplate-role">Dosen Pembimbing</span>
+            </div>
+          </div>
         </div>
 
         <div
@@ -1028,10 +1044,23 @@ export function StoryScreen({
             reactionKind={reactionFx?.kind ?? null}
             scale={4}
           />
+          {/* Papan Nama Karakter Panggung Kanan (Mahasiswa) sesuai gambar referensi */}
+          <div
+            aria-hidden="true"
+            className={`vn-stage-nameplate vn-stage-nameplate--right ${
+              studentSpeaking ? 'vn-stage-nameplate--active' : ''
+            }`}
+          >
+            <span className="vn-stage-nameplate-icon">👤</span>
+            <div className="vn-stage-nameplate-meta">
+              <span className="vn-stage-nameplate-title">{agent.name}</span>
+              <span className="vn-stage-nameplate-role">Mahasiswa</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 2b. Lapisan tepi meja depan (foreground tabletop depth): membumikan karakter tanpa menutupi wajah/dialog */}
+      {/* 2b. Lapisan tepi meja laboratorium futuristik (foreground tabletop depth): buku log kiri, holopad cyan tengah */}
       <div
         className="vn-tabletop"
         aria-hidden="true"
@@ -1045,146 +1074,129 @@ export function StoryScreen({
         }
       >
         <div className="vn-tabletop-rim" />
-        {/* Buku catatan konselor terbuka mungil di sisi kiri depan */}
-        <svg
-          className="vn-tabletop-prop vn-tabletop-prop--left"
-          viewBox="0 0 120 56"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path d="M10 46 L24 14 L60 20 L96 14 L110 46 Z" fill="#8b5a34" stroke="#3e2517" strokeWidth="2.6" strokeLinejoin="round" />
-          <path d="M16 42 L28 18 L59 23 L59 44 Z" fill="#fffdf5" stroke="#3e2517" strokeWidth="2" strokeLinejoin="round" />
-          <path d="M104 42 L92 18 L61 23 L61 44 Z" fill="#fbf2dc" stroke="#3e2517" strokeWidth="2" strokeLinejoin="round" />
-          <line x1="29" y1="26" x2="52" y2="29" stroke="#b9976f" strokeWidth="1.8" strokeLinecap="round" />
-          <line x1="27" y1="32" x2="51" y2="35" stroke="#b9976f" strokeWidth="1.8" strokeLinecap="round" />
-          <line x1="68" y1="29" x2="90" y2="26" stroke="#b9976f" strokeWidth="1.8" strokeLinecap="round" />
-          <line x1="69" y1="35" x2="88" y2="33" stroke="#b9976f" strokeWidth="1.8" strokeLinecap="round" />
-          {/* Pena emas konselor */}
-          <path d="M84 44 L108 26" stroke="#2e8274" strokeWidth="4" strokeLinecap="round" />
-          <path d="M84 44 L108 26" stroke="#3e2517" strokeWidth="1.2" strokeLinecap="round" />
-        </svg>
-
-        {/* Cangkir teh hangat mengepul (ruang nyaman) atau termos kopi kampus (lab teknis) di sisi kanan depan */}
-        <svg
-          className="vn-tabletop-prop vn-tabletop-prop--right"
-          viewBox="0 0 92 64"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* Uap teh lembut */}
-          <path
-            className={reducedMotion ? '' : 'cozy-steam'}
-            d="M36 22 C34 15 40 13 38 7"
-            stroke="#fffdf5"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            opacity="0.82"
-          />
-          <path
-            className={reducedMotion ? '' : 'cozy-steam'}
-            d="M48 20 C46 13 52 11 50 5"
-            stroke="#fffdf5"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            opacity="0.72"
-            style={reducedMotion ? undefined : { animationDelay: '0.6s' }}
-          />
-          {/* Tatakan kayu & piring kecil */}
-          <ellipse cx="44" cy="52" rx="30" ry="8" fill="#d9b784" stroke="#3e2517" strokeWidth="2.4" />
-          {/* Cangkir porselen hangat */}
-          <path
-            d="M24 30 H62 V43 C62 49 54 53 43 53 C32 53 24 49 24 43 Z"
-            fill={isWarmRoom ? '#fffdf5' : '#e6f2f6'}
-            stroke="#3e2517"
-            strokeWidth="2.6"
-            strokeLinejoin="round"
-          />
-          <path d="M62 34 C71 34 71 45 61 45" stroke="#3e2517" strokeWidth="2.8" strokeLinecap="round" />
-          <ellipse cx="43" cy="30" rx="19" ry="4.5" fill={isWarmRoom ? '#c97e3d' : '#7b5031'} stroke="#3e2517" strokeWidth="2.2" />
-          {/* Motif daun kecil di cangkir */}
-          <circle cx="43" cy="42" r="4" fill={isWarmRoom ? '#3aa08e' : '#e56256'} opacity="0.85" />
-        </svg>
+        {/* Tumpukan buku log laboratorium di sisi kiri meja depan */}
+        <div className="vn-desk-books">
+          <div className="vn-desk-book vn-desk-book--top" />
+          <div className="vn-desk-book vn-desk-book--bottom" />
+        </div>
+        {/* Tablet Holografik Cyan bercahaya di tengah meja depan */}
+        <div className="vn-desk-holopad">
+          <div className="vn-desk-holopad-grid" />
+          <div className="vn-desk-holopad-bars">
+            <span style={{ width: '38%' }} />
+            <span style={{ width: '64%' }} />
+            <span style={{ width: '52%' }} />
+          </div>
+        </div>
       </div>
 
-      {/* 3. Bilah atas 3 kolom simetris yang bersih dan imersif (tanpa label teori!) */}
+      {/* 3. Bilah atas 3 kolom simetris bergaya AAA Sci-Fi HUD sesuai gambar referensi */}
       <header className="vn-topbar">
         <div className="vn-topbar-left">
-          <button
-            type="button"
-            className="vn-topbtn"
-            aria-label={S.studentListAria}
-            aria-expanded={drawer === 'left'}
-            onClick={() => {
-              playSfx('klik');
-              setDrawer((d) => (d === 'left' ? null : 'left'));
-            }}
-          >
-            <IconRelasi className="h-4 w-4" />
-            <span>{S.studentListTitle(listRows.length)}</span>
-          </button>
-          <span
-            className="vn-energy-chip"
-            data-tier={studentWellbeing.tier}
-            title={`Energi ${agent.name} di lab saat ini`}
-          >
-            ⚡ Energi {studentWellbeing.energyPct}%
-          </span>
-          {lastChoiceFeedback && (
-            <span
-              key={`delta-${lastChoiceFeedback.turn}-${lastChoiceFeedback.kind}`}
-              role="status"
-              className={`vn-energy-delta-pop inline-flex items-center gap-1 rounded-full border-2 border-[#3e2517] px-2.5 py-0.5 font-['Fredoka'] text-xs font-bold shadow-[0_3px_0_#3e2517] ${
-                lastChoiceFeedback.kind === 'tepat'
-                  ? 'bg-[#2e8274] text-[#fffdf6]'
-                  : 'bg-[#d9463e] text-[#fffdf6]'
-              }`}
-            >
-              {lastChoiceFeedback.kind === 'tepat'
-                ? `+${lastChoiceFeedback.deltaPct}% ✓ Tepat`
-                : `${lastChoiceFeedback.deltaPct}% ✕ Salah`}
+          {/* Emblem Brand RUANG DENGAR di kiri atas */}
+          <div className="vn-brand-banner" aria-hidden="true">
+            <span className="vn-brand-wave">
+              <i style={{ height: '6px' }} />
+              <i style={{ height: '12px' }} />
+              <i style={{ height: '16px' }} />
+              <i style={{ height: '10px' }} />
+              <i style={{ height: '14px' }} />
             </span>
-          )}
+            <span className="vn-brand-divider">|</span>
+            <span className="vn-brand-text">RUANG DENGAR</span>
+          </div>
+
+          <div className="vn-topbar-left-pills">
+            <button
+              type="button"
+              className="vn-topbtn"
+              aria-label={S.studentListAria}
+              aria-expanded={drawer === 'left'}
+              onClick={() => {
+                playSfx('klik');
+                setDrawer((d) => (d === 'left' ? null : 'left'));
+              }}
+            >
+              <IconRelasi className="h-4 w-4 text-[#00E5FF]" />
+              <span>{S.studentListTitle(listRows.length)}</span>
+            </button>
+            <span
+              className="vn-energy-chip"
+              data-tier={studentWellbeing.tier}
+              title={`Energi ${agent.name} di lab saat ini`}
+            >
+              <span className="text-[#4ade80]">⚡</span>
+              <span>Energi {studentWellbeing.energyPct}%</span>
+            </span>
+            {lastChoiceFeedback && (
+              <span
+                key={`delta-${lastChoiceFeedback.turn}-${lastChoiceFeedback.kind}`}
+                role="status"
+                className={`vn-energy-delta-pop inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-['Plus_Jakarta_Sans'] text-xs font-extrabold ${
+                  lastChoiceFeedback.kind === 'tepat'
+                    ? 'border-[#34d399] bg-[#064e3b]/95 text-[#a7f3d0]'
+                    : 'border-[#f87171] bg-[#7f1d1d]/95 text-[#fecaca]'
+                }`}
+              >
+                {lastChoiceFeedback.kind === 'tepat'
+                  ? `+${lastChoiceFeedback.deltaPct}% ✓ Tepat`
+                  : `${lastChoiceFeedback.deltaPct}% ✕ Salah`}
+              </span>
+            )}
+          </div>
         </div>
 
+        {/* MISSION OBJECTIVE PANEL (Tengah Atas) sesuai gambar referensi */}
         <div className="vn-topbar-center">
           {scene && (
             <div className="vn-location" data-testid="story-scene-caption">
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <span className="vn-location-title">{displayedSceneTitle}</span>
-                {isCompactMode && !state.ended && (
-                  <span
-                    className="inline-flex items-center gap-1 rounded-full border-2 border-[#3e2517]/50 bg-[#fff5d8] px-2.5 py-0.5"
-                    aria-label={`Langkah ${Math.min(7, state.turn + 1)} dari 7`}
-                  >
-                    <span className="inline-flex items-center gap-1" aria-hidden="true">
-                      {[1, 2, 3, 4, 5, 6, 7].map((step) => {
-                        const currentStep = Math.min(7, state.turn + 1);
-                        const result = turnResults?.[step - 1];
-                        const done = step < currentStep;
-                        const active = step === currentStep;
-                        return (
-                          <span
-                            key={step}
-                            className={`inline-block rounded-full border border-[#3e2517] transition-all ${
-                              active
-                                ? 'h-2.5 w-2.5 scale-110 bg-[#f5be42]'
-                                : done
-                                  ? result === 'salah'
-                                    ? 'h-2 w-2 bg-[#d9463e]'
-                                    : 'h-2 w-2 bg-[#2e8274]'
-                                  : 'h-1.5 w-1.5 bg-[#e8d5b0]'
-                            }`}
-                          />
-                        );
-                      })}
-                    </span>
-                    <span className="ml-0.5 font-['Fredoka'] text-[10px] font-bold text-[#3e2517]">
-                      {Math.min(7, state.turn + 1)}/7
-                    </span>
+              <span className="vn-location-title">{displayedSceneTitle}</span>
+
+              {isCompactMode && !state.ended && (
+                <div
+                  className="vn-mission-progress-pill"
+                  aria-label={`Langkah ${Math.min(7, state.turn + 1)} dari 7`}
+                >
+                  <span className="inline-flex items-center gap-1.5" aria-hidden="true">
+                    {[1, 2, 3, 4, 5, 6, 7].map((step) => {
+                      const currentStep = Math.min(7, state.turn + 1);
+                      const result = turnResults?.[step - 1];
+                      const done = step < currentStep;
+                      const active = step === currentStep;
+                      return (
+                        <span
+                          key={step}
+                          className={`vn-mission-dot ${
+                            active
+                              ? 'vn-mission-dot--active'
+                              : done
+                                ? result === 'salah'
+                                  ? 'vn-mission-dot--wrong'
+                                  : 'vn-mission-dot--done'
+                                : ''
+                          }`}
+                        />
+                      );
+                    })}
                   </span>
-                )}
-              </div>
+                  <span className="vn-mission-step-num">
+                    {Math.min(7, state.turn + 1)} / 7
+                  </span>
+                </div>
+              )}
+
               <span className="vn-location-caption">{scene.caption}</span>
+
+              <div className="vn-location-objective-pill">
+                <span aria-hidden="true" className="text-[#FFBD59]">📍</span>
+                <span>
+                  {statusMessage
+                    ? statusMessage
+                    : isOpenUpMoment
+                      ? `${agent.name.split(' ')[0]} mulai berani membuka ceritanya.`
+                      : `Tiba di dekat ${agent.name}.`}
+                </span>
+              </div>
             </div>
           )}
 
@@ -1207,7 +1219,7 @@ export function StoryScreen({
           {otherCriticalAgent && (
             <div
               role="status"
-              className="vn-status-pill !border-[#8f241f] !bg-[#d9463e] !text-[#fffdf6]"
+              className="vn-status-pill !border-[#f87171] !bg-[#7f1d1d]/95 !text-[#fecaca]"
             >
               ⚠️ Di peta: {otherCriticalAgent.name.split(' ')[0]} tinggal {otherCriticalAgent.energyPct}%! · Hilang {lostCount}/{maxLost}
             </div>
@@ -1217,19 +1229,48 @@ export function StoryScreen({
               Tombol 1–{Math.max(2, choices.length)} memilih respons · Enter / Spasi melanjutkan · Esc menutup panel
             </div>
           )}
-          {!helpOpen && statusMessage && (
-            <p role="status" className="vn-status-pill">
-              {statusMessage}
-            </p>
-          )}
-          {!helpOpen && !statusMessage && isOpenUpMoment && (
-            <p role="status" className="vn-status-pill">
-              ✦ {agent.name.split(' ')[0]} mulai berani membuka ceritanya...
-            </p>
-          )}
         </div>
 
         <div className="vn-topbar-right">
+          <button
+            type="button"
+            className="vn-topbtn vn-topbtn--circle"
+            aria-label={S.keyboardHelpTitle}
+            aria-expanded={helpOpen}
+            title={S.keyboardHelp}
+            onClick={() => {
+              playSfx('klik');
+              setHelpOpen((v) => !v);
+            }}
+          >
+            ?
+          </button>
+          {onToggleAudio && (
+            <button
+              type="button"
+              className="vn-topbtn vn-topbtn--circle"
+              aria-label={audioEnabled ? 'Matikan musik & suara' : 'Nyalakan musik & suara'}
+              aria-pressed={audioEnabled === true}
+              title={audioEnabled ? 'Musik & Suara Aktif (klik untuk mematikan)' : 'Nyalakan Musik Kampus & Suara'}
+              onClick={onToggleAudio}
+            >
+              <span aria-hidden="true">{audioEnabled ? '🔊' : '🔇'}</span>
+            </button>
+          )}
+          {onOpenSettings && (
+            <button
+              type="button"
+              className="vn-topbtn vn-topbtn--circle"
+              aria-label="Pengaturan"
+              title="Pengaturan"
+              onClick={() => {
+                playSfx('klik');
+                onOpenSettings();
+              }}
+            >
+              ⚙
+            </button>
+          )}
           <button
             type="button"
             className="vn-topbtn"
@@ -1240,33 +1281,8 @@ export function StoryScreen({
               setDrawer((d) => (d === 'right' ? null : 'right'));
             }}
           >
-            <IconProfil className="h-4 w-4" />
+            <IconProfil className="h-4 w-4 text-[#FFBD59]" />
             <span>{agent.name.split(' ')[0]}</span>
-          </button>
-          {onToggleAudio && (
-            <button
-              type="button"
-              className="vn-topbtn !w-9 !px-0"
-              aria-label={audioEnabled ? 'Matikan musik & suara' : 'Nyalakan musik & suara'}
-              aria-pressed={audioEnabled === true}
-              title={audioEnabled ? 'Musik & Suara Aktif (klik untuk mematikan)' : 'Nyalakan Musik Kampus & Suara'}
-              onClick={onToggleAudio}
-            >
-              <span aria-hidden="true">{audioEnabled ? '🔊' : '🔇'}</span>
-            </button>
-          )}
-          <button
-            type="button"
-            className="vn-topbtn !w-9 !px-0"
-            aria-label={S.keyboardHelpTitle}
-            aria-expanded={helpOpen}
-            title={S.keyboardHelp}
-            onClick={() => {
-              playSfx('klik');
-              setHelpOpen((v) => !v);
-            }}
-          >
-            ?
           </button>
         </div>
       </header>
