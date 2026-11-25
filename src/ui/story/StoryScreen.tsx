@@ -566,25 +566,7 @@ export function StoryScreen({
     return bg ? `Mahasiswa · ${bg.typeTag}` : 'Mahasiswa Vokasi';
   }, [agent.id]);
 
-  const [msSinceSpeakerChange, setMsSinceSpeakerChange] = useState(Number.POSITIVE_INFINITY);
-  useEffect(() => {
-    if (reducedMotion) {
-      setMsSinceSpeakerChange(Number.POSITIVE_INFINITY);
-      return;
-    }
-    const startedAt = Date.now();
-    setMsSinceSpeakerChange(0);
-    const id = window.setInterval(() => {
-      const ms = Date.now() - startedAt;
-      if (ms >= 320) {
-        window.clearInterval(id);
-        setMsSinceSpeakerChange(Number.POSITIVE_INFINITY);
-      } else {
-        setMsSinceSpeakerChange(ms);
-      }
-    }, 33);
-    return () => window.clearInterval(id);
-  }, [speakerKey, reducedMotion]);
+  const msSinceSpeakerChange = Number.POSITIVE_INFINITY;
 
   const prevExpressionRef = useRef<StoryExpression | null>(null);
   const [emoteState, setEmoteState] = useState<{ id: ReturnType<typeof emoteFor>; key: number }>({ id: null, key: 0 });
@@ -1193,40 +1175,42 @@ export function StoryScreen({
         <div className="vn-topbar-center">
           {scene && (
             <div className="vn-location" data-testid="story-scene-caption">
-              <span className="vn-location-title">{displayedSceneTitle}</span>
+              <div className="vn-location-header-row">
+                <span className="vn-location-title">{displayedSceneTitle}</span>
 
-              {isCompactMode && !state.ended && (
-                <div
-                  className="vn-mission-progress-pill"
-                  aria-label={`Langkah ${Math.min(7, state.turn + 1)} dari 7`}
-                >
-                  <span className="inline-flex items-center gap-1.5" aria-hidden="true">
-                    {[1, 2, 3, 4, 5, 6, 7].map((step) => {
-                      const currentStep = Math.min(7, state.turn + 1);
-                      const result = turnResults?.[step - 1];
-                      const done = step < currentStep;
-                      const active = step === currentStep;
-                      return (
-                        <span
-                          key={step}
-                          className={`vn-mission-dot ${
-                            active
-                              ? 'vn-mission-dot--active'
-                              : done
-                                ? result === 'salah'
-                                  ? 'vn-mission-dot--wrong'
-                                  : 'vn-mission-dot--done'
-                                : ''
-                          }`}
-                        />
-                      );
-                    })}
-                  </span>
-                  <span className="vn-mission-step-num">
-                    {Math.min(7, state.turn + 1)} / 7
-                  </span>
-                </div>
-              )}
+                {isCompactMode && !state.ended && (
+                  <div
+                    className="vn-mission-progress-pill"
+                    aria-label={`Langkah ${Math.min(7, state.turn + 1)} dari 7`}
+                  >
+                    <span className="inline-flex items-center gap-1.5" aria-hidden="true">
+                      {[1, 2, 3, 4, 5, 6, 7].map((step) => {
+                        const currentStep = Math.min(7, state.turn + 1);
+                        const result = turnResults?.[step - 1];
+                        const done = step < currentStep;
+                        const active = step === currentStep;
+                        return (
+                          <span
+                            key={step}
+                            className={`vn-mission-dot ${
+                              active
+                                ? 'vn-mission-dot--active'
+                                : done
+                                  ? result === 'salah'
+                                    ? 'vn-mission-dot--wrong'
+                                    : 'vn-mission-dot--done'
+                                  : ''
+                            }`}
+                          />
+                        );
+                      })}
+                    </span>
+                    <span className="vn-mission-step-num">
+                      {Math.min(7, state.turn + 1)} / 7
+                    </span>
+                  </div>
+                )}
+              </div>
 
               <span className="vn-location-caption">{scene.caption}</span>
 

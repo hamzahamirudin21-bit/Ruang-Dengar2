@@ -798,9 +798,14 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       }
       lastAnimTick = animTick;
 
+      const isStoryOverlayActive = Boolean(
+        storyApi?.storyState && storyApi?.storyVisible && !storyApi?.debriefProps
+      );
+
       const shouldDraw =
-        needsRedrawRef.current ||
-        (walkingDirty && now - lastDrawTimeRef.current >= 33);
+        !isStoryOverlayActive &&
+        (needsRedrawRef.current ||
+          (walkingDirty && now - lastDrawTimeRef.current >= 14));
 
       if (shouldDraw) {
         const canvas = canvasRef.current;
@@ -1399,12 +1404,12 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
             }}
             aria-label={STRINGS.statusBar.backToStart}
             title={STRINGS.statusBar.backToStart}
-            className="sim-hud-round-btn sim-hud-round-btn--gold !h-9 !w-9"
+            className="sim-hud-round-btn sim-hud-round-btn--gold !h-10 !w-10"
           >
             <svg
               aria-hidden="true"
               viewBox="0 0 24 24"
-              className="h-4 w-4"
+              className="h-4.5 w-4.5"
               fill="none"
               stroke="currentColor"
               strokeWidth="2.2"
@@ -1656,7 +1661,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               aria-pressed={audioEnabled}
               aria-label={audioEnabled ? 'Matikan musik kampus & suara' : 'Nyalakan musik kampus & suara'}
               title={audioEnabled ? 'Musik Kampus & Suara Aktif' : 'Nyalakan Musik Kampus & Suara'}
-              className="sim-hud-round-btn !h-9 !w-9 text-sm"
+              className="sim-hud-round-btn !h-10 !w-10 text-base"
             >
               <span aria-hidden="true">{audioEnabled ? '🔊' : '🔇'}</span>
             </button>
@@ -1671,9 +1676,9 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               playSfx('klik');
               handleUpdateViewOptions({ showZoneLabels: !viewOptions.showZoneLabels });
             }}
-            className="sim-hud-round-btn !h-9 !w-9"
+            className="sim-hud-round-btn !h-10 !w-10"
           >
-            <IconTag className="h-4 w-4" />
+            <IconTag className="h-4.5 w-4.5" />
           </button>
 
           <button
@@ -1685,9 +1690,9 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               playSfx('klik');
               handleUpdateViewOptions({ showGrid: !viewOptions.showGrid });
             }}
-            className="sim-hud-round-btn hidden !h-9 !w-9 sm:inline-flex"
+            className="sim-hud-round-btn hidden !h-10 !w-10 sm:inline-flex"
           >
-            <IconGrid className="h-4 w-4" />
+            <IconGrid className="h-4.5 w-4.5" />
           </button>
 
           <button
@@ -1698,7 +1703,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               playSfx('klik');
               setBriefingOpen(true);
             }}
-            className="sim-hud-round-btn !h-9 !w-9 font-['Fredoka'] text-xs font-bold"
+            className="sim-hud-round-btn !h-10 !w-10 font-['Fredoka'] text-sm font-bold"
           >
             ?
           </button>
@@ -1711,9 +1716,9 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
               playSfx('klik');
               onOpenSettings();
             }}
-            className="sim-hud-round-btn !h-9 !w-9"
+            className="sim-hud-round-btn !h-10 !w-10"
           >
-            <IconSettings className="h-4 w-4" />
+            <IconSettings className="h-4.5 w-4.5" />
           </button>
         </div>
       </header>
@@ -1966,7 +1971,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"
-            className="h-6 w-6 text-[#00DFFF]"
+            className="h-7 w-7 text-[#00DFFF]"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.9"
@@ -1989,7 +1994,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"
-            className="h-6 w-6 text-[#EAF6FF]"
+            className="h-7 w-7 text-[#EAF6FF]"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.8"
@@ -2024,7 +2029,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"
-            className="h-6 w-6 text-[#EAF6FF]"
+            className="h-7 w-7 text-[#EAF6FF]"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.8"
@@ -2056,7 +2061,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"
-            className="h-6 w-6 text-[#FFC96B]"
+            className="h-7 w-7 text-[#FFC96B]"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.85"

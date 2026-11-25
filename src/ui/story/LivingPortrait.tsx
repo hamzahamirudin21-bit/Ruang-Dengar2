@@ -150,7 +150,8 @@ export function LivingPortrait({
 }: LivingPortraitProps) {
   const hookReduced = useReducedMotion();
   const reduced = reducedMotion || hookReduced;
-  const timeMs = useAnimationClock(!reduced);
+  const { source: assetSource, ready: assetReady } = usePortraitAsset(studentId, expression);
+  const timeMs = useAnimationClock(!reduced && assetSource.kind !== 'aset');
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const s = Math.max(1, Math.floor(Number.isFinite(scale) ? scale : 1));
@@ -167,7 +168,6 @@ export function LivingPortrait({
     () => ({ id: studentId, fallback: demographicLabel }),
     [studentId, demographicLabel],
   );
-  const { source: assetSource, ready: assetReady } = usePortraitAsset(studentId, expression);
   const key = `${frameKey(studentId, expression, pose.eyesClosed, pose.mouth)}|${facing}`;
   const frame = useMemo(
     () => (!assetReady || assetSource.kind === 'aset' ? null : frames.get(key, () => renderFrame(look, expression, pose.eyesClosed, pose.mouth, facing))),

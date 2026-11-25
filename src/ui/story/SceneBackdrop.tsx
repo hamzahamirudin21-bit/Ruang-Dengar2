@@ -108,7 +108,7 @@ export function StoryBackdrop({ setting, zoneId, variant, size, narrow, reducedM
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [artId, reduced]);
 
-  const timeMs = useAnimationClock(!reduced);
+  const timeMs = useAnimationClock(false);
   const dx = parallaxOffsetPx(timeMs, reduced);
   const dust = useMemo(() => dustSpecs(seedFor(artId), DUST_COUNT, narrow), [artId, narrow]);
   const onFail = useMemo(() => () => setFailed(true), []);

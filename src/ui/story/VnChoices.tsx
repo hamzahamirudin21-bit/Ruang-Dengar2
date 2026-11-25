@@ -73,7 +73,7 @@ export const VnChoices = forwardRef<HTMLDivElement, VnChoicesProps>(function VnC
       timerRef.current = null;
       const r = dispatch({ type: 'tunda-selesai' });
       if (r.commit) onChooseRef.current(choiceId);
-    }, commitDelayMs(reduced));
+    }, Math.min(75, commitDelayMs(reduced)));
   };
 
   const handleGroupKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {

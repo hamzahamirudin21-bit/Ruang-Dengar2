@@ -414,7 +414,7 @@ export function drawAvatar(ctx: CanvasRenderingContext2D, opts: StoryRenderOptio
     fallback: { hairStyle: 'pendek', avatarHue: 190 },
   });
 
-  // Lencana kapsul sci-fi "Ibu Dosen" dark-teal berbingkai cyan bercahaya di atas kepala (sesuai referensi)
+  // Lencana kapsul sci-fi "Ibu Dosen" dark-teal berbingkai cyan bercahaya di bawah kaki (konsisten dengan mahasiswa & bebas tabrakan plakat ruangan)
   const label = 'Ibu Dosen';
   ctx.font = '700 9.5px Outfit, Plus Jakarta Sans, ui-sans-serif, sans-serif';
   ctx.textAlign = 'center';
@@ -423,7 +423,7 @@ export function drawAvatar(ctx: CanvasRenderingContext2D, opts: StoryRenderOptio
   const bw = tw + 16;
   const bh = 16.5;
   const bx = feet.x - bw / 2;
-  const by = feet.y - SPRITE_WORLD_H - bh - 4;
+  const by = feet.y + 3.5;
 
   // Aura luar cyan lembut
   ctx.fillStyle = 'rgba(0, 223, 255, 0.16)';

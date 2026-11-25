@@ -1569,7 +1569,7 @@ export function drawIllustratedZoneLabel(
   const meta = ZONE_BADGE_META[zone.id];
   const label = `${meta.icon} ${zone.shortLabel}`;
   const cx = (zone.bounds.x + zone.bounds.w / 2) * t;
-  const cy = (zone.bounds.y + 0.58) * t;
+  const cy = (zone.bounds.y + 0.24) * t;
 
   ctx.save();
   ctx.font = selected
