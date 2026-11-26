@@ -310,6 +310,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   const testRunCountRef = useRef<number>(0);
 
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const hudOverflowRef = useRef<HTMLDetailsElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const glCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const webglFxRef = useRef<WebGLPostFxRenderer | null>(null);
@@ -327,6 +328,29 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
   const worldPopupsRef = useRef<WorldPopup[]>([]);
   const prevEnergyByAgentRef = useRef<Record<string, number>>({});
   const timeSecRef = useRef<number>(0);
+
+  useEffect(() => {
+    const closeOverflowOnOutsideClick = (event: PointerEvent) => {
+      const menu = hudOverflowRef.current;
+      if (menu?.open && event.target instanceof Node && !menu.contains(event.target)) {
+        menu.open = false;
+      }
+    };
+    const closeOverflowOnEscape = (event: KeyboardEvent) => {
+      const menu = hudOverflowRef.current;
+      if (event.key === 'Escape' && menu?.open) {
+        menu.open = false;
+        menu.querySelector('summary')?.focus();
+      }
+    };
+
+    document.addEventListener('pointerdown', closeOverflowOnOutsideClick);
+    document.addEventListener('keydown', closeOverflowOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOverflowOnOutsideClick);
+      document.removeEventListener('keydown', closeOverflowOnEscape);
+    };
+  }, []);
 
   const pushWorldPopup = useCallback(
     (agent: Pick<StudentAgent, 'position'>, text: string, tone: WorldPopup['tone']) => {
@@ -1391,9 +1415,9 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       {/* =====================================================================
           2. FLOATING TOP GAME HUD (AAA SCI-FI DARK GLASS & METALLIC CYAN/AMBER)
          ===================================================================== */}
-      <header className="pointer-events-none absolute inset-x-3 top-2 z-20 flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
+      <header className="sim-game-hud pointer-events-none absolute inset-x-3 top-2 z-20 flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
         {/* Kiri Atas: Identitas RUANG DENGAR + Waktu & Hari, 3-Nyawa, Progres Kisah, & Kecepatan */}
-        <div className="pointer-events-auto flex shrink-0 flex-wrap items-center gap-1.5 lg:flex-nowrap">
+        <div className="sim-hud-status pointer-events-auto flex shrink-0 flex-wrap items-center gap-1.5 lg:flex-nowrap">
           <button
             type="button"
             onClick={() => {
@@ -1521,7 +1545,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
         </div>
 
         {/* Tengah Atas: Radar Sinyal Prioritas / Status Energi Lab */}
-        <div className="pointer-events-auto order-3 flex min-w-0 flex-1 justify-center lg:order-2">
+        <div className="sim-hud-priority pointer-events-auto order-3 flex min-w-0 flex-1 justify-center lg:order-2">
           {campusMission.topPriorityAgent ? (
             <button
               type="button"
@@ -1567,69 +1591,15 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
           )}
         </div>
 
-        {/* Kanan Atas: Cuaca Dinamis, Shader GPU HD-2D, Mode Pintu Konsultasi, Musik Kampus, Label, Grid, Panduan, Pengaturan */}
-        <div className="pointer-events-auto order-2 flex shrink-0 items-center gap-1.5 lg:order-3">
+        {/* Kontrol pintu utama; fitur visual dan pengaturan tambahan tersedia di menu overflow. */}
+        <div className="sim-hud-tools pointer-events-auto order-2 flex shrink-0 items-center gap-1.5 lg:order-3">
           <button
             type="button"
-            data-testid="toggle-weather-mode"
-            onClick={() => {
-              playSfx('klik');
-              setWeatherMode((cur) =>
-                cur === 'otomatis'
-                  ? 'cerah'
-                  : cur === 'cerah'
-                    ? 'senja'
-                    : cur === 'senja'
-                      ? 'hujan'
-                      : 'otomatis'
-              );
-            }}
-            title="Siklus Cuaca & Atmosfer Pencahayaan Kampus (Otomatis / Cerah / Senja Keemasan / Hujan Cozy) [C]"
-            className={`sim-hud-pill cursor-pointer ${
-              weatherMode === 'hujan' || weatherMode === 'senja' || weatherMode === 'cerah'
-                ? 'sim-hud-pill--cyan'
-                : ''
-            }`}
-          >
-            <span aria-hidden="true">
-              {weatherMode === 'hujan'
-                ? '🌧️'
-                : weatherMode === 'senja'
-                  ? '🌇'
-                  : weatherMode === 'cerah'
-                    ? '☀️'
-                    : '☁️'}
-            </span>
-            <span className="hidden xl:inline">
-              {weatherMode === 'hujan'
-                ? 'Hujan'
-                : weatherMode === 'senja'
-                  ? 'Senja'
-                  : weatherMode === 'cerah'
-                    ? 'Cerah'
-                    : 'Cuaca'}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            data-testid="toggle-hd2d-gpu"
-            aria-pressed={gpuFxEnabled}
-            onClick={() => {
-              playSfx('klik');
-              setGpuFxEnabled((cur) => !cur);
-            }}
-            title="Shader GPU HD-2D WebGL2: Bloom Emisif, Tilt-Shift DoF, Volumetric God-Rays, & ACES Filmic Grading [G]"
-            className={`sim-hud-pill cursor-pointer ${
-              gpuFxEnabled ? 'sim-hud-pill--cyan' : 'opacity-75'
-            }`}
-          >
-            <span aria-hidden="true" className="text-[#00DFFF]">▣</span>
-            <span className="hidden sm:inline">HD-2D</span>
-          </button>
-
-          <button
-            type="button"
+            aria-label={
+              viewOptions.consultationDoorMode === 'lab'
+                ? STRINGS.canvasToolbar.doorVisibilityHintLab
+                : STRINGS.canvasToolbar.doorVisibilityHintSide
+            }
             onClick={() => {
               playSfx('klik');
               handleUpdateViewOptions({
@@ -1653,72 +1623,151 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
             </span>
           </button>
 
-          {onToggleAudio && (
-            <button
-              type="button"
-              onClick={onToggleAudio}
-              aria-pressed={audioEnabled}
-              aria-label={audioEnabled ? 'Matikan musik kampus & suara' : 'Nyalakan musik kampus & suara'}
-              title={audioEnabled ? 'Musik Kampus & Suara Aktif' : 'Nyalakan Musik Kampus & Suara'}
-              className="sim-hud-round-btn !h-10 !w-10 text-base"
+          <details ref={hudOverflowRef} className="sim-hud-overflow">
+            <summary
+              aria-label="Menu lainnya"
+              title="Menu lainnya"
+              className="sim-hud-round-btn sim-hud-overflow-trigger !h-11 !w-11"
             >
-              <span aria-hidden="true">{audioEnabled ? '🔊' : '🔇'}</span>
-            </button>
-          )}
+              <span aria-hidden="true">⋯</span>
+            </summary>
+            <div
+              role="group"
+              aria-label="Kontrol tambahan"
+              className="sim-hud-overflow-panel"
+              onClick={(event) => {
+                if (event.target instanceof HTMLElement && event.target.closest('button')) {
+                  event.currentTarget.closest('details')?.removeAttribute('open');
+                }
+              }}
+            >
+              <button
+                type="button"
+                data-testid="toggle-weather-mode"
+                aria-label={`Cuaca: ${
+                  weatherMode === 'hujan'
+                    ? 'Hujan'
+                    : weatherMode === 'senja'
+                      ? 'Senja'
+                      : weatherMode === 'cerah'
+                        ? 'Cerah'
+                        : 'Otomatis'
+                }`}
+                onClick={() => {
+                  playSfx('klik');
+                  setWeatherMode((cur) =>
+                    cur === 'otomatis'
+                      ? 'cerah'
+                      : cur === 'cerah'
+                        ? 'senja'
+                        : cur === 'senja'
+                          ? 'hujan'
+                          : 'otomatis'
+                  );
+                }}
+                title="Siklus Cuaca & Atmosfer Pencahayaan Kampus (Otomatis / Cerah / Senja Keemasan / Hujan Cozy) [C]"
+                className={`sim-hud-round-btn !h-11 !w-11 ${
+                  weatherMode === 'hujan' || weatherMode === 'senja' || weatherMode === 'cerah'
+                    ? 'sim-hud-round-btn--gold'
+                    : ''
+                }`}
+              >
+                <span aria-hidden="true">
+                  {weatherMode === 'hujan'
+                    ? '🌧️'
+                    : weatherMode === 'senja'
+                      ? '🌇'
+                      : weatherMode === 'cerah'
+                        ? '☀️'
+                        : '☁️'}
+                </span>
+              </button>
 
-          <button
-            type="button"
-            aria-pressed={viewOptions.showZoneLabels}
-            aria-label={STRINGS.canvasToolbar.toggleLabels}
-            title={STRINGS.canvasToolbar.toggleLabels}
-            onClick={() => {
-              playSfx('klik');
-              handleUpdateViewOptions({ showZoneLabels: !viewOptions.showZoneLabels });
-            }}
-            className="sim-hud-round-btn !h-10 !w-10"
-          >
-            <IconTag className="h-4.5 w-4.5" />
-          </button>
+              {onToggleAudio && (
+                <button
+                  type="button"
+                  onClick={onToggleAudio}
+                  aria-pressed={audioEnabled}
+                  aria-label={audioEnabled ? 'Matikan musik kampus & suara' : 'Nyalakan musik kampus & suara'}
+                  title={audioEnabled ? 'Musik Kampus & Suara Aktif' : 'Nyalakan Musik Kampus & Suara'}
+                  className="sim-hud-round-btn !h-11 !w-11 text-base"
+                >
+                  <span aria-hidden="true">{audioEnabled ? '🔊' : '🔇'}</span>
+                </button>
+              )}
 
-          <button
-            type="button"
-            aria-pressed={viewOptions.showGrid}
-            aria-label={STRINGS.canvasToolbar.toggleGrid}
-            title={STRINGS.canvasToolbar.toggleGrid}
-            onClick={() => {
-              playSfx('klik');
-              handleUpdateViewOptions({ showGrid: !viewOptions.showGrid });
-            }}
-            className="sim-hud-round-btn hidden !h-10 !w-10 sm:inline-flex"
-          >
-            <IconGrid className="h-4.5 w-4.5" />
-          </button>
+              <button
+                type="button"
+                data-testid="toggle-hd2d-gpu"
+                aria-pressed={gpuFxEnabled}
+                aria-label="Efek visual HD-2D"
+                onClick={() => {
+                  playSfx('klik');
+                  setGpuFxEnabled((cur) => !cur);
+                }}
+                title="Shader GPU HD-2D WebGL2: Bloom Emisif, Tilt-Shift DoF, Volumetric God-Rays, & ACES Filmic Grading [G]"
+                className={`sim-hud-round-btn !h-11 !w-11 ${
+                  gpuFxEnabled ? 'sim-hud-round-btn--gold' : 'opacity-75'
+                }`}
+              >
+                <span aria-hidden="true" className="text-[#00DFFF]">▣</span>
+              </button>
 
-          <button
-            type="button"
-            aria-label="Panduan Shift Pagi"
-            title="Panduan Shift Pagi"
-            onClick={() => {
-              playSfx('klik');
-              setBriefingOpen(true);
-            }}
-            className="sim-hud-round-btn !h-10 !w-10 font-['Fredoka'] text-sm font-bold"
-          >
-            ?
-          </button>
+              <button
+                type="button"
+                aria-pressed={viewOptions.showZoneLabels}
+                aria-label={STRINGS.canvasToolbar.toggleLabels}
+                title={STRINGS.canvasToolbar.toggleLabels}
+                onClick={() => {
+                  playSfx('klik');
+                  handleUpdateViewOptions({ showZoneLabels: !viewOptions.showZoneLabels });
+                }}
+                className="sim-hud-round-btn !h-11 !w-11"
+              >
+                <IconTag className="h-4.5 w-4.5" />
+              </button>
 
-          <button
-            type="button"
-            aria-label={STRINGS.statusBar.settingsQuick}
-            title={STRINGS.statusBar.settingsQuick}
-            onClick={() => {
-              playSfx('klik');
-              onOpenSettings();
-            }}
-            className="sim-hud-round-btn !h-10 !w-10"
-          >
-            <IconSettings className="h-4.5 w-4.5" />
-          </button>
+              <button
+                type="button"
+                aria-pressed={viewOptions.showGrid}
+                aria-label={STRINGS.canvasToolbar.toggleGrid}
+                title={STRINGS.canvasToolbar.toggleGrid}
+                onClick={() => {
+                  playSfx('klik');
+                  handleUpdateViewOptions({ showGrid: !viewOptions.showGrid });
+                }}
+                className="sim-hud-round-btn !h-11 !w-11"
+              >
+                <IconGrid className="h-4.5 w-4.5" />
+              </button>
+
+              <button
+                type="button"
+                aria-label="Panduan Shift Pagi"
+                title="Panduan Shift Pagi"
+                onClick={() => {
+                  playSfx('klik');
+                  setBriefingOpen(true);
+                }}
+                className="sim-hud-round-btn !h-11 !w-11 font-['Fredoka'] text-sm font-bold"
+              >
+                ?
+              </button>
+
+              <button
+                type="button"
+                aria-label={STRINGS.statusBar.settingsQuick}
+                title={STRINGS.statusBar.settingsQuick}
+                onClick={() => {
+                  playSfx('klik');
+                  onOpenSettings();
+                }}
+                className="sim-hud-round-btn !h-11 !w-11"
+              >
+                <IconSettings className="h-4.5 w-4.5" />
+              </button>
+            </div>
+          </details>
         </div>
       </header>
 
@@ -1780,7 +1829,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
       {/* =====================================================================
           4. FLOATING BOTTOM-LEFT CONTEXTUAL INSPECTOR CARD (OR SLIM LEGEND)
          ===================================================================== */}
-      <div className="pointer-events-none absolute bottom-3.5 left-3.5 z-20 max-w-[min(31rem,calc(100vw-18rem))]">
+      <div className="sim-bottom-legend pointer-events-none absolute bottom-3.5 left-3.5 z-20 max-w-[min(31rem,calc(100vw-18rem))]">
         {selectedAgentSnapshot ? (
           <div
             className="hud-inspector-card fx-panel-in pointer-events-auto"
@@ -1951,7 +2000,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
          ===================================================================== */}
       <nav
         aria-label="Dok Menu Konselor"
-        className="pointer-events-auto absolute bottom-3.5 right-3.5 z-20 flex items-end gap-2.5"
+        className="sim-action-dock pointer-events-auto absolute bottom-3.5 right-3.5 z-20 flex items-end gap-2.5"
       >
         <button
           type="button"
