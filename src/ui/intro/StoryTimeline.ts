@@ -118,7 +118,7 @@ export interface PanelSfxTypographySpec {
 export interface PanelDialogueSpec {
   id: string;
   kind: ComicBubbleKind;
-  speakerId?: string;
+  speakerId: string;
   speakerName?: string;
   text: string;
   bubbleXNorm: number;
@@ -229,7 +229,11 @@ const PROFILE_MAP: Readonly<Record<string, ComicCharacterProfile>> = Object.from
 ]);
 
 export function getCharacterProfile(id: string): ComicCharacterProfile {
-  return PROFILE_MAP[id] ?? DOSEN_CHARACTER_PROFILE;
+  const profile = PROFILE_MAP[id];
+  if (!profile) {
+    throw new Error(`Unknown comic characterId: ${id}`);
+  }
+  return profile;
 }
 
 export const OFFICIAL_LAB_ZONE_IDS: readonly string[] = LAB_MAP.zones.map((z) => z.id);

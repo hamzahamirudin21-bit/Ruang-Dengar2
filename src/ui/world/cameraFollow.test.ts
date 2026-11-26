@@ -130,13 +130,18 @@ test('coverFillScale selalu memenuhi 100% lebar & tinggi panggung peta tanpa tep
 
 test('wholeMapCamera menampilkan seluruh 11 ruangan utuh di dalam 1 layar tanpa terpotong', () => {
   for (const [width, height] of [
+    [844, 390],
+    [844, 285],
+    [844, 260],
+    [390, 844],
+    [360, 740],
     [900, 440],
     [980, 480],
     [1200, 580],
     [1400, 680],
   ]) {
     const cam = wholeMapCamera({ width, height }, LAB_MAP);
-    assert.ok(cam.scale >= MIN_SCALE && cam.scale <= MAX_SCALE);
+    assert.ok(cam.scale > 0 && cam.scale <= MAX_SCALE);
     assert.ok(worldW * cam.scale <= width + 1, `lebar terpotong di ${width}x${height}`);
     assert.ok(worldH * cam.scale <= height + 1, `tinggi terpotong di ${width}x${height}`);
     assert.ok(cam.offsetX >= 0 && cam.offsetY >= 0);

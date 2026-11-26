@@ -103,6 +103,7 @@ export function StoryPortrait({
             : { display: 'inline-block', lineHeight: 0 }
         }
         data-role={role}
+        data-character-id={role === 'dosen' ? DOSEN_ID : studentId}
       >
         <LivingPortrait
           studentId={role === 'dosen' ? DOSEN_ID : (studentId as string)}

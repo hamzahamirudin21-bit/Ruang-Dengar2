@@ -67,7 +67,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-modal-title"
-        className="game-panel-cream fx-panel-in flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden !rounded-[28px] border-[3.5px] border-[#3e2517] shadow-[0_10px_0_#3e2517,0_24px_50px_rgba(38,20,10,0.45)]"
+        className="game-panel-cream responsive-modal-panel responsive-modal-panel--90 fx-panel-in flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden !rounded-[28px] border-[3.5px] border-[#3e2517] shadow-[0_10px_0_#3e2517,0_24px_50px_rgba(38,20,10,0.45)]"
       >
         <div className="flex items-center justify-between border-b-[3px] border-[#3e2517] bg-gradient-to-r from-[#9c613b] via-[#8a5230] to-[#774425] px-6 py-4 text-[#fffdf6]">
           <div>

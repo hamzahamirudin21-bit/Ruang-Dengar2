@@ -48,7 +48,7 @@ export const PoseQcModal: React.FC<PoseQcModalProps> = ({ isOpen, onClose }) => 
       aria-label="Visual Quality Control 360 Pose Karakter"
       data-testid="pose-qc-modal"
     >
-      <div className="flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border-2 border-sky-400/50 bg-slate-900 text-white shadow-2xl">
+      <div className="responsive-modal-panel responsive-modal-panel--92 flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border-2 border-sky-400/50 bg-slate-900 text-white shadow-2xl">
         {/* Header Ringkas QC */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 bg-slate-950 px-5 py-3">
           <div>

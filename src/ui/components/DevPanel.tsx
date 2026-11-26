@@ -80,7 +80,7 @@ export const DevPanel: React.FC<DevPanelProps> = ({
     <aside
       aria-label={STRINGS.devPanel.title}
       data-testid="dev-panel"
-      className="fixed top-28 left-4 z-40 max-h-[calc(100vh-13rem)] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-4 shadow-xl"
+      className="responsive-dev-panel fixed top-28 left-4 z-40 max-h-[calc(100vh-13rem)] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-4 shadow-xl"
     >
       <div className="flex items-center justify-between gap-2 border-b border-[var(--ui-border)] pb-2.5">
         <h2 className="text-sm font-semibold text-[var(--ui-text)]">

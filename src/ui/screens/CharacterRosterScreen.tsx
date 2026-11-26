@@ -135,7 +135,7 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
     const inner = containerRef.current;
     const measure = () => {
       const innerW = inner?.clientWidth;
-      const w = innerW ? innerW + 40 : (el?.clientWidth || window.innerWidth);
+      const w = innerW || el?.clientWidth || window.innerWidth;
       const h = el?.clientHeight || window.innerHeight;
       setViewport((v) => (v.width === w && v.height === h ? v : { width: w, height: h }));
     };
@@ -157,7 +157,9 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
   );
 
   useEffect(() => {
-    rootRef.current?.querySelector<HTMLButtonElement>('[data-continue="true"]')?.focus();
+    rootRef.current
+      ?.querySelector<HTMLButtonElement>('[data-continue="true"]')
+      ?.focus({ preventScroll: true });
   }, []);
 
   useEffect(() => {
@@ -377,7 +379,11 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
            =================================================================== */}
         {visibleModels.length > 0 ? (
           <ul
-            className="grid min-h-0 w-full flex-1 content-center items-stretch px-0.5 py-0.5"
+            className={`grid min-h-0 w-full items-stretch px-0.5 py-0.5 ${
+              layout.fitsOneScreen
+                ? 'flex-1 content-center'
+                : 'flex-none content-start'
+            }`}
             style={{
               gridTemplateColumns: `repeat(${layout.columns}, minmax(0, 1fr))`,
               gap: `${Math.max(10, layout.gap + 1)}px`,

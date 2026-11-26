@@ -23,7 +23,7 @@ export const MorningBriefingModal: React.FC<MorningBriefingModalProps> = ({ onSt
       data-testid="morning-briefing-modal"
       className="fixed inset-0 z-[75] flex items-center justify-center bg-[#2c1a0e]/68 p-4 backdrop-blur-xs"
     >
-      <div className="game-panel-cream fx-panel-in relative grid w-full max-w-2xl overflow-hidden !rounded-[28px] border-[3.5px] border-[#3e2517] shadow-[0_10px_0_#3e2517,0_26px_60px_rgba(38,20,10,0.5)] sm:grid-cols-[0.82fr_1.18fr]">
+      <div className="game-panel-cream responsive-modal-panel responsive-modal-panel--90 responsive-modal-scroll fx-panel-in relative grid w-full max-w-2xl overflow-hidden !rounded-[28px] border-[3.5px] border-[#3e2517] shadow-[0_10px_0_#3e2517,0_26px_60px_rgba(38,20,10,0.5)] sm:grid-cols-[0.82fr_1.18fr]">
         {/* Sisi Kiri: Ibu Dosen BK + Cap Pagi Hangat */}
         <div className="relative flex flex-col items-center justify-end overflow-hidden border-b-[3px] border-[#3e2517] bg-gradient-to-b from-[#fce6b8] via-[#f6cf8a] to-[#e6ac62] px-4 pt-5 sm:border-b-0 sm:border-r-[3px]">
           <span className="absolute left-3 top-3 rounded-full border-2 border-[#3e2517] bg-[#d9534f] px-3 py-0.5 font-['Fredoka'] text-[11px] font-bold uppercase tracking-wider text-[#fffaf0] shadow-[0_3px_0_#3e2517]">

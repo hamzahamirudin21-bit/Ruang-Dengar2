@@ -1,6 +1,6 @@
 /**
  * Penata Daftar Karakter ringkas (fungsi murni).
- * Memilih jumlah kolom (5 → 2) agar semua kartu muat dalam satu layar.
+ * Memilih jumlah kolom (6 → 2) agar kartu tetap terbaca dan muat bila memungkinkan.
  */
 
 export interface RosterLayout {
@@ -53,7 +53,12 @@ export function computeRosterLayout(
     }
   }
 
-  const columns = 2;
+  const columns =
+    COLUMN_CANDIDATES.find((candidate) => {
+      const cardWidth =
+        (width - 2 * PAD_X - (candidate - 1) * GAP) / candidate;
+      return candidate <= total && cardWidth >= MIN_CARD_WIDTH;
+    }) ?? 2;
   return {
     columns,
     rows: Math.ceil(total / columns),

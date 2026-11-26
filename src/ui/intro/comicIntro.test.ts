@@ -1,8 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { STUDENT_BLUEPRINTS } from '../../data/agents.seed';
 import { LAB_MAP } from '../../data/map';
 import { STUDENT_BACKGROUNDS } from '../../data/studentBackgrounds';
+import { STORY_GRAPHS } from '../../data/stories';
+import { assetUrl, parseManifest, resolvePortraitSource } from '../characters/assetSlots';
 import {
   COMIC_CHARACTER_PROFILES,
   COMIC_STORY_PAGES,
@@ -45,6 +48,65 @@ test('memuat seluruh 18 karakter miniatur dari dataset simulasi utama (Raka s.d.
 
   assert.equal(getCharacterProfile('dosen').id, DOSEN_CHARACTER_PROFILE.id);
   assert.equal(DOSEN_CHARACTER_PROFILE.spriteUrl, '/assets/characters/dosen-sprite.png');
+});
+
+test('conversation, comic speakers, and portrait assets stay bound to the same character ID', () => {
+  const rawManifest: unknown = JSON.parse(
+    readFileSync(new URL('../../../public/assets/characters/manifest.json', import.meta.url), 'utf8'),
+  );
+  const manifest = parseManifest(rawManifest);
+  assert.ok(manifest, 'Manifest aset karakter harus valid');
+
+  const blueprintsById = new Map(STUDENT_BLUEPRINTS.map((blueprint) => [blueprint.id, blueprint]));
+  const knownIds = new Set(['dosen', ...blueprintsById.keys()]);
+
+  assert.deepEqual(Object.keys(STORY_GRAPHS).sort(), [...blueprintsById.keys()].sort());
+  for (const [characterId, graph] of Object.entries(STORY_GRAPHS)) {
+    assert.equal(graph.studentId, characterId, `Graf percakapan ${characterId} harus memakai ID yang sama`);
+  }
+
+  for (const characterId of knownIds) {
+    const profile = getCharacterProfile(characterId);
+    assert.equal(profile.id, characterId);
+
+    const asset = manifest.characters[characterId];
+    assert.ok(asset?.portrait, `Portrait asli harus terdaftar untuk ${characterId}`);
+    const portraitUrl = assetUrl(asset.portrait);
+    assert.equal(portraitUrl, assetUrl(`${characterId}-portrait.png`));
+    assert.deepEqual(
+      resolvePortraitSource(characterId, 'netral', manifest, new Set([portraitUrl])),
+      { kind: 'aset', url: portraitUrl, specificExpression: false },
+    );
+  }
+
+  for (const page of COMIC_STORY_PAGES) {
+    for (const panel of page.panels) {
+      for (const actor of panel.actors) {
+        assert.ok(knownIds.has(actor.characterId), `Karakter panel ${actor.characterId} harus terdaftar`);
+        assert.equal(getCharacterProfile(actor.characterId).id, actor.characterId);
+      }
+      for (const dialogue of panel.dialogues) {
+        assert.ok(dialogue.speakerId, `Dialog ${dialogue.id} harus memiliki speakerId eksplisit`);
+        assert.ok(knownIds.has(dialogue.speakerId), `Speaker ${dialogue.speakerId} harus terdaftar`);
+        const blueprint = blueprintsById.get(dialogue.speakerId);
+        if (blueprint && dialogue.speakerName) {
+          assert.equal(
+            dialogue.speakerName,
+            blueprint.name.split(' ')[0],
+            `Nama dialog ${dialogue.id} harus cocok dengan ${dialogue.speakerId}`,
+          );
+        }
+      }
+    }
+  }
+
+  const sari = blueprintsById.get('mhs-12');
+  assert.ok(sari);
+  assert.equal(sari.name, 'Sari Melati');
+  assert.equal(STORY_GRAPHS['mhs-12'].studentId, 'mhs-12');
+  assert.equal(getCharacterProfile('mhs-12').name, sari.name);
+  assert.equal(manifest.characters['mhs-12']?.portrait, 'mhs-12-portrait.png');
+  assert.throws(() => getCharacterProfile('unknown-character'), /Unknown comic characterId/);
 });
 
 test('menghubungkan seluruh 11 ruangan resmi pada LAB_MAP.zones ke dalam panel-panel komik', () => {

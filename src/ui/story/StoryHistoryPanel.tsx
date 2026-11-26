@@ -65,7 +65,7 @@ export function StoryHistoryPanel({
         aria-modal="true"
         aria-labelledby={TITLE_ID}
         onClick={(e) => e.stopPropagation()}
-        className={`vn-box--solid flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden ${
+        className={`vn-box--solid responsive-modal-panel responsive-modal-panel--85 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden ${
           reducedMotion ? '' : 'fx-panel-in'
         }`}
       >

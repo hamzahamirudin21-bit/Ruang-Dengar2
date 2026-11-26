@@ -73,6 +73,11 @@ Tambahan yang berguna:
 - Pemeriksaan tipe: `npm run lint` (menjalankan `tsc --noEmit`).
 - Build klien: `npm run build`.
 - Ekspor tinjauan dialog ke Markdown: `npx tsx scripts/exportStoryReview.ts mhs-01 mhs-02 ...` (sebutkan id mahasiswa yang ingin ditinjau; hasilnya ditulis ke `docs/story-review/`).
+
+## Deployment Vercel
+
+Impor repositori sebagai proyek Vite di Vercel. Konfigurasi `vercel.json` menjalankan `npm run build` dan menerbitkan `dist`; fungsi di `api/gemini/` menyediakan endpoint Gemini yang sama dengan server pengembangan. Tambahkan `GEMINI_API_KEY` (dan opsional `GEMINI_MODEL`) melalui pengaturan Environment Variables Vercel, bukan ke source code. Tanpa kunci, simulasi tetap berfungsi menggunakan dialog offline.
+
 ## Variabel lingkungan
 
 | Variabel | Fungsi | Wajib |
@@ -100,7 +105,7 @@ Aplikasi dapat dijalankan penuh tanpa kunci. Biarkan `GEMINI_API_KEY` kosong ata
 - **`src/engine`**: logika simulasi deterministik dalam TypeScript murni, tanpa React atau DOM. Mencakup jam, generator acak ber-seed, pencarian jalur, agen, kepercayaan, keterbukaan, ruptur, sosiometri, dan dunia harian. Bagian ini diuji dengan `node:test`.
 - **`src/data`**: data dan konten, yaitu peta, benih mahasiswa, konfigurasi jalur kontak, efek keterampilan, teks antarmuka, dan templat ujaran.
 - **`src/llm`**: lapisan dialog. Berisi konfigurasi model, klien, pengklasifikasi keterampilan, pembangkit ujaran, cache, logger, dan validator yang menyaring keluaran model. Templat offline menjadi cadangan.
-- **`server.ts`**: server Express yang menjadi proksi ke Gemini lewat endpoint `/api/gemini/health`, `/api/gemini/classify`, dan `/api/gemini/utterance`, serta melayani klien (Vite pada mode pengembangan). Kunci API hanya dibaca di server dan tidak pernah dikirim ke klien.
+- **`server.ts` dan `api/gemini/`**: server Express lokal dan fungsi serverless Vercel menyediakan endpoint `/api/gemini/health`, `/api/gemini/classify`, dan `/api/gemini/utterance`. Logika bersama ada di `src/llm/geminiApi.ts`; kunci hanya dibaca di server dan tidak pernah dikirim ke klien.
 - **`src/ui`**: antarmuka React dan kanvas untuk layar awal, simulasi, panel pengamatan, sosiogram, dan panel pengembang.
 
 ## Struktur folder
@@ -108,6 +113,7 @@ Aplikasi dapat dijalankan penuh tanpa kunci. Biarkan `GEMINI_API_KEY` kosong ata
 ```text
 .
 ├── server.ts              Server Express (proksi Gemini, penyaji klien)
+├── api/gemini/            Fungsi serverless Vercel untuk endpoint Gemini
 ├── index.html             Titik masuk klien
 ├── .env.example           Templat variabel lingkungan
 ├── docs/                  Catatan perubahan dan keputusan desain

@@ -96,7 +96,7 @@ export const TheoryLibraryModal: React.FC<TheoryLibraryModalProps> = ({ isOpen, 
       onClick={onClose}
     >
       <div
-        className="game-panel-cream fx-panel-in flex max-h-[89vh] w-full max-w-4xl flex-col overflow-hidden !rounded-[28px] border-[3.5px] border-[#3e2517] shadow-[0_10px_0_#3e2517,0_26px_60px_rgba(32,16,8,0.52)]"
+        className="game-panel-cream responsive-modal-panel responsive-modal-panel--89 fx-panel-in flex max-h-[89vh] w-full max-w-4xl flex-col overflow-hidden !rounded-[28px] border-[3.5px] border-[#3e2517] shadow-[0_10px_0_#3e2517,0_26px_60px_rgba(32,16,8,0.52)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Buku Ilustrasi Psikologi */}
