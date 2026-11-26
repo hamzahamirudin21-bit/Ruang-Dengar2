@@ -1,0 +1,484 @@
+{
+    "characterId":  "mhs-03",
+    "slug":  "tania",
+    "name":  "Tania Wijaya",
+    "masterReferencePath":  "/assets/anime-characters/tania/reference/tania_master_model_sheet.png",
+    "poses":  {
+                  "P01":  {
+                              "id":  "P01",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_01_neutral.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P02":  {
+                              "id":  "P02",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_02_smile.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P03":  {
+                              "id":  "P03",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_03_laugh.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P04":  {
+                              "id":  "P04",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_04_excited.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P05":  {
+                              "id":  "P05",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_05_thinking.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P06":  {
+                              "id":  "P06",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_06_curious.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P07":  {
+                              "id":  "P07",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_07_confused.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P08":  {
+                              "id":  "P08",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_08_surprised.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P09":  {
+                              "id":  "P09",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_09_worried.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P10":  {
+                              "id":  "P10",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_10_sad.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P11":  {
+                              "id":  "P11",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_11_exhausted.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P12":  {
+                              "id":  "P12",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_12_frustrated.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P13":  {
+                              "id":  "P13",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_13_confident.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P14":  {
+                              "id":  "P14",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_14_explaining.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P15":  {
+                              "id":  "P15",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_15_pointing.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P16":  {
+                              "id":  "P16",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_16_open_invitation.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P17":  {
+                              "id":  "P17",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_17_listening.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P18":  {
+                              "id":  "P18",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_18_reassuring.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P19":  {
+                              "id":  "P19",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_19_shy.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          },
+                  "P20":  {
+                              "id":  "P20",
+                              "assetPath":  "/assets/anime-characters/tania/poses/tania_pose_20_serious_focus.png",
+                              "width":  480,
+                              "height":  760,
+                              "anchor":  "bottom-center",
+                              "available":  true
+                          }
+              },
+    "expressions":  {
+                        "neutral":  {
+                                        "id":  "neutral",
+                                        "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_neutral.png",
+                                        "width":  480,
+                                        "height":  760,
+                                        "anchor":  "bottom-center",
+                                        "available":  true
+                                    },
+                        "happy":  {
+                                      "id":  "happy",
+                                      "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_happy.png",
+                                      "width":  480,
+                                      "height":  760,
+                                      "anchor":  "bottom-center",
+                                      "available":  true
+                                  },
+                        "laughing":  {
+                                         "id":  "laughing",
+                                         "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_laughing.png",
+                                         "width":  480,
+                                         "height":  760,
+                                         "anchor":  "bottom-center",
+                                         "available":  true
+                                     },
+                        "excited":  {
+                                        "id":  "excited",
+                                        "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_excited.png",
+                                        "width":  480,
+                                        "height":  760,
+                                        "anchor":  "bottom-center",
+                                        "available":  true
+                                    },
+                        "thinking":  {
+                                         "id":  "thinking",
+                                         "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_thinking.png",
+                                         "width":  480,
+                                         "height":  760,
+                                         "anchor":  "bottom-center",
+                                         "available":  true
+                                     },
+                        "curious":  {
+                                        "id":  "curious",
+                                        "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_curious.png",
+                                        "width":  480,
+                                        "height":  760,
+                                        "anchor":  "bottom-center",
+                                        "available":  true
+                                    },
+                        "confused":  {
+                                         "id":  "confused",
+                                         "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_confused.png",
+                                         "width":  480,
+                                         "height":  760,
+                                         "anchor":  "bottom-center",
+                                         "available":  true
+                                     },
+                        "surprised":  {
+                                          "id":  "surprised",
+                                          "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_surprised.png",
+                                          "width":  480,
+                                          "height":  760,
+                                          "anchor":  "bottom-center",
+                                          "available":  true
+                                      },
+                        "worried":  {
+                                        "id":  "worried",
+                                        "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_worried.png",
+                                        "width":  480,
+                                        "height":  760,
+                                        "anchor":  "bottom-center",
+                                        "available":  true
+                                    },
+                        "sad":  {
+                                    "id":  "sad",
+                                    "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_sad.png",
+                                    "width":  480,
+                                    "height":  760,
+                                    "anchor":  "bottom-center",
+                                    "available":  true
+                                },
+                        "tired":  {
+                                      "id":  "tired",
+                                      "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_tired.png",
+                                      "width":  480,
+                                      "height":  760,
+                                      "anchor":  "bottom-center",
+                                      "available":  true
+                                  },
+                        "frustrated":  {
+                                           "id":  "frustrated",
+                                           "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_frustrated.png",
+                                           "width":  480,
+                                           "height":  760,
+                                           "anchor":  "bottom-center",
+                                           "available":  true
+                                       },
+                        "confident":  {
+                                          "id":  "confident",
+                                          "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_confident.png",
+                                          "width":  480,
+                                          "height":  760,
+                                          "anchor":  "bottom-center",
+                                          "available":  true
+                                      },
+                        "serious":  {
+                                        "id":  "serious",
+                                        "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_serious.png",
+                                        "width":  480,
+                                        "height":  760,
+                                        "anchor":  "bottom-center",
+                                        "available":  true
+                                    },
+                        "shy":  {
+                                    "id":  "shy",
+                                    "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_shy.png",
+                                    "width":  480,
+                                    "height":  760,
+                                    "anchor":  "bottom-center",
+                                    "available":  true
+                                },
+                        "reassuring":  {
+                                           "id":  "reassuring",
+                                           "assetPath":  "/assets/anime-characters/tania/expressions/tania_expression_reassuring.png",
+                                           "width":  480,
+                                           "height":  760,
+                                           "anchor":  "bottom-center",
+                                           "available":  true
+                                       }
+                    },
+    "animations":  {
+                       "idle":  [
+                                    {
+                                        "id":  "idle_01",
+                                        "assetPath":  "/assets/anime-characters/tania/animations/idle/tania_animation_idle_01.png",
+                                        "width":  480,
+                                        "height":  760,
+                                        "anchor":  "bottom-center",
+                                        "available":  true
+                                    },
+                                    {
+                                        "id":  "idle_02",
+                                        "assetPath":  "/assets/anime-characters/tania/animations/idle/tania_animation_idle_02.png",
+                                        "width":  480,
+                                        "height":  760,
+                                        "anchor":  "bottom-center",
+                                        "available":  true
+                                    },
+                                    {
+                                        "id":  "idle_03",
+                                        "assetPath":  "/assets/anime-characters/tania/animations/idle/tania_animation_idle_03.png",
+                                        "width":  480,
+                                        "height":  760,
+                                        "anchor":  "bottom-center",
+                                        "available":  true
+                                    },
+                                    {
+                                        "id":  "idle_04",
+                                        "assetPath":  "/assets/anime-characters/tania/animations/idle/tania_animation_idle_04.png",
+                                        "width":  480,
+                                        "height":  760,
+                                        "anchor":  "bottom-center",
+                                        "available":  true
+                                    },
+                                    {
+                                        "id":  "idle_05",
+                                        "assetPath":  "/assets/anime-characters/tania/animations/idle/tania_animation_idle_05.png",
+                                        "width":  480,
+                                        "height":  760,
+                                        "anchor":  "bottom-center",
+                                        "available":  true
+                                    },
+                                    {
+                                        "id":  "idle_06",
+                                        "assetPath":  "/assets/anime-characters/tania/animations/idle/tania_animation_idle_06.png",
+                                        "width":  480,
+                                        "height":  760,
+                                        "anchor":  "bottom-center",
+                                        "available":  true
+                                    }
+                                ],
+                       "walking":  [
+                                       {
+                                           "id":  "walk_01",
+                                           "assetPath":  "/assets/anime-characters/tania/animations/walking/tania_animation_walk_01.png",
+                                           "width":  480,
+                                           "height":  760,
+                                           "anchor":  "bottom-center",
+                                           "available":  true
+                                       },
+                                       {
+                                           "id":  "walk_02",
+                                           "assetPath":  "/assets/anime-characters/tania/animations/walking/tania_animation_walk_02.png",
+                                           "width":  480,
+                                           "height":  760,
+                                           "anchor":  "bottom-center",
+                                           "available":  true
+                                       },
+                                       {
+                                           "id":  "walk_03",
+                                           "assetPath":  "/assets/anime-characters/tania/animations/walking/tania_animation_walk_03.png",
+                                           "width":  480,
+                                           "height":  760,
+                                           "anchor":  "bottom-center",
+                                           "available":  true
+                                       },
+                                       {
+                                           "id":  "walk_04",
+                                           "assetPath":  "/assets/anime-characters/tania/animations/walking/tania_animation_walk_04.png",
+                                           "width":  480,
+                                           "height":  760,
+                                           "anchor":  "bottom-center",
+                                           "available":  true
+                                       },
+                                       {
+                                           "id":  "walk_05",
+                                           "assetPath":  "/assets/anime-characters/tania/animations/walking/tania_animation_walk_05.png",
+                                           "width":  480,
+                                           "height":  760,
+                                           "anchor":  "bottom-center",
+                                           "available":  true
+                                       },
+                                       {
+                                           "id":  "walk_06",
+                                           "assetPath":  "/assets/anime-characters/tania/animations/walking/tania_animation_walk_06.png",
+                                           "width":  480,
+                                           "height":  760,
+                                           "anchor":  "bottom-center",
+                                           "available":  true
+                                       },
+                                       {
+                                           "id":  "walk_07",
+                                           "assetPath":  "/assets/anime-characters/tania/animations/walking/tania_animation_walk_07.png",
+                                           "width":  480,
+                                           "height":  760,
+                                           "anchor":  "bottom-center",
+                                           "available":  true
+                                       },
+                                       {
+                                           "id":  "walk_08",
+                                           "assetPath":  "/assets/anime-characters/tania/animations/walking/tania_animation_walk_08.png",
+                                           "width":  480,
+                                           "height":  760,
+                                           "anchor":  "bottom-center",
+                                           "available":  true
+                                       }
+                                   ],
+                       "talking":  [
+                                       {
+                                           "id":  "talk_01",
+                                           "assetPath":  "/assets/anime-characters/tania/animations/talking/tania_animation_talk_01.png",
+                                           "width":  480,
+                                           "height":  760,
+                                           "anchor":  "bottom-center",
+                                           "available":  true
+                                       },
+                                       {
+                                           "id":  "talk_02",
+                                           "assetPath":  "/assets/anime-characters/tania/animations/talking/tania_animation_talk_02.png",
+                                           "width":  480,
+                                           "height":  760,
+                                           "anchor":  "bottom-center",
+                                           "available":  true
+                                       },
+                                       {
+                                           "id":  "talk_03",
+                                           "assetPath":  "/assets/anime-characters/tania/animations/talking/tania_animation_talk_03.png",
+                                           "width":  480,
+                                           "height":  760,
+                                           "anchor":  "bottom-center",
+                                           "available":  true
+                                       },
+                                       {
+                                           "id":  "talk_04",
+                                           "assetPath":  "/assets/anime-characters/tania/animations/talking/tania_animation_talk_04.png",
+                                           "width":  480,
+                                           "height":  760,
+                                           "anchor":  "bottom-center",
+                                           "available":  true
+                                       }
+                                   ],
+                       "gestures":  [
+                                        {
+                                            "id":  "gesture_01",
+                                            "assetPath":  "/assets/anime-characters/tania/animations/gestures/tania_animation_gesture_01.png",
+                                            "width":  480,
+                                            "height":  760,
+                                            "anchor":  "bottom-center",
+                                            "available":  true
+                                        },
+                                        {
+                                            "id":  "gesture_02",
+                                            "assetPath":  "/assets/anime-characters/tania/animations/gestures/tania_animation_gesture_02.png",
+                                            "width":  480,
+                                            "height":  760,
+                                            "anchor":  "bottom-center",
+                                            "available":  true
+                                        },
+                                        {
+                                            "id":  "gesture_03",
+                                            "assetPath":  "/assets/anime-characters/tania/animations/gestures/tania_animation_gesture_03.png",
+                                            "width":  480,
+                                            "height":  760,
+                                            "anchor":  "bottom-center",
+                                            "available":  true
+                                        },
+                                        {
+                                            "id":  "gesture_04",
+                                            "assetPath":  "/assets/anime-characters/tania/animations/gestures/tania_animation_gesture_04.png",
+                                            "width":  480,
+                                            "height":  760,
+                                            "anchor":  "bottom-center",
+                                            "available":  true
+                                        }
+                                    ]
+                   }
+}

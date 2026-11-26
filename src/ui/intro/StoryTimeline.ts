@@ -3,7 +3,42 @@ import { LAB_MAP } from '../../data/map';
 import { STUDENT_BACKGROUNDS } from '../../data/studentBackgrounds';
 import { STUDENT_APPEARANCES, type CharacterAppearance } from '../characters/appearance';
 import type { Direction } from '../characters/pixelGrid';
+import type { PoseId } from '../characters/poseCatalog';
 import { IntroSfxKind } from '../motion/sfx';
+
+export type CameraShotType =
+  | 'extreme-close-up'
+  | 'close-up'
+  | 'medium-shot'
+  | 'medium-full-shot'
+  | 'full-body-shot'
+  | 'wide-shot';
+
+export type CameraDirectionType =
+  | 'tracking'
+  | 'pan'
+  | 'dolly-in'
+  | 'dolly-out'
+  | 'over-the-shoulder'
+  | 'reaction-shot'
+  | 'focus-transition';
+
+export type ActionStageKind =
+  | 'lab-map-wide'
+  | 'building-sign-ecu'
+  | 'stepping-feet-ecu'
+  | 'door-handle-ecu'
+  | 'corridor-medium-walk'
+  | 'oscilloscope-medium-bench'
+  | 'coding-medium-desk'
+  | 'printer-3d-ecu'
+  | 'welding-k3-medium'
+  | 'discussion-medium-table'
+  | 'studio-design-medium'
+  | 'gudang-calibration-closeup'
+  | 'reading-corner-medium'
+  | 'robotics-corridor-track'
+  | 'community-reaction-strip';
 
 export type MiniSpriteActivity = 'idle' | 'walk' | 'turn' | 'interact' | 'talk' | 'work';
 
@@ -30,10 +65,8 @@ export type PanelEnterDirection =
 export type ComicBubbleKind = 'speech' | 'thought' | 'narration';
 
 export interface TileViewport {
-  /** Koordinat tile kiri-atas pada LAB_MAP (52x24) */
   x: number;
   y: number;
-  /** Lebar & tinggi area pandang dalam satuan tile LAB_MAP */
   w: number;
   h: number;
 }
@@ -58,17 +91,15 @@ export interface ComicCharacterProfile {
 export interface PanelMiniActorSpec {
   characterId: string;
   activity: MiniSpriteActivity;
-  /** Posisi tile awal pada LAB_MAP (koordinat kaki karakter) */
+  /** Pose P01..P20 spesifik untuk framing Close-Up / Medium Shot / Medium Full Shot */
+  poseId?: PoseId;
+  /** Posisi horizontal normalisasi (0.1..0.9) saat dirender pada medium/close-up stage */
+  stageXNorm?: number;
   startTile: { x: number; y: number };
-  /** Titik-titik jalur jalan dalam koordinat tile LAB_MAP (bila activity === 'walk') */
   waypoints?: readonly { x: number; y: number }[];
-  /** Arah hadap sprite 4 arah asli ('down' | 'left' | 'right' | 'up') */
   facing: Direction;
-  /** Arah hadap kedua saat activity === 'turn' */
   turnToFacing?: Direction;
-  /** Efek interaksi peralatan laboratorium di depan sprite */
   workEffect?: LabWorkEffectKind;
-  /** Label status mikro opsional di bawah/atas peralatan */
   stationTag?: string;
 }
 
@@ -90,7 +121,6 @@ export interface PanelDialogueSpec {
   speakerId?: string;
   speakerName?: string;
   text: string;
-  /** Posisi balon di dalam panel (normalisasi 0..1) di area aman bebas karakter */
   bubbleXNorm: number;
   bubbleYNorm: number;
   startOffsetMs: number;
@@ -100,13 +130,15 @@ export interface PanelDialogueSpec {
 export interface ComicPanelBlueprint {
   id: string;
   title: string;
-  /** Daftar ID zona ruangan dari LAB_MAP.zones yang ditampilkan pada panel ini */
+  /** Jenis framing kamera fleksibel sesuai kebutuhan adegan */
+  shotType: CameraShotType;
+  /** Arah gerak kamera sinematik */
+  cameraDirection: CameraDirectionType;
+  /** Jenis panggung aksi 2D yang dirender pada panel ini */
+  actionStage: ActionStageKind;
   focusZoneIds: readonly string[];
-  /** Viewport awal kamera pada koordinat tile LAB_MAP (52x24) */
   startViewport: TileViewport;
-  /** Viewport akhir kamera pada koordinat tile LAB_MAP untuk pan/zoom kamera halus */
   endViewport: TileViewport;
-  /** Mode pencahayaan ekstra panel */
   ambientTheme: 'morning-exterior' | 'corridor-entry' | 'lab-interior' | 'title-climax';
   gridClass: string;
   revealAtMs: number;
@@ -150,10 +182,6 @@ const DOSEN_APPEARANCE: CharacterAppearance = {
   sceneHint: 'meja-diskusi',
 };
 
-/**
- * Registry karakter komik yang terhubung langsung dengan STUDENT_BLUEPRINTS,
- * STUDENT_BACKGROUNDS, dan STUDENT_APPEARANCES pada simulasi utama.
- */
 export const COMIC_CHARACTER_PROFILES: readonly ComicCharacterProfile[] = STUDENT_BLUEPRINTS.map(
   (bp, idx) => {
     const bg = STUDENT_BACKGROUNDS[bp.id];
@@ -204,35 +232,40 @@ export function getCharacterProfile(id: string): ComicCharacterProfile {
   return PROFILE_MAP[id] ?? DOSEN_CHARACTER_PROFILE;
 }
 
-/** Memastikan seluruh ID zona pada panel komik merujuk pada LAB_MAP.zones resmi simulasi utama */
 export const OFFICIAL_LAB_ZONE_IDS: readonly string[] = LAB_MAP.zones.map((z) => z.id);
 
 /**
- * 6 Halaman Komik Sinematik Berbasis Peta Simulasi LAB_MAP & Mini Character Sprites
+ * 6 Babak Action-Driven Cinematic Anime Motion Comic (59.0 detik)
+ * Memadukan Extreme Close-Up, Close-Up, Medium Shot, Medium Full Shot,
+ * Full-Body Shot, dan Wide Establishing Shot secara sinematik.
  */
 export const COMIC_STORY_PAGES: readonly ComicPageBlueprint[] = [
   // ==========================================================================
-  // SCENE 01 / PAGE 1 — MORNING AT CAMPUS (0.0s – 9.0s)
-  // Lingkungan Gedung Laboratorium, Pepohonan Rimbun, Tangga Masuk Selatan,
-  // Papan Nama, Lampu Bangunan, Pot Tanaman & Mahasiswa Miniatur Berjalan
+  // SCENE 01 — MORNING AT CAMPUS (0.0s – 9.0s)
+  // 1. Wide shot gedung + dolly-in
+  // 2. Extreme close-up papan nama gedung + sinar pagi
+  // 3. Full-body shot mahasiswa berjalan menuju pintu masuk
   // ==========================================================================
   {
     pageNumber: 1,
     id: 'scene-01-morning-at-campus',
     code: 'SCENE 01 / 06',
     title: 'MORNING AT CAMPUS — FAJAR DI GEDUNG LABORATORIUM',
-    subtitle: 'Gedung Laboratorium Elektronika & IoT, Taman Kampus & Mahasiswa Miniatur Tiba',
+    subtitle: 'Wide Establishing Shot Gedung · Close-Up Papan Nama · Transisi Pintu Masuk',
     startTimeMs: 0,
     durationMs: 9000,
     pageGridClass: 'grid-cols-12 grid-rows-6',
     ambientSfx: 'ambient-chime',
     panels: [
       {
-        id: 'p1-splash-lab-building',
-        title: 'GEDUNG LABORATORIUM ELEKTRONIKA & IoT',
+        id: 'p1-wide-campus',
+        title: 'WIDE SHOT · GEDUNG LABORATORIUM ELEKTRONIKA & IoT',
+        shotType: 'wide-shot',
+        cameraDirection: 'dolly-in',
+        actionStage: 'lab-map-wide',
         focusZoneIds: OFFICIAL_LAB_ZONE_IDS,
-        startViewport: { x: -1.2, y: -1.0, w: 54.4, h: 26.2 },
-        endViewport: { x: 2.0, y: 0.5, w: 48.0, h: 23.2 },
+        startViewport: { x: -1.5, y: -1.0, w: 55.0, h: 26.2 },
+        endViewport: { x: 4.0, y: 2.0, w: 44.0, h: 21.0 },
         ambientTheme: 'morning-exterior',
         gridClass: 'col-span-12 md:col-span-8 row-span-6',
         revealAtMs: 0,
@@ -241,46 +274,28 @@ export const COMIC_STORY_PAGES: readonly ComicPageBlueprint[] = [
         narrationText: 'Setiap perjalanan besar selalu dimulai dari sebuah tempat.',
         narrationDock: 'top-left',
         actors: [
-          // Mahasiswa miniatur & Ibu Dosen berjalan menuju pintu tangga selatan gedung
           {
             characterId: 'dosen',
             activity: 'walk',
+            poseId: 'P02',
             startTile: { x: 21.5, y: 23.2 },
-            waypoints: [
-              { x: 21.5, y: 20.2 },
-              { x: 21.5, y: 18.5 },
-            ],
+            waypoints: [{ x: 21.5, y: 19.2 }],
             facing: 'atas',
           },
           {
             characterId: 'mhs-01',
             activity: 'walk',
-            startTile: { x: 23.2, y: 22.8 },
-            waypoints: [
-              { x: 23.2, y: 19.5 },
-              { x: 25.0, y: 18.0 },
-            ],
+            poseId: 'P13',
+            startTile: { x: 23.4, y: 22.8 },
+            waypoints: [{ x: 23.4, y: 18.8 }],
             facing: 'atas',
           },
           {
             characterId: 'mhs-03',
             activity: 'walk',
+            poseId: 'P02',
             startTile: { x: 16.5, y: 21.0 },
             waypoints: [{ x: 20.5, y: 21.0 }],
-            facing: 'kanan',
-          },
-          {
-            characterId: 'mhs-04',
-            activity: 'walk',
-            startTile: { x: 14.0, y: 9.5 },
-            waypoints: [{ x: 8.5, y: 9.5 }],
-            facing: 'kiri',
-          },
-          {
-            characterId: 'mhs-05',
-            activity: 'walk',
-            startTile: { x: 35.0, y: 9.5 },
-            waypoints: [{ x: 42.0, y: 9.5 }],
             facing: 'kanan',
           },
         ],
@@ -291,7 +306,7 @@ export const COMIC_STORY_PAGES: readonly ComicPageBlueprint[] = [
             kind: 'speech',
             speakerId: 'mhs-01',
             speakerName: 'Raka',
-            text: 'Pagi yang cerah! Seluruh 11 ruang laboratorium sudah menyala untuk sesi praktikum hari ini.',
+            text: 'Lampu lantai laboratorium sudah menyala semua! Ayo kita mulai eksperimen pagi ini.',
             bubbleXNorm: 0.56,
             bubbleYNorm: 0.84,
             startOffsetMs: 1400,
@@ -300,217 +315,218 @@ export const COMIC_STORY_PAGES: readonly ComicPageBlueprint[] = [
         ],
       },
       {
-        id: 'p1-detail-west-wing',
-        title: 'SAYAP BARAT · BENGKEL LAS K3 & CETAK 3D',
-        focusZoneIds: ['las', 'cetak-3d'],
-        startViewport: { x: -0.6, y: -0.6, w: 22.0, h: 10.2 },
-        endViewport: { x: 0.2, y: 0.0, w: 20.5, h: 9.5 },
+        id: 'p1-ecu-sign',
+        title: 'EXTREME CLOSE-UP · PAPAN NAMA GEDUNG',
+        shotType: 'extreme-close-up',
+        cameraDirection: 'focus-transition',
+        actionStage: 'building-sign-ecu',
+        focusZoneIds: ['elektronik-iot', 'cetak-3d'],
+        startViewport: { x: 0, y: 0, w: 20, h: 10 },
+        endViewport: { x: 1, y: 0, w: 18, h: 9 },
         ambientTheme: 'morning-exterior',
         gridClass: 'col-span-6 md:col-span-4 row-span-3',
-        revealAtMs: 600,
+        revealAtMs: 650,
         enterDirection: 'from-top',
         sfxCue: 'panel-whoosh',
-        narrationText: 'Cahaya pagi menyinari deretan pepohonan & jendela ruang praktikum.',
+        narrationText: 'Pukul 07.15 WIB · Sinar pagi menerangi papan nama laboratorium.',
         narrationDock: 'bottom-left',
+        actors: [],
+        sfxTexts: [
+          {
+            id: 'sfx-s01-shine',
+            text: 'SHING~ ☀',
+            xNorm: 0.78,
+            yNorm: 0.24,
+            rotationDeg: 6,
+            color: '#fef08a',
+            strokeColor: '#0f172a',
+            revealAtMs: 1050,
+            scale: 0.9,
+          },
+        ],
+        dialogues: [],
+      },
+      {
+        id: 'p1-fullbody-approach',
+        title: 'FULL-BODY · MENUJU PINTU MASUK UTAMA',
+        shotType: 'full-body-shot',
+        cameraDirection: 'tracking',
+        actionStage: 'lab-map-wide',
+        focusZoneIds: ['diskusi', 'istirahat'],
+        startViewport: { x: 15.0, y: 17.0, w: 15.0, h: 7.5 },
+        endViewport: { x: 16.0, y: 16.0, w: 14.0, h: 7.0 },
+        ambientTheme: 'morning-exterior',
+        gridClass: 'col-span-6 md:col-span-4 row-span-3',
+        revealAtMs: 1300,
+        enterDirection: 'from-right',
+        sfxCue: 'footstep',
+        narrationText: 'Transisi menuju pintu masuk utama laboratorium.',
+        narrationDock: 'bottom-right',
         actors: [
           {
-            characterId: 'mhs-07',
+            characterId: 'mhs-02',
             activity: 'walk',
-            startTile: { x: 5.5, y: 9.2 },
-            waypoints: [{ x: 5.5, y: 5.5 }],
+            poseId: 'P01',
+            startTile: { x: 21.0, y: 23.4 },
+            waypoints: [{ x: 21.0, y: 19.6 }],
             facing: 'atas',
           },
           {
-            characterId: 'mhs-08',
+            characterId: 'mhs-12',
             activity: 'walk',
-            startTile: { x: 16.0, y: 9.2 },
-            waypoints: [{ x: 16.0, y: 5.5 }],
+            poseId: 'P02',
+            startTile: { x: 23.4, y: 23.4 },
+            waypoints: [{ x: 23.4, y: 19.6 }],
             facing: 'atas',
           },
         ],
         sfxTexts: [],
         dialogues: [],
       },
-      {
-        id: 'p1-detail-south-entrance',
-        title: 'GERBANG SELATAN & TANGGA UTAMA LAB',
-        focusZoneIds: ['diskusi', 'istirahat', 'ruang-dosen'],
-        startViewport: { x: 12.5, y: 16.0, w: 20.0, h: 9.2 },
-        endViewport: { x: 13.5, y: 16.5, w: 18.0, h: 8.5 },
-        ambientTheme: 'morning-exterior',
-        gridClass: 'col-span-6 md:col-span-4 row-span-3',
-        revealAtMs: 1200,
-        enterDirection: 'from-right',
-        sfxCue: 'footstep',
-        narrationText: 'Mahasiswa melangkah menaiki tangga pintu utama gedung.',
-        narrationDock: 'top-right',
-        actors: [
-          {
-            characterId: 'mhs-02',
-            activity: 'walk',
-            startTile: { x: 21.0, y: 23.4 },
-            waypoints: [{ x: 21.0, y: 19.8 }],
-            facing: 'atas',
-          },
-          {
-            characterId: 'mhs-12',
-            activity: 'walk',
-            startTile: { x: 23.5, y: 23.4 },
-            waypoints: [{ x: 23.5, y: 19.6 }],
-            facing: 'atas',
-          },
-        ],
-        sfxTexts: [
-          {
-            id: 'sfx-s01-tap',
-            text: 'TAP... TAP...',
-            xNorm: 0.72,
-            yNorm: 0.76,
-            rotationDeg: -6,
-            color: '#fef08a',
-            strokeColor: '#0f172a',
-            revealAtMs: 1500,
-            scale: 0.9,
-          },
-        ],
-        dialogues: [],
-      },
     ],
   },
 
   // ==========================================================================
-  // SCENE 02 / PAGE 2 — ENTER THE LAB (9.0s – 18.0s)
-  // Pintu Masuk, Koridor Ubin Keramik, Pintu Kaca Geser, Kusen, Plakat Ruangan,
-  // Lampu Koridor, Tanaman Pot & Furnitur Terlihat dari Dalam Ruangan
+  // SCENE 02 — ENTER THE LAB (9.0s – 18.5s)
+  // 1. Medium shot mahasiswa berjalan di koridor
+  // 2. Extreme close-up langkah kaki (TAP... TAP...)
+  // 3. Extreme close-up tangan membuka pintu (KLIK!)
+  // 4. Pintu terbuka & Wide shot interior laboratorium (SWOOSH!)
   // ==========================================================================
   {
     pageNumber: 2,
     id: 'scene-02-enter-the-lab',
     code: 'SCENE 02 / 06',
-    title: 'ENTER THE LAB — MELINTASI KORIDOR & PINTU KACA LABORATORIUM',
-    subtitle: 'Lantai Ubin Koridor, Pintu Kaca Geser, Plakat Identitas Ruangan & Lampu Dinding',
+    title: 'ENTER THE LAB — MELANGKAH MASUK KE DALAM RUANG DENGAR',
+    subtitle: 'Medium Tracking Koridor · Close-Up Langkah Kaki · Close-Up Gagang Pintu · Wide Interior',
     startTimeMs: 9000,
-    durationMs: 9000,
+    durationMs: 9500,
     pageGridClass: 'grid-cols-12 grid-rows-6',
-    ambientSfx: 'door-open',
+    ambientSfx: 'footstep',
     panels: [
       {
-        id: 'p2-entrance-foyer',
-        title: 'FOYER PINTU MASUK UTAMA & TAMAN DALAM',
-        focusZoneIds: ['diskusi', 'istirahat'],
-        startViewport: { x: 13.0, y: 14.5, w: 17.0, h: 9.5 },
-        endViewport: { x: 13.5, y: 12.5, w: 16.5, h: 9.5 },
+        id: 'p2-medium-corridor',
+        title: 'MEDIUM SHOT · MELANGKAH DI KORIDOR',
+        shotType: 'medium-shot',
+        cameraDirection: 'tracking',
+        actionStage: 'corridor-medium-walk',
+        focusZoneIds: ['diskusi'],
+        startViewport: { x: 14, y: 8, w: 16, h: 8 },
+        endViewport: { x: 16, y: 8, w: 16, h: 8 },
         ambientTheme: 'corridor-entry',
         gridClass: 'col-span-12 md:col-span-6 row-span-3',
         revealAtMs: 0,
         enterDirection: 'from-left',
         sfxCue: 'footstep',
-        narrationText: 'Melangkah melewati pintu masuk utama menuju area tengah laboratorium.',
+        narrationText: 'Ibu Dosen & Raka menyusuri koridor kaca menuju ruang praktikum.',
         narrationDock: 'top-left',
         actors: [
           {
             characterId: 'dosen',
             activity: 'walk',
-            startTile: { x: 21.5, y: 21.5 },
-            waypoints: [
-              { x: 21.5, y: 19.5 },
-              { x: 16.0, y: 19.5 },
-            ],
-            facing: 'atas',
+            poseId: 'P02',
+            stageXNorm: 0.34,
+            startTile: { x: 18, y: 10 },
+            facing: 'kanan',
           },
           {
             characterId: 'mhs-01',
             activity: 'walk',
-            startTile: { x: 23.0, y: 21.0 },
-            waypoints: [
-              { x: 28.0, y: 21.0 },
-              { x: 28.0, y: 16.5 },
-            ],
-            facing: 'kanan',
+            poseId: 'P14',
+            stageXNorm: 0.68,
+            startTile: { x: 21, y: 10 },
+            facing: 'kiri',
           },
         ],
-        sfxTexts: [
-          {
-            id: 'sfx-s02-step',
-            text: 'TAP... TAP...',
-            xNorm: 0.36,
-            yNorm: 0.78,
-            rotationDeg: -5,
-            color: '#fef08a',
-            strokeColor: '#0f172a',
-            revealAtMs: 400,
-            scale: 0.92,
-          },
-        ],
+        sfxTexts: [],
         dialogues: [
           {
             id: 'dlg-s02-dosen',
             kind: 'speech',
             speakerId: 'dosen',
             speakerName: 'Ibu Dosen',
-            text: 'Pintu utama sudah terbuka. Mari kita sapa rekan-rekan mahasiswa di setiap stasiun kerja.',
-            bubbleXNorm: 0.52,
+            text: 'Selamat pagi Raka! Mari kita lihat progres semua divisi di dalam lab.',
+            bubbleXNorm: 0.44,
             bubbleYNorm: 0.24,
-            startOffsetMs: 700,
-            durationMs: 7800,
+            startOffsetMs: 550,
+            durationMs: 8200,
           },
         ],
       },
       {
-        id: 'p2-glass-doors-corridor',
-        title: 'KORIDOR TENGAH & PINTU KACA GESER LABORATORIUM',
-        focusZoneIds: ['elektronik-iot', 'gudang-alat', 'diskusi'],
-        startViewport: { x: 20.5, y: 4.5, w: 18.5, h: 8.5 },
-        endViewport: { x: 21.0, y: 3.5, w: 17.5, h: 8.5 },
+        id: 'p2-ecu-feet',
+        title: 'EXTREME CLOSE-UP · LANGKAH KAKI',
+        shotType: 'extreme-close-up',
+        cameraDirection: 'dolly-in',
+        actionStage: 'stepping-feet-ecu',
+        focusZoneIds: ['diskusi'],
+        startViewport: { x: 0, y: 0, w: 10, h: 6 },
+        endViewport: { x: 0, y: 0, w: 9, h: 5 },
         ambientTheme: 'corridor-entry',
-        gridClass: 'col-span-12 md:col-span-6 row-span-3',
+        gridClass: 'col-span-6 md:col-span-3 row-span-3',
         revealAtMs: 650,
-        enterDirection: 'from-right',
-        sfxCue: 'door-open',
-        narrationText: 'Pintu kaca geser menghubungkan koridor keramik dengan ruang praktikum.',
-        narrationDock: 'top-right',
-        actors: [
-          {
-            characterId: 'mhs-03',
-            activity: 'walk',
-            startTile: { x: 26.0, y: 9.8 },
-            waypoints: [{ x: 26.0, y: 5.5 }],
-            facing: 'atas',
-          },
-          {
-            characterId: 'mhs-10',
-            activity: 'walk',
-            startTile: { x: 34.5, y: 9.8 },
-            waypoints: [{ x: 34.5, y: 5.5 }],
-            facing: 'atas',
-          },
-        ],
+        enterDirection: 'from-top',
+        sfxCue: 'footstep',
+        actors: [],
         sfxTexts: [
           {
-            id: 'sfx-s02-swoosh',
-            text: 'KLIK! SWOOSH!',
-            xNorm: 0.48,
-            yNorm: 0.62,
-            rotationDeg: -4,
-            color: '#67e8f9',
+            id: 'sfx-s02-tap',
+            text: 'TAP... TAP...',
+            xNorm: 0.52,
+            yNorm: 0.24,
+            rotationDeg: -7,
+            color: '#fef08a',
             strokeColor: '#0f172a',
-            revealAtMs: 950,
-            scale: 0.95,
+            revealAtMs: 850,
+            scale: 1.05,
           },
         ],
         dialogues: [],
       },
       {
-        id: 'p2-east-corridor-consultation',
-        title: 'PERSIMPANGAN TIMUR · RUANG KONSULTASI, DOSEN & POJOK BACA',
-        focusZoneIds: ['konsultasi', 'ruang-dosen', 'pojok-baca', 'diskusi'],
-        startViewport: { x: 26.0, y: 9.5, w: 25.0, h: 13.5 },
-        endViewport: { x: 27.5, y: 10.0, w: 23.5, h: 13.0 },
+        id: 'p2-ecu-hand-door',
+        title: 'EXTREME CLOSE-UP · TANGAN MEMBUKA PINTU',
+        shotType: 'extreme-close-up',
+        cameraDirection: 'focus-transition',
+        actionStage: 'door-handle-ecu',
+        focusZoneIds: ['elektronik-iot'],
+        startViewport: { x: 0, y: 0, w: 10, h: 6 },
+        endViewport: { x: 0, y: 0, w: 9, h: 5 },
+        ambientTheme: 'corridor-entry',
+        gridClass: 'col-span-6 md:col-span-3 row-span-3',
+        revealAtMs: 1300,
+        enterDirection: 'from-right',
+        sfxCue: 'door-click',
+        actors: [],
+        sfxTexts: [
+          {
+            id: 'sfx-s02-klik',
+            text: 'KLIK!',
+            xNorm: 0.68,
+            yNorm: 0.24,
+            rotationDeg: 9,
+            color: '#fb923c',
+            strokeColor: '#0f172a',
+            revealAtMs: 1550,
+            scale: 1.15,
+          },
+        ],
+        dialogues: [],
+      },
+      {
+        id: 'p2-wide-interior',
+        title: 'WIDE SHOT · PINTU TERBUKA & INTERIOR LABORATORIUM',
+        shotType: 'wide-shot',
+        cameraDirection: 'dolly-in',
+        actionStage: 'lab-map-wide',
+        focusZoneIds: ['elektronik-iot', 'cetak-3d', 'diskusi', 'pemrograman', 'konsultasi'],
+        startViewport: { x: 6.0, y: 2.0, w: 40.0, h: 19.0 },
+        endViewport: { x: 10.0, y: 4.0, w: 32.0, h: 16.0 },
         ambientTheme: 'corridor-entry',
         gridClass: 'col-span-12 row-span-3',
-        revealAtMs: 1300,
+        revealAtMs: 1950,
         enterDirection: 'from-bottom',
-        sfxCue: 'panel-whoosh',
+        sfxCue: 'door-open',
         narrationText:
           'Di tempat ini, rasa ingin tahu berubah menjadi eksperimen. Ide sederhana berkembang menjadi teknologi.',
         narrationDock: 'bottom-left',
@@ -518,283 +534,205 @@ export const COMIC_STORY_PAGES: readonly ComicPageBlueprint[] = [
           {
             characterId: 'dosen',
             activity: 'walk',
-            startTile: { x: 28.5, y: 16.5 },
-            waypoints: [
-              { x: 28.5, y: 13.2 },
-              { x: 32.5, y: 13.2 },
-            ],
-            facing: 'kanan',
-          },
-          {
-            characterId: 'mhs-17',
-            activity: 'walk',
-            startTile: { x: 39.2, y: 10.0 },
-            waypoints: [
-              { x: 44.0, y: 10.0 },
-              { x: 44.0, y: 13.8 },
-            ],
-            facing: 'bawah',
-          },
-          {
-            characterId: 'mhs-16',
-            activity: 'walk',
-            startTile: { x: 38.0, y: 9.4 },
-            waypoints: [
-              { x: 44.0, y: 9.4 },
-              { x: 44.0, y: 5.5 },
-            ],
+            startTile: { x: 21.5, y: 18.0 },
+            waypoints: [{ x: 21.5, y: 13.5 }],
             facing: 'atas',
           },
-        ],
-        sfxTexts: [],
-        dialogues: [
           {
-            id: 'dlg-s02-sekar',
-            kind: 'speech',
-            speakerId: 'mhs-17',
-            speakerName: 'Sekar',
-            text: 'Lampu baca dan rak jurnal di Pojok Baca sudah siap dipakai untuk riset pagi ini, Bu!',
-            bubbleXNorm: 0.76,
-            bubbleYNorm: 0.25,
-            startOffsetMs: 1850,
-            durationMs: 6600,
+            characterId: 'mhs-01',
+            activity: 'walk',
+            startTile: { x: 25.0, y: 10.0 },
+            waypoints: [{ x: 25.0, y: 5.5 }],
+            facing: 'atas',
+          },
+          {
+            characterId: 'mhs-03',
+            activity: 'work',
+            startTile: { x: 27.6, y: 4.2 },
+            facing: 'atas',
+            workEffect: 'oscilloscope',
           },
         ],
+        sfxTexts: [
+          {
+            id: 'sfx-s02-swoosh',
+            text: 'SWOOSH!!',
+            xNorm: 0.50,
+            yNorm: 0.22,
+            rotationDeg: -4,
+            color: '#38bdf8',
+            strokeColor: '#0f172a',
+            revealAtMs: 2150,
+            scale: 1.15,
+          },
+        ],
+        dialogues: [],
       },
     ],
   },
 
   // ==========================================================================
-  // SCENE 03 / PAGE 3 — ACTIVITY IN LABORATORY (18.0s – 28.0s)
-  // 5 Panel Kegiatan Praktikum di 5 Ruangan Berbeda Sesuai Peta Simulasi:
-  // 1. Elektronika & IoT (Meja praktikum, osiloskop, power supply, breadboard, PCB)
-  // 2. Pemrograman & MCU (Meja komputer, monitor kode, keyboard, dev board)
-  // 3. Ruang Cetak 3D (4 Printer 3D, filament spool, rak material, objek 3D)
-  // 4. Bengkel Las K3 (Meja kerja industrial, mesin las, tabung gas, APAR, marka K3)
-  // 5. Meja Diskusi (Meja kayu besar, 6 kursi, laptop, dokumen, whiteboard)
+  // SCENE 03 — LABORATORY IN ACTION (18.5s – 29.0s)
+  // 5 Area Aktivitas dengan Kombinasi Close-Up, Medium Shot & Medium-Full Shot
   // ==========================================================================
   {
     pageNumber: 3,
-    id: 'scene-03-activity-in-laboratory',
+    id: 'scene-03-laboratory-in-action',
     code: 'SCENE 03 / 06',
-    title: 'ACTIVITY IN LABORATORY — LIMA STASIUN KERJA BERGERAK SERENTAK',
-    subtitle: 'Elektronika & IoT, Pemrograman MCU, Cetak 3D, Bengkel Las K3 & Meja Diskusi',
-    startTimeMs: 18000,
-    durationMs: 10000,
+    title: 'LABORATORY IN ACTION — LIMA DIVISI BEKERJA AKTIF',
+    subtitle: 'Elektronika & Osiloskop · Pemrograman MCU · Cetak 3D · Bengkel Las K3 · Meja Diskusi',
+    startTimeMs: 18500,
+    durationMs: 10500,
     pageGridClass: 'grid-cols-12 grid-rows-6',
     ambientSfx: 'solder-sizzle',
     panels: [
-      // Panel 1: Elektronika & IoT
       {
-        id: 'p3-room-elektronika',
-        title: '1. STASIUN ELEKTRONIKA & IoT',
+        id: 'p3-elektronika',
+        title: 'MEDIUM SHOT · ELEKTRONIKA & OSILOSKOP',
+        shotType: 'medium-shot',
+        cameraDirection: 'dolly-in',
+        actionStage: 'oscilloscope-medium-bench',
         focusZoneIds: ['elektronik-iot'],
         startViewport: { x: 21.5, y: 0.6, w: 10.0, h: 7.8 },
-        endViewport: { x: 21.8, y: 0.8, w: 9.4, h: 7.4 },
+        endViewport: { x: 22.0, y: 1.0, w: 9.0, h: 7.0 },
         ambientTheme: 'lab-interior',
         gridClass: 'col-span-12 md:col-span-4 row-span-3',
         revealAtMs: 0,
         enterDirection: 'from-left',
         sfxCue: 'solder-sizzle',
-        narrationText: 'Elektronika & IoT · Osiloskop, Power Supply, PCB & Sensor',
+        narrationText: 'Mengukur gelombang sinyal PCB menggunakan osiloskop.',
         narrationDock: 'bottom-left',
         actors: [
-          {
-            characterId: 'mhs-02',
-            activity: 'work',
-            startTile: { x: 23.6, y: 4.1 },
-            facing: 'atas',
-            workEffect: 'solder',
-            stationTag: 'Solder SMD',
-          },
-          {
-            characterId: 'mhs-01',
-            activity: 'work',
-            startTile: { x: 25.4, y: 4.1 },
-            facing: 'atas',
-            workEffect: 'oscilloscope',
-            stationTag: 'Sensor IoT',
-          },
-          {
-            characterId: 'mhs-03',
-            activity: 'work',
-            startTile: { x: 28.0, y: 4.1 },
-            facing: 'atas',
-            workEffect: 'oscilloscope',
-            stationTag: 'Osiloskop',
-          },
+          { characterId: 'mhs-01', activity: 'work', poseId: 'P20', stageXNorm: 0.34, startTile: { x: 24.5, y: 4.1 }, facing: 'kanan', workEffect: 'oscilloscope' },
+          { characterId: 'mhs-02', activity: 'work', poseId: 'P14', stageXNorm: 0.70, startTile: { x: 26.5, y: 4.1 }, facing: 'kiri', workEffect: 'solder' },
         ],
         sfxTexts: [],
         dialogues: [
           {
-            id: 'dlg-s03-dimas',
+            id: 'dlg-s03-raka',
             kind: 'speech',
-            speakerId: 'mhs-02',
-            speakerName: 'Dimas',
-            text: 'Rangkaian regulator 3.3V dan breadboard sensor sudah tersolder rapi.',
+            speakerId: 'mhs-01',
+            speakerName: 'Raka',
+            text: 'Gelombang output 3.3V bersih! Dimas, solderan regulatornya sangat presisi.',
             bubbleXNorm: 0.50,
-            bubbleYNorm: 0.74,
+            bubbleYNorm: 0.22,
             startOffsetMs: 500,
-            durationMs: 9000,
+            durationMs: 9400,
           },
         ],
       },
-
-      // Panel 2: Pemrograman & MCU
       {
-        id: 'p3-room-pemrograman',
-        title: '2. STASIUN PEMROGRAMAN & MCU',
+        id: 'p3-pemrograman',
+        title: 'OVER-THE-SHOULDER · PEMROGRAMAN & MCU',
+        shotType: 'medium-shot',
+        cameraDirection: 'over-the-shoulder',
+        actionStage: 'coding-medium-desk',
         focusZoneIds: ['pemrograman'],
         startViewport: { x: 0.6, y: 10.4, w: 12.8, h: 6.8 },
         endViewport: { x: 1.0, y: 10.6, w: 12.0, h: 6.4 },
         ambientTheme: 'lab-interior',
         gridClass: 'col-span-12 md:col-span-4 row-span-3',
-        revealAtMs: 500,
+        revealAtMs: 550,
         enterDirection: 'from-top',
         sfxCue: 'keyboard-clack',
-        narrationText: 'Pemrograman & MCU · Multi-Monitor Kode & Dev Board',
+        narrationText: 'Mengetik kode firmware RTOS dan memeriksa log mikrokontroler.',
         narrationDock: 'bottom-left',
         actors: [
+          { characterId: 'mhs-04', activity: 'work', poseId: 'P13', stageXNorm: 0.34, startTile: { x: 3.5, y: 15.0 }, facing: 'kanan', workEffect: 'code' },
+          { characterId: 'mhs-06', activity: 'work', poseId: 'P17', stageXNorm: 0.70, startTile: { x: 5.5, y: 15.0 }, facing: 'kiri', workEffect: 'code' },
+        ],
+        sfxTexts: [
           {
-            characterId: 'mhs-04',
-            activity: 'work',
-            startTile: { x: 3.2, y: 15.0 },
-            facing: 'atas',
-            workEffect: 'code',
-            stationTag: 'RTOS Code',
-          },
-          {
-            characterId: 'mhs-06',
-            activity: 'work',
-            startTile: { x: 5.0, y: 15.0 },
-            facing: 'atas',
-            workEffect: 'code',
-            stationTag: 'API Docs',
-          },
-          {
-            characterId: 'mhs-11',
-            activity: 'work',
-            startTile: { x: 8.5, y: 15.0 },
-            facing: 'atas',
-            workEffect: 'code',
-            stationTag: 'Data Log',
+            id: 'sfx-s03-clack',
+            text: 'CLACK! OK!',
+            xNorm: 0.78,
+            yNorm: 0.32,
+            rotationDeg: 5,
+            color: '#38bdf8',
+            strokeColor: '#0f172a',
+            revealAtMs: 900,
+            scale: 0.88,
           },
         ],
-        sfxTexts: [],
         dialogues: [
           {
             id: 'dlg-s03-kevin',
             kind: 'speech',
             speakerId: 'mhs-04',
             speakerName: 'Kevin',
-            text: 'Firmware mikrokontroler sudah terunggah lewat USB tanpa galat!',
-            bubbleXNorm: 0.52,
-            bubbleYNorm: 0.24,
-            startOffsetMs: 1100,
-            durationMs: 8400,
+            text: 'Build selesai 0 galat. Paket telemetri MCU langsung terbaca di layar!',
+            bubbleXNorm: 0.46,
+            bubbleYNorm: 0.22,
+            startOffsetMs: 1150,
+            durationMs: 8800,
           },
         ],
       },
-
-      // Panel 3: Ruang Cetak 3D
       {
-        id: 'p3-room-cetak3d',
-        title: '3. STASIUN CETAK 3D',
+        id: 'p3-cetak3d',
+        title: 'EXTREME CLOSE-UP · PRINTER 3D MENCETAK',
+        shotType: 'extreme-close-up',
+        cameraDirection: 'dolly-in',
+        actionStage: 'printer-3d-ecu',
         focusZoneIds: ['cetak-3d'],
         startViewport: { x: 10.6, y: 0.6, w: 10.8, h: 7.8 },
-        endViewport: { x: 10.9, y: 0.8, w: 10.2, h: 7.4 },
+        endViewport: { x: 11.2, y: 1.0, w: 9.6, h: 7.0 },
         ambientTheme: 'lab-interior',
         gridClass: 'col-span-12 md:col-span-4 row-span-3',
-        revealAtMs: 1000,
+        revealAtMs: 1100,
         enterDirection: 'from-right',
         sfxCue: 'panel-whoosh',
-        narrationText: 'Cetak 3D · 4 Unit Printer 3D, Spool Filamen & Meja Kerja',
+        narrationText: 'Memeriksa presisi lapisan filamen pada hasil cetakan 3D.',
         narrationDock: 'bottom-right',
         actors: [
-          {
-            characterId: 'mhs-08',
-            activity: 'work',
-            startTile: { x: 14.5, y: 4.1 },
-            facing: 'atas',
-            workEffect: 'print3d',
-            stationTag: 'Nozzle 210°C',
-          },
-          {
-            characterId: 'mhs-05',
-            activity: 'work',
-            startTile: { x: 17.5, y: 4.1 },
-            facing: 'atas',
-            workEffect: 'print3d',
-            stationTag: 'Casing 3D',
-          },
-          {
-            characterId: 'mhs-15',
-            activity: 'interact',
-            startTile: { x: 16.0, y: 5.9 },
-            facing: 'kiri',
-            workEffect: 'inspect',
-            stationTag: 'Purwarupa',
-          },
-        ],
-        sfxTexts: [],
-        dialogues: [
-          {
-            id: 'dlg-s03-hendra',
-            kind: 'speech',
-            speakerId: 'mhs-08',
-            speakerName: 'Hendra',
-            text: 'Keempat printer 3D dan gulungan filamen PLA berjalan stabil.',
-            bubbleXNorm: 0.50,
-            bubbleYNorm: 0.74,
-            startOffsetMs: 1600,
-            durationMs: 7900,
-          },
-        ],
-      },
-
-      // Panel 4: Bengkel Las (K3)
-      {
-        id: 'p3-room-las',
-        title: '4. BENGKEL LAS (ZONA K3)',
-        focusZoneIds: ['las'],
-        startViewport: { x: 0.6, y: 0.6, w: 9.8, h: 7.8 },
-        endViewport: { x: 0.8, y: 0.8, w: 9.4, h: 7.4 },
-        ambientTheme: 'lab-interior',
-        gridClass: 'col-span-12 md:col-span-6 row-span-3',
-        revealAtMs: 1500,
-        enterDirection: 'from-bottom',
-        sfxCue: 'weld-spark',
-        narrationText: 'Bengkel Las K3 · Mesin Las, Tabung Gas, APAR & Marka Keselamatan',
-        narrationDock: 'bottom-left',
-        actors: [
-          {
-            characterId: 'mhs-07',
-            activity: 'work',
-            startTile: { x: 3.4, y: 4.2 },
-            facing: 'atas',
-            workEffect: 'weld',
-            stationTag: 'Las K3',
-          },
-          {
-            characterId: 'mhs-09',
-            activity: 'work',
-            startTile: { x: 6.8, y: 4.2 },
-            facing: 'atas',
-            workEffect: 'inspect',
-            stationTag: 'Uji Rangka',
-          },
+          { characterId: 'mhs-08', activity: 'work', poseId: 'P06', stageXNorm: 0.76, startTile: { x: 14.5, y: 4.1 }, facing: 'kiri', workEffect: 'print3d' },
         ],
         sfxTexts: [
           {
-            id: 'sfx-s03-spark',
-            text: 'KZRRT! K3 AMAN',
-            xNorm: 0.36,
-            yNorm: 0.34,
-            rotationDeg: -5,
+            id: 'sfx-s03-whirr',
+            text: 'WHIRR~ 210°C',
+            xNorm: 0.34,
+            yNorm: 0.26,
+            rotationDeg: -6,
+            color: '#c084fc',
+            strokeColor: '#0f172a',
+            revealAtMs: 1450,
+            scale: 0.92,
+          },
+        ],
+        dialogues: [],
+      },
+      {
+        id: 'p3-las',
+        title: 'MEDIUM FULL SHOT · BENGKEL LAS (K3)',
+        shotType: 'medium-full-shot',
+        cameraDirection: 'reaction-shot',
+        actionStage: 'welding-k3-medium',
+        focusZoneIds: ['las'],
+        startViewport: { x: 0.6, y: 0.6, w: 9.8, h: 7.8 },
+        endViewport: { x: 1.0, y: 1.0, w: 9.0, h: 7.0 },
+        ambientTheme: 'lab-interior',
+        gridClass: 'col-span-12 md:col-span-6 row-span-3',
+        revealAtMs: 1650,
+        enterDirection: 'from-bottom',
+        sfxCue: 'weld-spark',
+        narrationText: 'Pengelasan rangka robot dengan perlengkapan keselamatan K3 lengkap.',
+        narrationDock: 'bottom-left',
+        actors: [
+          { characterId: 'mhs-07', activity: 'work', poseId: 'P20', stageXNorm: 0.34, startTile: { x: 3.4, y: 4.2 }, facing: 'kanan', workEffect: 'weld' },
+          { characterId: 'mhs-09', activity: 'work', poseId: 'P13', stageXNorm: 0.72, startTile: { x: 6.8, y: 4.2 }, facing: 'kiri', workEffect: 'inspect' },
+        ],
+        sfxTexts: [
+          {
+            id: 'sfx-s03-kzrrt',
+            text: 'KZRRT! SPARK!',
+            xNorm: 0.52,
+            yNorm: 0.30,
+            rotationDeg: 6,
             color: '#fb923c',
             strokeColor: '#0f172a',
-            revealAtMs: 1850,
-            scale: 0.92,
+            revealAtMs: 1950,
+            scale: 1.05,
           },
         ],
         dialogues: [
@@ -803,58 +741,33 @@ export const COMIC_STORY_PAGES: readonly ComicPageBlueprint[] = [
             kind: 'speech',
             speakerId: 'mhs-07',
             speakerName: 'Bima',
-            text: 'APAR siaga, marka kuning-hitam bersih, dan sambungan rangka las presisi!',
-            bubbleXNorm: 0.56,
-            bubbleYNorm: 0.72,
-            startOffsetMs: 2100,
-            durationMs: 7400,
+            text: 'Standar K3 aman! Gilang, rangka ini siap diuji torsi.',
+            bubbleXNorm: 0.36,
+            bubbleYNorm: 0.22,
+            startOffsetMs: 2200,
+            durationMs: 7800,
           },
         ],
       },
-
-      // Panel 5: Meja Diskusi
       {
-        id: 'p3-room-diskusi',
-        title: '5. MEJA DISKUSI UTAMA',
+        id: 'p3-diskusi',
+        title: 'MEDIUM SHOT · DISKUSI PROYEK DI MEJA UTAMA',
+        shotType: 'medium-shot',
+        cameraDirection: 'pan',
+        actionStage: 'discussion-medium-table',
         focusZoneIds: ['diskusi'],
         startViewport: { x: 14.6, y: 10.6, w: 12.8, h: 8.6 },
-        endViewport: { x: 15.0, y: 10.9, w: 12.0, h: 8.0 },
+        endViewport: { x: 15.2, y: 11.0, w: 11.8, h: 7.8 },
         ambientTheme: 'lab-interior',
         gridClass: 'col-span-12 md:col-span-6 row-span-3',
-        revealAtMs: 2000,
+        revealAtMs: 2200,
         enterDirection: 'from-right',
         sfxCue: 'comic-pop',
-        narrationText: 'Meja Diskusi · Laptop, Dokumen, Papan Presentasi & Koordinasi Tim',
+        narrationText: 'Berdiskusi menunjuk dokumen skema & menyelaraskan target tim.',
         narrationDock: 'bottom-right',
         actors: [
-          {
-            characterId: 'mhs-12',
-            activity: 'talk',
-            startTile: { x: 19.2, y: 13.4 },
-            facing: 'bawah',
-            workEffect: 'discuss',
-          },
-          {
-            characterId: 'mhs-13',
-            activity: 'talk',
-            startTile: { x: 22.4, y: 13.4 },
-            facing: 'bawah',
-            workEffect: 'discuss',
-          },
-          {
-            characterId: 'mhs-14',
-            activity: 'interact',
-            startTile: { x: 19.2, y: 16.6 },
-            facing: 'atas',
-            workEffect: 'read',
-          },
-          {
-            characterId: 'mhs-18',
-            activity: 'talk',
-            startTile: { x: 22.6, y: 16.6 },
-            facing: 'atas',
-            workEffect: 'rover',
-          },
+          { characterId: 'mhs-12', activity: 'talk', poseId: 'P14', stageXNorm: 0.32, startTile: { x: 19.2, y: 13.4 }, facing: 'kanan', workEffect: 'discuss' },
+          { characterId: 'mhs-03', activity: 'interact', poseId: 'P17', stageXNorm: 0.70, startTile: { x: 22.4, y: 13.4 }, facing: 'kiri', workEffect: 'read' },
         ],
         sfxTexts: [],
         dialogues: [
@@ -863,11 +776,11 @@ export const COMIC_STORY_PAGES: readonly ComicPageBlueprint[] = [
             kind: 'speech',
             speakerId: 'mhs-12',
             speakerName: 'Sari',
-            text: 'Semua jadwal integrasi sensor, 3D casing, dan rangka robot kita bahas bersama di meja ini.',
+            text: 'Menurutku kita bisa menggabungkan modul sensor dan sasis 3D sore ini!',
             bubbleXNorm: 0.50,
             bubbleYNorm: 0.22,
-            startOffsetMs: 2500,
-            durationMs: 7000,
+            startOffsetMs: 2650,
+            durationMs: 7400,
           },
         ],
       },
@@ -875,64 +788,65 @@ export const COMIC_STORY_PAGES: readonly ComicPageBlueprint[] = [
   },
 
   // ==========================================================================
-  // SCENE 04 / PAGE 4 — THE LAB COMMUNITY (28.0s – 40.0s)
-  // Memperkenalkan seluruh 18 Mahasiswa melalui miniatur sprite di ruangan
-  // lainnya pada peta simulasi: Gudang Alat, Studio Desain, Pojok Baca,
-  // Ruang Istirahat, Ruang Konsultasi & Ruang Dosen!
+  // SCENE 04 — MEET THE STUDENTS (29.0s – 41.0s)
+  // Memperkenalkan seluruh 18 mahasiswa menyatu dalam 5 kegiatan nyata
   // ==========================================================================
   {
     pageNumber: 4,
-    id: 'scene-04-the-lab-community',
+    id: 'scene-04-meet-the-students',
     code: 'SCENE 04 / 06',
-    title: 'THE LAB COMMUNITY — 18 MAHASISWA DI 11 RUANGAN LABORATORIUM',
-    subtitle: 'Gudang Alat, Studio Desain, Pojok Baca, Ruang Istirahat, Ruang Konsultasi & Ruang Dosen',
-    startTimeMs: 28000,
+    title: 'MEET THE STUDENTS — 18 MAHASISWA DALAM AKSI NYATA',
+    subtitle: 'Elektronika · Studio Desain & Koding · Kalibrasi Alat · Pojok Baca · Komunitas Robotika',
+    startTimeMs: 29000,
     durationMs: 12000,
     pageGridClass: 'grid-cols-12 grid-rows-6',
     ambientSfx: 'panel-whoosh',
     panels: [
-      // Panel 4A: Gudang Alat & Elektronika (Teguh #10, Raka #01, Dimas #02, Tania #03, Rani #14)
       {
-        id: 'p4-gudang-elektronika',
-        title: 'GUDANG ALAT & STASIUN ELEKTRONIKA',
-        focusZoneIds: ['gudang-alat', 'elektronik-iot'],
-        startViewport: { x: 22.0, y: 0.6, w: 17.5, h: 8.2 },
-        endViewport: { x: 22.5, y: 0.8, w: 16.8, h: 7.8 },
+        id: 'p4-act-elektronika',
+        title: 'MEDIUM SHOT · TANIA, MAYA, RANI, RAKA & DIMAS',
+        shotType: 'medium-shot',
+        cameraDirection: 'focus-transition',
+        actionStage: 'oscilloscope-medium-bench',
+        focusZoneIds: ['elektronik-iot'],
+        startViewport: { x: 22.0, y: 0.6, w: 10.0, h: 7.8 },
+        endViewport: { x: 22.4, y: 0.8, w: 9.2, h: 7.4 },
         ambientTheme: 'lab-interior',
         gridClass: 'col-span-12 md:col-span-4 row-span-3',
         revealAtMs: 0,
         enterDirection: 'from-left',
         sfxCue: 'panel-whoosh',
-        narrationText: 'Teguh (#10) memeriksa inventaris Gudang Alat bersama tim Elektronika.',
+        narrationText: 'Tania membimbing Rani & Maya membaca skema bersama Raka & Dimas.',
         narrationDock: 'bottom-left',
         actors: [
-          { characterId: 'mhs-02', activity: 'work', startTile: { x: 23.6, y: 4.1 }, facing: 'atas', workEffect: 'solder' },
-          { characterId: 'mhs-01', activity: 'work', startTile: { x: 25.5, y: 4.1 }, facing: 'atas', workEffect: 'oscilloscope' },
-          { characterId: 'mhs-03', activity: 'talk', startTile: { x: 27.6, y: 4.2 }, facing: 'bawah', workEffect: 'discuss' },
-          { characterId: 'mhs-14', activity: 'interact', startTile: { x: 27.6, y: 5.8 }, facing: 'atas', workEffect: 'read' },
-          { characterId: 'mhs-10', activity: 'work', startTile: { x: 35.2, y: 4.0 }, facing: 'atas', workEffect: 'inspect', stationTag: 'Kalibrasi' },
+          { characterId: 'mhs-03', activity: 'talk', poseId: 'P14', stageXNorm: 0.16, startTile: { x: 23.0, y: 4.1 }, facing: 'kanan' },
+          { characterId: 'mhs-11', activity: 'interact', poseId: 'P05', stageXNorm: 0.34, startTile: { x: 24.5, y: 4.1 }, facing: 'kanan' },
+          { characterId: 'mhs-14', activity: 'interact', poseId: 'P06', stageXNorm: 0.52, startTile: { x: 26.0, y: 4.1 }, facing: 'kiri' },
+          { characterId: 'mhs-01', activity: 'work', poseId: 'P13', stageXNorm: 0.70, startTile: { x: 27.5, y: 4.1 }, facing: 'kiri' },
+          { characterId: 'mhs-02', activity: 'work', poseId: 'P20', stageXNorm: 0.86, startTile: { x: 29.0, y: 4.1 }, facing: 'kiri' },
         ],
         sfxTexts: [],
         dialogues: [
           {
-            id: 'dlg-s04-teguh',
+            id: 'dlg-s04-rani',
             kind: 'speech',
-            speakerId: 'mhs-10',
-            speakerName: 'Teguh',
-            text: 'Kotak komponen, multimeter, dan label inventaris di Gudang Alat sudah lengkap.',
-            bubbleXNorm: 0.64,
-            bubbleYNorm: 0.72,
-            startOffsetMs: 400,
-            durationMs: 11000,
+            speakerId: 'mhs-14',
+            speakerName: 'Rani',
+            text: 'Skema filter Kak Tania dan analisis data Kak Maya bikin semuanya langsung jelas!',
+            bubbleXNorm: 0.52,
+            bubbleYNorm: 0.22,
+            startOffsetMs: 450,
+            durationMs: 10800,
           },
         ],
       },
-
-      // Panel 4B: Studio Desain & Cetak 3D (Farhan #16, Ayu #05, Hendra #08, Naufal #15)
       {
-        id: 'p4-studio-desain',
-        title: 'STUDIO DESAIN & MULTIMEDIA',
-        focusZoneIds: ['studio-desain'],
+        id: 'p4-act-studio-koding',
+        title: 'MEDIUM SHOT · FARHAN, AYU, KEVIN & MITA',
+        shotType: 'medium-shot',
+        cameraDirection: 'pan',
+        actionStage: 'studio-design-medium',
+        focusZoneIds: ['studio-desain', 'pemrograman'],
         startViewport: { x: 39.4, y: 0.6, w: 12.0, h: 8.0 },
         endViewport: { x: 39.8, y: 0.8, w: 11.4, h: 7.6 },
         ambientTheme: 'lab-interior',
@@ -940,48 +854,86 @@ export const COMIC_STORY_PAGES: readonly ComicPageBlueprint[] = [
         revealAtMs: 550,
         enterDirection: 'from-top',
         sfxCue: 'keyboard-clack',
-        narrationText: 'Farhan (#16) & Ayu (#05) merancang UI/UX di workstation tablet gambar.',
+        narrationText: 'Farhan & Ayu memadukan antarmuka UI dengan firmware Kevin & Mita.',
         narrationDock: 'bottom-left',
         actors: [
-          { characterId: 'mhs-16', activity: 'work', startTile: { x: 42.8, y: 4.2 }, facing: 'atas', workEffect: 'design', stationTag: 'Tablet UI' },
-          { characterId: 'mhs-05', activity: 'work', startTile: { x: 47.6, y: 4.2 }, facing: 'atas', workEffect: 'design', stationTag: '3D Visual' },
-          { characterId: 'mhs-08', activity: 'talk', startTile: { x: 44.2, y: 6.0 }, facing: 'kanan', workEffect: 'discuss' },
-          { characterId: 'mhs-15', activity: 'talk', startTile: { x: 46.2, y: 6.0 }, facing: 'kiri', workEffect: 'inspect' },
+          { characterId: 'mhs-16', activity: 'talk', poseId: 'P15', stageXNorm: 0.18, startTile: { x: 42.0, y: 4.2 }, facing: 'kanan' },
+          { characterId: 'mhs-05', activity: 'work', poseId: 'P04', stageXNorm: 0.40, startTile: { x: 44.0, y: 4.2 }, facing: 'kanan' },
+          { characterId: 'mhs-04', activity: 'work', poseId: 'P20', stageXNorm: 0.64, startTile: { x: 46.5, y: 4.2 }, facing: 'kiri' },
+          { characterId: 'mhs-06', activity: 'interact', poseId: 'P17', stageXNorm: 0.84, startTile: { x: 48.5, y: 4.2 }, facing: 'kiri' },
         ],
         sfxTexts: [],
         dialogues: [
           {
-            id: 'dlg-s04-farhan',
+            id: 'dlg-s04-ayu',
             kind: 'speech',
-            speakerId: 'mhs-16',
-            speakerName: 'Farhan',
-            text: 'Desain antarmuka di tablet gambar ini langsung sinkron dengan purwarupa Naufal & Hendra.',
+            speakerId: 'mhs-05',
+            speakerName: 'Ayu',
+            text: 'Desain dashboard visual ini sudah terhubung real-time ke kode Kevin & Mita!',
             bubbleXNorm: 0.50,
-            bubbleYNorm: 0.72,
+            bubbleYNorm: 0.22,
             startOffsetMs: 1100,
-            durationMs: 10300,
+            durationMs: 10200,
           },
         ],
       },
-
-      // Panel 4C: Pojok Baca & Riset (Sekar #17, Nisa #13, Sari #12)
       {
-        id: 'p4-pojok-baca',
-        title: 'POJOK BACA & RISET LITERATUR',
-        focusZoneIds: ['pojok-baca'],
-        startViewport: { x: 39.4, y: 11.2, w: 12.0, h: 12.2 },
-        endViewport: { x: 39.8, y: 11.6, w: 11.4, h: 11.5 },
+        id: 'p4-act-gudang-3d',
+        title: 'CLOSE-UP · TEGUH, NAUFAL & HENDRA',
+        shotType: 'close-up',
+        cameraDirection: 'reaction-shot',
+        actionStage: 'gudang-calibration-closeup',
+        focusZoneIds: ['gudang-alat', 'cetak-3d'],
+        startViewport: { x: 32.0, y: 0.6, w: 7.5, h: 7.8 },
+        endViewport: { x: 32.4, y: 0.8, w: 7.0, h: 7.4 },
         ambientTheme: 'lab-interior',
         gridClass: 'col-span-12 md:col-span-4 row-span-3',
         revealAtMs: 1100,
         enterDirection: 'from-right',
         sfxCue: 'comic-pop',
-        narrationText: 'Sekar (#17), Nisa (#13) & Sari (#12) di meja baca, lampu hangat & rak buku.',
+        narrationText: 'Teguh mengkalibrasi alat ukur untuk purwarupa eksperimen Naufal & Hendra.',
         narrationDock: 'bottom-right',
         actors: [
-          { characterId: 'mhs-17', activity: 'work', startTile: { x: 43.2, y: 14.2 }, facing: 'bawah', workEffect: 'read', stationTag: 'Arsip Jurnal' },
-          { characterId: 'mhs-13', activity: 'work', startTile: { x: 45.2, y: 14.2 }, facing: 'bawah', workEffect: 'read', stationTag: 'Catatan Tim' },
-          { characterId: 'mhs-12', activity: 'interact', startTile: { x: 44.0, y: 18.0 }, facing: 'atas', workEffect: 'discuss' },
+          { characterId: 'mhs-10', activity: 'work', poseId: 'P20', stageXNorm: 0.22, startTile: { x: 33.5, y: 4.0 }, facing: 'kanan' },
+          { characterId: 'mhs-15', activity: 'talk', poseId: 'P04', stageXNorm: 0.52, startTile: { x: 35.2, y: 4.0 }, facing: 'kanan' },
+          { characterId: 'mhs-08', activity: 'interact', poseId: 'P02', stageXNorm: 0.80, startTile: { x: 37.0, y: 4.0 }, facing: 'kiri' },
+        ],
+        sfxTexts: [],
+        dialogues: [
+          {
+            id: 'dlg-s04-naufal',
+            kind: 'speech',
+            speakerId: 'mhs-15',
+            speakerName: 'Naufal',
+            text: 'Generator mikro daur ulangku lolos uji multimeter Teguh dan pas di braket Hendra!',
+            bubbleXNorm: 0.50,
+            bubbleYNorm: 0.22,
+            startOffsetMs: 1650,
+            durationMs: 9600,
+          },
+        ],
+      },
+      {
+        id: 'p4-act-baca-konsultasi',
+        title: 'MEDIUM SHOT · SARI, NISA, SEKAR & IBU DOSEN',
+        shotType: 'medium-shot',
+        cameraDirection: 'over-the-shoulder',
+        actionStage: 'reading-corner-medium',
+        focusZoneIds: ['pojok-baca', 'konsultasi', 'ruang-dosen'],
+        startViewport: { x: 39.4, y: 11.2, w: 12.0, h: 12.0 },
+        endViewport: { x: 39.8, y: 11.6, w: 11.4, h: 11.4 },
+        ambientTheme: 'lab-interior',
+        gridClass: 'col-span-12 md:col-span-6 row-span-3',
+        revealAtMs: 1650,
+        enterDirection: 'from-bottom',
+        sfxCue: 'panel-whoosh',
+        narrationText: 'Bertukar catatan riset & saling mendengarkan di Pojok Baca dan Ruang Konsultasi.',
+        narrationDock: 'bottom-left',
+        actors: [
+          { characterId: 'dosen', activity: 'talk', poseId: 'P18', stageXNorm: 0.18, startTile: { x: 33.8, y: 13.5 }, facing: 'kanan' },
+          { characterId: 'mhs-12', activity: 'talk', poseId: 'P16', stageXNorm: 0.42, startTile: { x: 42.0, y: 14.2 }, facing: 'kanan' },
+          { characterId: 'mhs-13', activity: 'interact', poseId: 'P17', stageXNorm: 0.64, startTile: { x: 44.0, y: 14.2 }, facing: 'kiri' },
+          { characterId: 'mhs-17', activity: 'work', poseId: 'P05', stageXNorm: 0.84, startTile: { x: 46.0, y: 14.2 }, facing: 'kiri' },
         ],
         sfxTexts: [],
         dialogues: [
@@ -990,95 +942,58 @@ export const COMIC_STORY_PAGES: readonly ComicPageBlueprint[] = [
             kind: 'speech',
             speakerId: 'mhs-17',
             speakerName: 'Sekar',
-            text: 'Seluruh referensi jurnal IEEE dan skema dasar sudah tersusun rapi di Pojok Baca.',
-            bubbleXNorm: 0.50,
+            text: 'Arsip literatur dan catatan empati dari Nisa & Sari sudah rapi untuk semua tim.',
+            bubbleXNorm: 0.56,
             bubbleYNorm: 0.22,
-            startOffsetMs: 1650,
-            durationMs: 9700,
-          },
-        ],
-      },
-
-      // Panel 4D: Ruang Istirahat & Pemrograman (Kevin #04, Mita #06, Maya #11, Bima #07, Gilang #09)
-      {
-        id: 'p4-istirahat-pemrograman',
-        title: 'RUANG ISTIRAHAT & STASIUN PEMROGRAMAN',
-        focusZoneIds: ['istirahat', 'pemrograman'],
-        startViewport: { x: 0.5, y: 11.0, w: 13.5, h: 12.5 },
-        endViewport: { x: 0.8, y: 11.5, w: 12.8, h: 11.8 },
-        ambientTheme: 'lab-interior',
-        gridClass: 'col-span-12 md:col-span-6 row-span-3',
-        revealAtMs: 1650,
-        enterDirection: 'from-bottom',
-        sfxCue: 'panel-whoosh',
-        narrationText: 'Sofa hijau, meja kecil & dispenser di Ruang Istirahat tepat di selatan Pemrograman.',
-        narrationDock: 'bottom-left',
-        actors: [
-          { characterId: 'mhs-04', activity: 'work', startTile: { x: 3.2, y: 15.0 }, facing: 'atas', workEffect: 'code' },
-          { characterId: 'mhs-06', activity: 'work', startTile: { x: 5.2, y: 15.0 }, facing: 'atas', workEffect: 'code' },
-          { characterId: 'mhs-11', activity: 'work', startTile: { x: 8.6, y: 15.0 }, facing: 'atas', workEffect: 'code' },
-          { characterId: 'mhs-07', activity: 'talk', startTile: { x: 4.5, y: 20.2 }, facing: 'kanan', workEffect: 'discuss' },
-          { characterId: 'mhs-09', activity: 'talk', startTile: { x: 7.2, y: 20.2 }, facing: 'kiri', workEffect: 'discuss' },
-        ],
-        sfxTexts: [],
-        dialogues: [
-          {
-            id: 'dlg-s04-gilang',
-            kind: 'speech',
-            speakerId: 'mhs-09',
-            speakerName: 'Gilang',
-            text: 'Rehat sebentar minum air di sofa Ruang Istirahat sebelum lanjut uji torsi bareng Bima!',
-            bubbleXNorm: 0.54,
-            bubbleYNorm: 0.56,
             startOffsetMs: 2200,
-            durationMs: 9200,
+            durationMs: 9100,
           },
         ],
       },
-
-      // Panel 4E: Ruang Konsultasi, Ruang Dosen & Koridor Robotika (Ibu Dosen, Bagas #18)
       {
-        id: 'p4-konsultasi-dosen-robotika',
-        title: 'RUANG KONSULTASI BK, RUANG DOSEN & UJI ROVER ROBOTIKA',
-        focusZoneIds: ['konsultasi', 'ruang-dosen', 'diskusi'],
-        startViewport: { x: 25.5, y: 10.8, w: 14.2, h: 12.6 },
-        endViewport: { x: 26.0, y: 11.2, w: 13.6, h: 12.0 },
+        id: 'p4-act-robotika',
+        title: 'MEDIUM FULL SHOT · BAGAS, BIMA & GILANG UJI ROVER',
+        shotType: 'medium-full-shot',
+        cameraDirection: 'tracking',
+        actionStage: 'robotics-corridor-track',
+        focusZoneIds: ['las', 'istirahat', 'diskusi'],
+        startViewport: { x: 14.0, y: 10.5, w: 14.0, h: 9.0 },
+        endViewport: { x: 15.5, y: 11.0, w: 13.0, h: 8.5 },
         ambientTheme: 'lab-interior',
         gridClass: 'col-span-12 md:col-span-6 row-span-3',
         revealAtMs: 2200,
         enterDirection: 'from-right',
         sfxCue: 'light-sweep',
-        narrationText: 'Ruang Konsultasi & Ruang Dosen mendampingi Bagas (#18) menguji rover robotika.',
+        narrationText: 'Bagas menguji rover robotika lintas-lab bersama Bima & Gilang.',
         narrationDock: 'bottom-right',
         actors: [
+          { characterId: 'mhs-18', activity: 'work', poseId: 'P04', stageXNorm: 0.26, startTile: { x: 20.0, y: 15.0 }, facing: 'kanan', workEffect: 'rover' },
+          { characterId: 'mhs-09', activity: 'talk', poseId: 'P03', stageXNorm: 0.60, startTile: { x: 22.0, y: 15.0 }, facing: 'kiri' },
+          { characterId: 'mhs-07', activity: 'interact', poseId: 'P13', stageXNorm: 0.84, startTile: { x: 24.0, y: 15.0 }, facing: 'kiri' },
+        ],
+        sfxTexts: [
           {
-            characterId: 'dosen',
-            activity: 'talk',
-            startTile: { x: 33.8, y: 13.5 },
-            facing: 'kiri',
-            workEffect: 'discuss',
-            stationTag: 'Ruang Konsultasi',
-          },
-          {
-            characterId: 'mhs-18',
-            activity: 'work',
-            startTile: { x: 28.2, y: 14.5 },
-            facing: 'kanan',
-            workEffect: 'rover',
-            stationTag: 'Rover Robotika',
+            id: 'sfx-s04-vroom',
+            text: 'VROOM~ SERVO OK!',
+            xNorm: 0.44,
+            yNorm: 0.68,
+            rotationDeg: -4,
+            color: '#4ade80',
+            strokeColor: '#0f172a',
+            revealAtMs: 2500,
+            scale: 0.92,
           },
         ],
-        sfxTexts: [],
         dialogues: [
           {
             id: 'dlg-s04-bagas',
             kind: 'speech',
             speakerId: 'mhs-18',
             speakerName: 'Bagas',
-            text: 'Bu Dosen, rover komunitas robotika sudah siap berkeliling menghubungkan ke-11 ruangan lab!',
+            text: 'Aku sudah berhasil menyelesaikan integrasi rover robotika lintas-divisi!',
             bubbleXNorm: 0.48,
-            bubbleYNorm: 0.24,
-            startOffsetMs: 2650,
+            bubbleYNorm: 0.22,
+            startOffsetMs: 2700,
             durationMs: 8800,
           },
         ],
@@ -1087,78 +1002,93 @@ export const COMIC_STORY_PAGES: readonly ComicPageBlueprint[] = [
   },
 
   // ==========================================================================
-  // SCENE 05 / PAGE 5 — ONE COMMUNITY (40.0s – 50.0s)
-  // Satu Splash Panel Besar yang memperlihatkan seluruh 18 Mahasiswa + Ibu Dosen
-  // dengan sprite miniatur berkumpul secara alami di area Meja Diskusi &
-  // stasiun utama laboratorium (bukan foto kelas berlatar polos!)
+  // SCENE 05 — ONE COMMUNITY (41.0s – 51.0s)
+  // 1. Wide Establishing Collaboration Shot (Seluruh 18 mahasiswa + Ibu Dosen)
+  // 2. Close-Up Reaction Strip (Menjelaskan, Mendengarkan, Bertukar Dokumen)
   // ==========================================================================
   {
     pageNumber: 5,
     id: 'scene-05-one-community',
     code: 'SCENE 05 / 06',
-    title: 'ONE COMMUNITY — KELUARGA BESAR LABORATORIUM RUANG DENGAR',
-    subtitle: 'Seluruh 18 Mahasiswa & Ibu Dosen Pembimbing Berkumpul di Jantung Laboratorium',
-    startTimeMs: 40000,
+    title: 'ONE COMMUNITY — KOLABORASI NYATA DI LABORATORIUM',
+    subtitle: 'Wide Shot 18 Mahasiswa Berkolaborasi · Close-Up Reaksi & Kebersamaan Tim',
+    startTimeMs: 41000,
     durationMs: 10000,
     pageGridClass: 'grid-cols-12 grid-rows-6',
     ambientSfx: 'light-sweep',
     panels: [
       {
-        id: 'p5-splash-one-community',
-        title: '18 MAHASISWA · 11 RUANGAN · SATU KOMUNITAS LABORATORIUM',
+        id: 'p5-wide-collab',
+        title: 'WIDE SHOT · 18 MAHASISWA & IBU DOSEN BERKOLABORASI',
+        shotType: 'wide-shot',
+        cameraDirection: 'dolly-out',
+        actionStage: 'lab-map-wide',
         focusZoneIds: OFFICIAL_LAB_ZONE_IDS,
-        startViewport: { x: 6.0, y: 3.0, w: 38.0, h: 18.5 },
+        startViewport: { x: 8.0, y: 3.5, w: 36.0, h: 17.5 },
         endViewport: { x: 1.5, y: 0.8, w: 49.0, h: 22.6 },
         ambientTheme: 'lab-interior',
-        gridClass: 'col-span-12 row-span-6',
+        gridClass: 'col-span-12 row-span-4',
         revealAtMs: 0,
         enterDirection: 'impact-zoom',
         sfxCue: 'light-sweep',
-        narrationText:
-          'Berbeda keahlian, berbeda karakter. Namun satu tujuan menyatukan kita.',
+        narrationText: 'Berbeda keahlian, berbeda karakter. Namun satu tujuan menyatukan kita.',
         narrationDock: 'bottom-left',
         actors: [
-          // Ibu Dosen & lingkaran utama di sekitar Meja Diskusi
-          { characterId: 'dosen', activity: 'talk', startTile: { x: 21.0, y: 12.4 }, facing: 'bawah', workEffect: 'discuss' },
-          { characterId: 'mhs-01', activity: 'talk', startTile: { x: 18.4, y: 13.2 }, facing: 'bawah', workEffect: 'discuss' },
-          { characterId: 'mhs-03', activity: 'talk', startTile: { x: 23.6, y: 13.2 }, facing: 'bawah', workEffect: 'discuss' },
-          { characterId: 'mhs-12', activity: 'talk', startTile: { x: 16.8, y: 15.0 }, facing: 'kanan', workEffect: 'discuss' },
-          { characterId: 'mhs-13', activity: 'talk', startTile: { x: 25.2, y: 15.0 }, facing: 'kiri', workEffect: 'discuss' },
-          { characterId: 'mhs-14', activity: 'talk', startTile: { x: 18.8, y: 17.2 }, facing: 'atas', workEffect: 'read' },
-          { characterId: 'mhs-18', activity: 'work', startTile: { x: 23.2, y: 17.2 }, facing: 'atas', workEffect: 'rover' },
-
-          // Kelompok Elektronika & Gudang Alat di koridor utara-tengah
-          { characterId: 'mhs-02', activity: 'work', startTile: { x: 24.0, y: 5.2 }, facing: 'bawah', workEffect: 'solder' },
-          { characterId: 'mhs-10', activity: 'work', startTile: { x: 34.8, y: 5.5 }, facing: 'bawah', workEffect: 'inspect' },
-
-          // Kelompok Cetak 3D & Bengkel Las di utara-barat
-          { characterId: 'mhs-07', activity: 'work', startTile: { x: 5.5, y: 5.5 }, facing: 'bawah', workEffect: 'weld' },
-          { characterId: 'mhs-09', activity: 'talk', startTile: { x: 7.5, y: 5.8 }, facing: 'kiri', workEffect: 'discuss' },
-          { characterId: 'mhs-08', activity: 'work', startTile: { x: 14.5, y: 5.5 }, facing: 'bawah', workEffect: 'print3d' },
-          { characterId: 'mhs-15', activity: 'talk', startTile: { x: 17.5, y: 5.8 }, facing: 'kiri', workEffect: 'inspect' },
-
-          // Kelompok Pemrograman di sayap barat-tengah
-          { characterId: 'mhs-04', activity: 'work', startTile: { x: 4.5, y: 14.8 }, facing: 'atas', workEffect: 'code' },
-          { characterId: 'mhs-06', activity: 'work', startTile: { x: 7.0, y: 14.8 }, facing: 'atas', workEffect: 'code' },
-          { characterId: 'mhs-11', activity: 'work', startTile: { x: 9.8, y: 14.8 }, facing: 'atas', workEffect: 'code' },
-
-          // Kelompok Studio Desain & Pojok Baca di sayap timur
-          { characterId: 'mhs-05', activity: 'work', startTile: { x: 43.0, y: 5.2 }, facing: 'bawah', workEffect: 'design' },
-          { characterId: 'mhs-16', activity: 'work', startTile: { x: 46.5, y: 5.2 }, facing: 'bawah', workEffect: 'design' },
-          { characterId: 'mhs-17', activity: 'work', startTile: { x: 44.0, y: 14.8 }, facing: 'atas', workEffect: 'read' },
+          { characterId: 'dosen', activity: 'talk', poseId: 'P18', startTile: { x: 21.0, y: 12.4 }, facing: 'bawah', workEffect: 'discuss' },
+          { characterId: 'mhs-01', activity: 'talk', poseId: 'P14', startTile: { x: 18.4, y: 13.2 }, facing: 'bawah', workEffect: 'discuss' },
+          { characterId: 'mhs-03', activity: 'talk', poseId: 'P17', startTile: { x: 23.6, y: 13.2 }, facing: 'bawah', workEffect: 'discuss' },
+          { characterId: 'mhs-12', activity: 'talk', poseId: 'P16', startTile: { x: 16.8, y: 15.0 }, facing: 'kanan', workEffect: 'discuss' },
+          { characterId: 'mhs-13', activity: 'talk', poseId: 'P02', startTile: { x: 25.2, y: 15.0 }, facing: 'kiri', workEffect: 'discuss' },
+          { characterId: 'mhs-14', activity: 'interact', poseId: 'P06', startTile: { x: 18.8, y: 17.2 }, facing: 'atas', workEffect: 'read' },
+          { characterId: 'mhs-18', activity: 'work', poseId: 'P04', startTile: { x: 23.2, y: 17.2 }, facing: 'atas', workEffect: 'rover' },
+          { characterId: 'mhs-02', activity: 'work', poseId: 'P20', startTile: { x: 24.0, y: 5.2 }, facing: 'bawah', workEffect: 'solder' },
+          { characterId: 'mhs-10', activity: 'work', poseId: 'P20', startTile: { x: 34.8, y: 5.5 }, facing: 'bawah', workEffect: 'inspect' },
+          { characterId: 'mhs-07', activity: 'work', poseId: 'P13', startTile: { x: 5.5, y: 5.5 }, facing: 'bawah', workEffect: 'weld' },
+          { characterId: 'mhs-09', activity: 'talk', poseId: 'P03', startTile: { x: 7.5, y: 5.8 }, facing: 'kiri', workEffect: 'discuss' },
+          { characterId: 'mhs-08', activity: 'work', poseId: 'P02', startTile: { x: 14.5, y: 5.5 }, facing: 'bawah', workEffect: 'print3d' },
+          { characterId: 'mhs-15', activity: 'talk', poseId: 'P04', startTile: { x: 17.5, y: 5.8 }, facing: 'kiri', workEffect: 'inspect' },
+          { characterId: 'mhs-04', activity: 'work', poseId: 'P13', startTile: { x: 4.5, y: 14.8 }, facing: 'atas', workEffect: 'code' },
+          { characterId: 'mhs-06', activity: 'work', poseId: 'P17', startTile: { x: 7.0, y: 14.8 }, facing: 'atas', workEffect: 'code' },
+          { characterId: 'mhs-11', activity: 'work', poseId: 'P05', startTile: { x: 9.8, y: 14.8 }, facing: 'atas', workEffect: 'code' },
+          { characterId: 'mhs-05', activity: 'work', poseId: 'P04', startTile: { x: 43.0, y: 5.2 }, facing: 'bawah', workEffect: 'design' },
+          { characterId: 'mhs-16', activity: 'work', poseId: 'P15', startTile: { x: 46.5, y: 5.2 }, facing: 'bawah', workEffect: 'design' },
+          { characterId: 'mhs-17', activity: 'work', poseId: 'P02', startTile: { x: 44.0, y: 14.8 }, facing: 'atas', workEffect: 'read' },
+        ],
+        sfxTexts: [],
+        dialogues: [],
+      },
+      {
+        id: 'p5-closeup-reactions',
+        title: 'CLOSE-UP REACTION · MENJELASKAN, MENDENGARKAN & SALING MENGUATKAN',
+        shotType: 'close-up',
+        cameraDirection: 'reaction-shot',
+        actionStage: 'community-reaction-strip',
+        focusZoneIds: ['diskusi', 'konsultasi'],
+        startViewport: { x: 15, y: 11, w: 12, h: 8 },
+        endViewport: { x: 15, y: 11, w: 12, h: 8 },
+        ambientTheme: 'lab-interior',
+        gridClass: 'col-span-12 row-span-2',
+        revealAtMs: 700,
+        enterDirection: 'from-bottom',
+        sfxCue: 'comic-pop',
+        actors: [
+          { characterId: 'dosen', activity: 'talk', poseId: 'P18', stageXNorm: 0.16, startTile: { x: 20, y: 13 }, facing: 'kanan' },
+          { characterId: 'mhs-01', activity: 'talk', poseId: 'P14', stageXNorm: 0.38, startTile: { x: 21, y: 13 }, facing: 'kanan' },
+          { characterId: 'mhs-05', activity: 'talk', poseId: 'P04', stageXNorm: 0.62, startTile: { x: 22, y: 13 }, facing: 'kiri' },
+          { characterId: 'mhs-18', activity: 'talk', poseId: 'P03', stageXNorm: 0.84, startTile: { x: 23, y: 13 }, facing: 'kiri' },
         ],
         sfxTexts: [],
         dialogues: [
           {
-            id: 'dlg-s05-community',
+            id: 'dlg-s05-dosen',
             kind: 'speech',
             speakerId: 'dosen',
             speakerName: 'Ibu Dosen Pembimbing',
-            text: 'Inilah Ruang Dengar kita—18 mahasiswa di 11 ruangan laboratorium yang saling mendukung dan berkarya bersama!',
+            text: 'Ketika karya teknis dan empati berjalan berdampingan, laboratorium ini benar-benar hidup!',
             bubbleXNorm: 0.50,
-            bubbleYNorm: 0.16,
-            startOffsetMs: 800,
-            durationMs: 8600,
+            bubbleYNorm: 0.24,
+            startOffsetMs: 1100,
+            durationMs: 8400,
           },
         ],
       },
@@ -1166,8 +1096,7 @@ export const COMIC_STORY_PAGES: readonly ComicPageBlueprint[] = [
   },
 
   // ==========================================================================
-  // SCENE 06 / PAGE 6 — TITLE REVEAL (50.0s – 58.0s)
-  // Penyingkapan Judul Sinematik di atas Panorama Laboratorium Hidup
+  // SCENE 06 — TITLE REVEAL (51.0s – 59.0s)
   // ==========================================================================
   {
     pageNumber: 6,
@@ -1175,7 +1104,7 @@ export const COMIC_STORY_PAGES: readonly ComicPageBlueprint[] = [
     code: 'SCENE 06 / 06',
     title: 'RUANG DENGAR — SIMULASI LABORATORIUM ELEKTRONIKA & IoT',
     subtitle: 'Mulai Perjalananmu Mendampingi 18 Mahasiswa di Laboratorium',
-    startTimeMs: 50000,
+    startTimeMs: 51000,
     durationMs: 8000,
     pageGridClass: 'grid-cols-12 grid-rows-6',
     ambientSfx: 'title-climax',
@@ -1183,16 +1112,19 @@ export const COMIC_STORY_PAGES: readonly ComicPageBlueprint[] = [
       {
         id: 'p6-splash-title-reveal',
         title: 'RUANG DENGAR — SIMULASI LABORATORIUM ELEKTRONIKA & IoT',
+        shotType: 'wide-shot',
+        cameraDirection: 'dolly-in',
+        actionStage: 'lab-map-wide',
         focusZoneIds: OFFICIAL_LAB_ZONE_IDS,
-        startViewport: { x: 0.0, y: 0.0, w: 52.0, h: 24.0 },
-        endViewport: { x: -0.5, y: -0.4, w: 53.0, h: 24.8 },
+        startViewport: { x: -0.5, y: -0.4, w: 53.0, h: 24.8 },
+        endViewport: { x: 1.5, y: 0.5, w: 49.0, h: 23.0 },
         ambientTheme: 'title-climax',
         gridClass: 'col-span-12 row-span-6',
         revealAtMs: 0,
         enterDirection: 'impact-zoom',
         sfxCue: 'title-climax',
         actors: [
-          { characterId: 'dosen', activity: 'idle', startTile: { x: 21.0, y: 12.6 }, facing: 'bawah' },
+          { characterId: 'dosen', activity: 'idle', poseId: 'P02', startTile: { x: 21.0, y: 12.6 }, facing: 'bawah' },
           { characterId: 'mhs-01', activity: 'work', startTile: { x: 25.0, y: 4.2 }, facing: 'atas', workEffect: 'oscilloscope' },
           { characterId: 'mhs-02', activity: 'work', startTile: { x: 23.4, y: 4.2 }, facing: 'atas', workEffect: 'solder' },
           { characterId: 'mhs-03', activity: 'work', startTile: { x: 27.6, y: 4.2 }, facing: 'atas', workEffect: 'oscilloscope' },

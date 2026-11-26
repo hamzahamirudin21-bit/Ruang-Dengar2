@@ -4,6 +4,7 @@ import { STRINGS } from '../../data/strings';
 import { getStudentBackground } from '../../data/studentBackgrounds';
 import { buildRosterModel } from '../characters/rosterModel';
 import { IconSettings } from '../components/Icons';
+import { PoseQcModal } from '../characters/PoseQcModal';
 import { playSfx } from '../motion/sfx';
 import { RosterCard } from './RosterCard';
 import { computeRosterLayout } from './rosterLayout';
@@ -83,6 +84,7 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
   const [filterKey, setFilterKey] = useState<RosterFilterKey>('semua');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [flippedIds, setFlippedIds] = useState<ReadonlySet<string>>(() => new Set());
+  const [poseQcOpen, setPoseQcOpen] = useState<boolean>(false);
 
   const visibleModels = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -244,6 +246,18 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                playSfx('klik');
+                setPoseQcOpen(true);
+              }}
+              className="rtx-hud-btn text-xs font-bold"
+              data-testid="open-pose-qc-btn"
+              title="Buka halaman Visual QC untuk memeriksa 360 pose (18 karakter × 20 pose)"
+            >
+              🎭 QC 360 Pose
+            </button>
             <button
               type="button"
               onClick={toggleFlipAll}
@@ -455,6 +469,8 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
           </div>
         </footer>
       </div>
+
+      <PoseQcModal isOpen={poseQcOpen} onClose={() => setPoseQcOpen(false)} />
     </main>
   );
 };

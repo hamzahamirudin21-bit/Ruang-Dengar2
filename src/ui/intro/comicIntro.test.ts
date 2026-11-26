@@ -84,7 +84,18 @@ test('memiliki 6 babak sinematik (SCENE 01 s.d. SCENE 06) dengan seluruh 18 kara
   // Scene 03 memperlihatkan 5 ruangan praktikum berbeda (Elektronika, Pemrograman, Cetak 3D, Bengkel Las, Meja Diskusi)
   assert.equal(COMIC_STORY_PAGES[2].panels.length, 5);
 
-  // Seluruh 18 mahasiswa hadir di Scene 04 (The Lab Community) dan Scene 05 (One Community)
+  // Memastikan seluruh 6 jenis Flexible Character Framing (Extreme Close-Up s.d. Wide Shot) terpakai secara bervariasi
+  const usedShotTypes = new Set(
+    COMIC_STORY_PAGES.flatMap((page) => page.panels.map((panel) => panel.shotType))
+  );
+  assert.ok(usedShotTypes.has('extreme-close-up'));
+  assert.ok(usedShotTypes.has('close-up'));
+  assert.ok(usedShotTypes.has('medium-shot'));
+  assert.ok(usedShotTypes.has('medium-full-shot'));
+  assert.ok(usedShotTypes.has('full-body-shot'));
+  assert.ok(usedShotTypes.has('wide-shot'));
+
+  // Seluruh 18 mahasiswa hadir di Scene 04, Scene 05, dan Scene 06
   for (const pageIdx of [3, 4, 5]) {
     const page = COMIC_STORY_PAGES[pageIdx];
     const studentIds = new Set<string>();

@@ -35,6 +35,10 @@ export interface StoryPortraitProps {
   fluid?: boolean;
   /** Reaksi cepat terhadap pilihan konselor (+12% tepat / -14% salah). */
   reactionKind?: 'tepat' | 'salah' | null;
+  /** Teks dialog aktif untuk pemilihan pose P01-P20. */
+  dialogueText?: string;
+  /** True bila karakter sedang mendengarkan. */
+  isListening?: boolean;
   className?: string;
 }
 
@@ -66,6 +70,8 @@ export function StoryPortrait({
   facing,
   fluid = false,
   reactionKind = null,
+  dialogueText,
+  isListening = false,
   className,
 }: StoryPortraitProps) {
   const portrait = useMemo(
@@ -111,6 +117,8 @@ export function StoryPortrait({
           facing={resolvedFacing}
           fluid={fluid}
           reactionKind={reactionKind}
+          dialogueText={dialogueText}
+          isListening={isListening}
           className={className}
         />
       </div>
