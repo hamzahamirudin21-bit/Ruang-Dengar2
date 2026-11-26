@@ -136,6 +136,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[var(--ui-bg)] text-[var(--ui-text)]">
+      <div className="portrait-orientation-notice" role="status">
+        Putar perangkat ke mode landscape untuk pengalaman bermain terbaik.
+      </div>
       {storageNotice && (
         <div
           role="status"

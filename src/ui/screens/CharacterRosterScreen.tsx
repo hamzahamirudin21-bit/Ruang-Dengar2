@@ -4,6 +4,7 @@ import { STRINGS } from '../../data/strings';
 import { getStudentBackground } from '../../data/studentBackgrounds';
 import { buildRosterModel } from '../characters/rosterModel';
 import { IconSettings } from '../components/Icons';
+import { PoseQcModal } from '../characters/PoseQcModal';
 import { playSfx } from '../motion/sfx';
 import { RosterCard } from './RosterCard';
 import { computeRosterLayout } from './rosterLayout';
@@ -83,6 +84,7 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
   const [filterKey, setFilterKey] = useState<RosterFilterKey>('semua');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [flippedIds, setFlippedIds] = useState<ReadonlySet<string>>(() => new Set());
+  const [poseQcOpen, setPoseQcOpen] = useState<boolean>(false);
 
   const visibleModels = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -133,7 +135,7 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
     const inner = containerRef.current;
     const measure = () => {
       const innerW = inner?.clientWidth;
-      const w = innerW ? innerW + 40 : (el?.clientWidth || window.innerWidth);
+      const w = innerW || el?.clientWidth || window.innerWidth;
       const h = el?.clientHeight || window.innerHeight;
       setViewport((v) => (v.width === w && v.height === h ? v : { width: w, height: h }));
     };
@@ -155,7 +157,9 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
   );
 
   useEffect(() => {
-    rootRef.current?.querySelector<HTMLButtonElement>('[data-continue="true"]')?.focus();
+    rootRef.current
+      ?.querySelector<HTMLButtonElement>('[data-continue="true"]')
+      ?.focus({ preventScroll: true });
   }, []);
 
   useEffect(() => {
@@ -244,6 +248,18 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                playSfx('klik');
+                setPoseQcOpen(true);
+              }}
+              className="rtx-hud-btn text-xs font-bold"
+              data-testid="open-pose-qc-btn"
+              title="Buka halaman Visual QC untuk memeriksa 360 pose (18 karakter × 20 pose)"
+            >
+              🎭 QC 360 Pose
+            </button>
             <button
               type="button"
               onClick={toggleFlipAll}
@@ -363,7 +379,11 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
            =================================================================== */}
         {visibleModels.length > 0 ? (
           <ul
-            className="grid min-h-0 w-full flex-1 content-center items-stretch px-0.5 py-0.5"
+            className={`grid min-h-0 w-full items-stretch px-0.5 py-0.5 ${
+              layout.fitsOneScreen
+                ? 'flex-1 content-center'
+                : 'flex-none content-start'
+            }`}
             style={{
               gridTemplateColumns: `repeat(${layout.columns}, minmax(0, 1fr))`,
               gap: `${Math.max(10, layout.gap + 1)}px`,
@@ -455,6 +475,8 @@ export const CharacterRosterScreen: React.FC<CharacterRosterScreenProps> = ({
           </div>
         </footer>
       </div>
+
+      <PoseQcModal isOpen={poseQcOpen} onClose={() => setPoseQcOpen(false)} />
     </main>
   );
 };

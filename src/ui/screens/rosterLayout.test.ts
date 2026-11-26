@@ -45,3 +45,11 @@ test('viewport kecil menghasilkan dua kolom dan tidak muat satu layar', () => {
   assert.equal(l.columns, 2);
   assert.equal(l.fitsOneScreen, false);
 });
+
+test('landscape ponsel memakai kolom sebanyak yang muat dan mempertahankan gulir', () => {
+  const l = computeRosterLayout({ width: 768, height: 360 }, 18);
+  assert.equal(l.columns, 3);
+  assert.equal(l.rows, 6);
+  assert.equal(l.fitsOneScreen, false);
+  assert.equal(l.cardHeight, 144);
+});

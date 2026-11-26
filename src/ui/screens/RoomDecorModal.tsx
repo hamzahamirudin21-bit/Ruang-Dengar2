@@ -43,7 +43,7 @@ export const RoomDecorModal: React.FC<RoomDecorModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="game-panel-cream fx-panel-in flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden !rounded-[28px] border-[3.5px] border-[#3e2517] shadow-[0_10px_0_#3e2517,0_24px_50px_rgba(38,20,10,0.45)]"
+        className="game-panel-cream responsive-modal-panel responsive-modal-panel--90 fx-panel-in flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden !rounded-[28px] border-[3.5px] border-[#3e2517] shadow-[0_10px_0_#3e2517,0_24px_50px_rgba(38,20,10,0.45)]"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex flex-wrap items-center justify-between gap-3 border-b-[3px] border-[#3e2517] bg-gradient-to-r from-[#e56256] via-[#cf4941] to-[#bc3e37] px-6 py-4 text-[#fffdf6]">

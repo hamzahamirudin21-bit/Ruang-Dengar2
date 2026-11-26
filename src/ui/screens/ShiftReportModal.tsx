@@ -50,7 +50,7 @@ export const ShiftReportModal: React.FC<ShiftReportModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="game-panel-cream w-full max-w-xl overflow-hidden !rounded-[28px] border-[3.5px] border-[#3e2517] shadow-[0_10px_0_#3e2517,0_24px_50px_rgba(38,20,10,0.45)]"
+        className="game-panel-cream responsive-modal-panel responsive-modal-panel--90 w-full max-w-xl overflow-y-auto !rounded-[28px] border-[3.5px] border-[#3e2517] shadow-[0_10px_0_#3e2517,0_24px_50px_rgba(38,20,10,0.45)]"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="border-b-[3px] border-[#3e2517] bg-gradient-to-r from-[#d8534a] via-[#c74840] to-[#b53d37] px-6 py-5 text-center text-[#fffdf6]">

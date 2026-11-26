@@ -1,0 +1,227 @@
+{
+    "characterId":  "mhs-05",
+    "slug":  "ayu",
+    "name":  "Ayu Permata",
+    "poses":  {
+                  "P01":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P01",
+                              "expression":  "netral",
+                              "emotion":  "neutral",
+                              "assetPath":  "/assets/characters/ayu/poses/p01-neutral.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P02":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P02",
+                              "expression":  "tersenyum",
+                              "emotion":  "warm",
+                              "assetPath":  "/assets/characters/ayu/poses/p02-warm-smile.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P03":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P03",
+                              "expression":  "tersenyum",
+                              "emotion":  "happy",
+                              "assetPath":  "/assets/characters/ayu/poses/p03-happy-laugh.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P04":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P04",
+                              "expression":  "tersenyum",
+                              "emotion":  "excited",
+                              "assetPath":  "/assets/characters/ayu/poses/p04-excited.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P05":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P05",
+                              "expression":  "tertegun",
+                              "emotion":  "thinking",
+                              "assetPath":  "/assets/characters/ayu/poses/p05-thinking.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P06":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P06",
+                              "expression":  "waspada",
+                              "emotion":  "curious",
+                              "assetPath":  "/assets/characters/ayu/poses/p06-curious.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P07":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P07",
+                              "expression":  "tertegun",
+                              "emotion":  "confused",
+                              "assetPath":  "/assets/characters/ayu/poses/p07-confused.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P08":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P08",
+                              "expression":  "terkejut",
+                              "emotion":  "surprised",
+                              "assetPath":  "/assets/characters/ayu/poses/p08-surprised.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P09":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P09",
+                              "expression":  "cemas",
+                              "emotion":  "worried",
+                              "assetPath":  "/assets/characters/ayu/poses/p09-worried.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P10":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P10",
+                              "expression":  "menunduk",
+                              "emotion":  "sad",
+                              "assetPath":  "/assets/characters/ayu/poses/p10-sad.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P11":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P11",
+                              "expression":  "lelah",
+                              "emotion":  "exhausted",
+                              "assetPath":  "/assets/characters/ayu/poses/p11-exhausted.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P12":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P12",
+                              "expression":  "kesal",
+                              "emotion":  "frustrated",
+                              "assetPath":  "/assets/characters/ayu/poses/p12-frustrated.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P13":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P13",
+                              "expression":  "waspada",
+                              "emotion":  "confident",
+                              "assetPath":  "/assets/characters/ayu/poses/p13-confident.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P14":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P14",
+                              "expression":  "netral",
+                              "emotion":  "explaining",
+                              "assetPath":  "/assets/characters/ayu/poses/p14-explaining.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P15":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P15",
+                              "expression":  "waspada",
+                              "emotion":  "pointing",
+                              "assetPath":  "/assets/characters/ayu/poses/p15-pointing.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P16":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P16",
+                              "expression":  "lega",
+                              "emotion":  "inviting",
+                              "assetPath":  "/assets/characters/ayu/poses/p16-open-invitation.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P17":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P17",
+                              "expression":  "netral",
+                              "emotion":  "listening",
+                              "assetPath":  "/assets/characters/ayu/poses/p17-listening.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P18":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P18",
+                              "expression":  "lega",
+                              "emotion":  "reassuring",
+                              "assetPath":  "/assets/characters/ayu/poses/p18-reassuring.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P19":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P19",
+                              "expression":  "menunduk",
+                              "emotion":  "shy",
+                              "assetPath":  "/assets/characters/ayu/poses/p19-shy.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          },
+                  "P20":  {
+                              "characterId":  "mhs-05",
+                              "poseId":  "P20",
+                              "expression":  "waspada",
+                              "emotion":  "focused",
+                              "assetPath":  "/assets/characters/ayu/poses/p20-serious-focus.png",
+                              "anchor":  "bottom-center",
+                              "width":  480,
+                              "height":  600,
+                              "availability":  true
+                          }
+              }
+}

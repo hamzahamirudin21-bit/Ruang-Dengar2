@@ -16,11 +16,12 @@ import {
 import {
   RenderedActorAnchor,
   onSpriteAssetsReady,
+  renderMediumOrCloseupAnimeActor,
   renderMiniComicCharacter,
 } from './ComicCharacterRenderer';
 import { computePanelTransitionState } from './ComicTransitionEngine';
 import { DialogueEngine } from './DialogueEngine';
-import { ComicPanelBlueprint } from './StoryTimeline';
+import { ActionStageKind, ComicPanelBlueprint } from './StoryTimeline';
 
 export interface ComicPanelRendererProps {
   panel: ComicPanelBlueprint;
@@ -32,20 +33,34 @@ export interface ComicPanelRendererProps {
   onSkipIntro?: () => void;
 }
 
-/**
- * Merender Panel Komik 2D Berdetail Tinggi yang terhubung langsung dengan
- * konfigurasi peta simulasi utama (`LAB_MAP` & `illustratedLab.ts`) dalam 10 Layer:
- * 1. Background environment (Taman kampus, pepohonan rimbun, cahaya pagi)
- * 2. Building structure (Fasad gedung batu-baja, tangga utama selatan)
- * 3. Walls and room partitions (Dinding ruangan, sekat rendah, pintu kaca geser)
- * 4. Floor texture (Keramik, beton dengan marka K3, kayu hangat, karpet/rumput)
- * 5. Furniture (Meja kerja, sofa, rak buku, lemari dari LAB_MAP.furniture)
- * 6. Laboratory equipment (Osiloskop, power supply, breadboard, PCB, mesin las, tabung gas, APAR, printer 3D, spool filamen, monitor kode, dev board, tablet desain, dispenser)
- * 7. Decorations (Tanaman pot, plakat identitas ruangan, lampu koridor, buku & dokumen)
- * 8. Character sprite (Mini Character Sprite utuh dari dataset simulasi, diurutkan menurut Y bersama furnitur)
- * 9. Foreground objects (Hologram 3D, mini rover robotika, indikator layar aktif)
- * 10. Lighting and visual effects (Cahaya fajar, pendaran lampu koridor, bingkai komik)
- */
+const SCENE_BG_BY_STAGE: Partial<Record<ActionStageKind, string>> = {
+  'corridor-medium-walk': '/assets/scenes/diskusi.png',
+  'oscilloscope-medium-bench': '/assets/scenes/elektronik.png',
+  'coding-medium-desk': '/assets/scenes/pemrograman.png',
+  'printer-3d-ecu': '/assets/scenes/cetak3d.png',
+  'welding-k3-medium': '/assets/scenes/las.png',
+  'discussion-medium-table': '/assets/scenes/diskusi.png',
+  'studio-design-medium': '/assets/scenes/pemrograman.png',
+  'gudang-calibration-closeup': '/assets/scenes/elektronik.png',
+  'reading-corner-medium': '/assets/scenes/konsultasi.png',
+  'robotics-corridor-track': '/assets/scenes/diskusi.png',
+  'community-reaction-strip': '/assets/scenes/diskusi.png',
+};
+
+const stageBgCache = new Map<string, HTMLImageElement>();
+
+function getStageBgImage(stage: ActionStageKind, onLoad: () => void): HTMLImageElement | null {
+  const url = SCENE_BG_BY_STAGE[stage];
+  if (!url || typeof window === 'undefined' || typeof Image === 'undefined') return null;
+  const hit = stageBgCache.get(url);
+  if (hit) return hit.complete && hit.naturalWidth > 0 ? hit : null;
+  const img = new Image();
+  img.onload = onLoad;
+  img.src = url;
+  stageBgCache.set(url, img);
+  return null;
+}
+
 export const ComicPanelRenderer: React.FC<ComicPanelRendererProps> = ({
   panel,
   pageElapsedMs,
@@ -56,13 +71,12 @@ export const ComicPanelRenderer: React.FC<ComicPanelRendererProps> = ({
   onSkipIntro,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [spriteVersion, setSpriteVersion] = useState<number>(0);
+  const [assetVersion, setAssetVersion] = useState<number>(0);
   const panelElapsedMs = Math.max(0, pageElapsedMs - panel.revealAtMs);
 
-  // Dengarkan pembaruan saat sprite sheet eksternal selesai dimuat
   useEffect(() => {
     return onSpriteAssetsReady(() => {
-      setSpriteVersion((v) => v + 1);
+      setAssetVersion((v) => v + 1);
     });
   }, []);
 
@@ -91,9 +105,25 @@ export const ComicPanelRenderer: React.FC<ComicPanelRendererProps> = ({
     return active;
   }, [pageElapsedMs, panel.dialogues]);
 
-  // Hitung posisi anchor kepala tiap sprite miniatur untuk ekor balon dialog
+  // Anchor posisi kepala karakter untuk ekor balon dialog
   const actorAnchors = useMemo(() => {
     const map: Record<string, RenderedActorAnchor> = {};
+    if (panel.actionStage !== 'lab-map-wide') {
+      for (const actor of panel.actors) {
+        const xNorm = actor.stageXNorm ?? 0.5;
+        map[actor.characterId] = {
+          characterId: actor.characterId,
+          name: actor.characterId,
+          orderNumber: actor.characterId,
+          feetWorldX: xNorm,
+          feetWorldY: 0.9,
+          xNorm,
+          yNorm: 0.34,
+        };
+      }
+      return map;
+    }
+
     const estW = 640;
     const estH = 360;
     const cam = computePanelWorldCamera(
@@ -106,7 +136,6 @@ export const ComicPanelRenderer: React.FC<ComicPanelRendererProps> = ({
       LAB_MAP.tileSizePx,
       reducedMotion
     );
-
     for (const actor of panel.actors) {
       const animState = computeMiniSpriteAnimationState(
         actor,
@@ -115,10 +144,7 @@ export const ComicPanelRenderer: React.FC<ComicPanelRendererProps> = ({
         speakingIds.has(actor.characterId),
         reducedMotion
       );
-      const feet = spriteFeet(
-        { x: animState.tileX, y: animState.tileY },
-        LAB_MAP.tileSizePx
-      );
+      const feet = spriteFeet({ x: animState.tileX, y: animState.tileY }, LAB_MAP.tileSizePx);
       const norm = worldTileToPanelNorm(
         animState.tileX,
         animState.tileY,
@@ -142,6 +168,7 @@ export const ComicPanelRenderer: React.FC<ComicPanelRendererProps> = ({
   }, [
     pageDurationMs,
     pageElapsedMs,
+    panel.actionStage,
     panel.actors,
     panel.endViewport,
     panel.startViewport,
@@ -168,142 +195,53 @@ export const ComicPanelRenderer: React.FC<ComicPanelRendererProps> = ({
 
     const logicW = w / dpr;
     const logicH = h / dpr;
-    const t = LAB_MAP.tileSizePx;
-    const worldW = LAB_MAP.width * t;
-    const worldH = LAB_MAP.height * t;
     const tSec = Math.max(0, pageElapsedMs) / 1000;
-
-    const camera = computePanelWorldCamera(
-      panel.startViewport,
-      panel.endViewport,
-      panelElapsedMs,
-      pageDurationMs,
-      logicW,
-      logicH,
-      t,
-      reducedMotion
-    );
+    const progress01 = Math.max(0, Math.min(1, panelElapsedMs / Math.max(1, pageDurationMs)));
 
     ctx.save();
     ctx.scale(dpr, dpr);
-
-    // Latar dasar taman kampus gelap-hangat di luar batas peta
     ctx.fillStyle = '#0c1624';
     ctx.fillRect(0, 0, logicW, logicH);
 
-    // Terapkan matriks kamera dunia 2D
-    ctx.save();
-    ctx.translate(camera.offsetX, camera.offsetY);
-    ctx.scale(camera.scale, camera.scale);
-
-    // ========================================================================
-    // LAYER 1..4 & 7: BACKGROUND ENVIRONMENT, BUILDING STRUCTURE, WALLS,
-    // PARTITIONS, FLOOR TEXTURE (Keramik, Beton K3, Kayu, Karpet) & DECORATIONS
-    // Diambil langsung dari getIllustratedLabBackdrop(LAB_MAP, 'lab') (2.5x HD)
-    // ========================================================================
-    const backdrop = getIllustratedLabBackdrop(LAB_MAP, 'lab');
-    if (backdrop) {
-      ctx.imageSmoothingEnabled = true;
-      if ('imageSmoothingQuality' in ctx) {
-        ctx.imageSmoothingQuality = 'high';
-      }
-      ctx.drawImage(backdrop, 0, 0, worldW, worldH);
-    }
-
-    // ========================================================================
-    // LAYER 6: ROOM-SPECIFIC LABORATORY EQUIPMENT DETAILS
-    // Menambahkan peralatan mikro & instrumen aktif sesuai ruangan di LAB_MAP
-    // ========================================================================
-    renderRoomSpecificEquipmentLayer(ctx, t, tSec, reducedMotion);
-
-    // ========================================================================
-    // LAYER 5 & 8: DEPTH-SORTED FURNITURE + MINI CHARACTER SPRITES
-    // Mengurutkan furnitur LAB_MAP dan sprite miniatur berdasarkan koordinat Y
-    // sehingga karakter dan objek tidak pernah saling menembus secara tidak wajar.
-    // ========================================================================
-    type DepthDrawable =
-      | { kind: 'furniture'; baseY: number; item: LabFurniture }
-      | {
-          kind: 'actor';
-          baseY: number;
-          actor: (typeof panel.actors)[number];
-        };
-
-    const drawables: DepthDrawable[] = [];
-
-    for (const item of LAB_MAP.furniture) {
-      const baseY = (item.rect.y + item.rect.h) * t;
-      drawables.push({ kind: 'furniture', baseY, item });
-    }
-
-    for (const actor of panel.actors) {
-      const animState = computeMiniSpriteAnimationState(
-        actor,
+    if (panel.actionStage === 'lab-map-wide') {
+      renderLabMapWideStage(
+        ctx,
+        panel,
+        logicW,
+        logicH,
         pageElapsedMs,
+        panelElapsedMs,
         pageDurationMs,
-        speakingIds.has(actor.characterId),
-        reducedMotion
+        tSec,
+        reducedMotion,
+        speakingIds
       );
-      const feet = spriteFeet({ x: animState.tileX, y: animState.tileY }, t);
-      drawables.push({ kind: 'actor', baseY: feet.y, actor });
+    } else {
+      renderCinematicActionStage(
+        ctx,
+        panel,
+        logicW,
+        logicH,
+        pageElapsedMs,
+        panelElapsedMs,
+        progress01,
+        tSec,
+        reducedMotion,
+        speakingIds,
+        () => setAssetVersion((v) => v + 1)
+      );
     }
 
-    drawables.sort((a, b) => a.baseY - b.baseY);
-
-    for (const d of drawables) {
-      if (d.kind === 'furniture') {
-        drawIllustratedFurniture(ctx, d.item, t, tSec, reducedMotion);
-      } else {
-        const animState = computeMiniSpriteAnimationState(
-          d.actor,
-          pageElapsedMs,
-          pageDurationMs,
-          speakingIds.has(d.actor.characterId),
-          reducedMotion
-        );
-        renderMiniComicCharacter(
-          ctx,
-          d.actor,
-          animState,
-          t,
-          camera,
-          logicW,
-          logicH
-        );
-      }
-    }
-
-    // ========================================================================
-    // LAYER 9: FOREGROUND OBJECTS & ROOM IDENTITY PLAQUES
-    // ========================================================================
-    drawAnimatedLabHolograms(ctx, LAB_MAP, tSec, reducedMotion);
-
-    const focusSet = new Set(panel.focusZoneIds);
-    for (const zone of LAB_MAP.zones) {
-      const isFocused = focusSet.has(zone.id);
-      drawIllustratedZoneLabel(ctx, zone, t, isFocused && focusSet.size <= 3);
-    }
-
-    ctx.restore(); // akhir transformasi kamera dunia
-
-    // ========================================================================
-    // LAYER 10: LIGHTING AND VISUAL EFFECTS (Pencahayaan Pagi / Koridor / Bingkai)
-    // ========================================================================
     renderPanelAmbientLighting(ctx, panel.ambientTheme, logicW, logicH);
-
     ctx.restore();
   }, [
+    assetVersion,
     pageDurationMs,
     pageElapsedMs,
-    panel.actors,
-    panel.ambientTheme,
-    panel.endViewport,
-    panel.focusZoneIds,
-    panel.startViewport,
+    panel,
     panelElapsedMs,
     reducedMotion,
     speakingIds,
-    spriteVersion,
   ]);
 
   return (
@@ -315,21 +253,20 @@ export const ComicPanelRenderer: React.FC<ComicPanelRendererProps> = ({
         opacity: transition.opacity,
       }}
       data-panel-id={panel.id}
+      data-shot-type={panel.shotType}
+      data-camera-direction={panel.cameraDirection}
       data-focus-zones={panel.focusZoneIds.join(',')}
     >
-      {/* Header Label Panel Komik Tipis di Sudut Kiri Atas */}
       <div className="pointer-events-none absolute top-2 left-2 z-20 rounded border-2 border-slate-950 bg-slate-950/90 px-2 py-0.5 text-[10px] font-black tracking-wider uppercase text-amber-300 shadow-[2px_2px_0_#020617]">
         {panel.title}
       </div>
 
-      {/* Kanvas 10-Layer Peta Simulasi + Mini Character Sprites */}
       <canvas
         ref={canvasRef}
         className="block h-full w-full"
         data-testid={`comic-canvas-${panel.id}`}
       />
 
-      {/* Impact Flash halus saat panel baru terbuka */}
       {transition.impactFlash01 > 0.02 && (
         <div
           className="pointer-events-none absolute inset-0 z-10 bg-amber-100"
@@ -337,19 +274,17 @@ export const ComicPanelRenderer: React.FC<ComicPanelRendererProps> = ({
         />
       )}
 
-      {/* Balon Percakapan Komik, Kotak Narasi & Tipografi SFX */}
       <DialogueEngine
         panel={panel}
         pageElapsedMs={pageElapsedMs}
         actorAnchors={actorAnchors}
       />
 
-      {/* Overlay Tombol Aksi Utama pada SCENE 06 — TITLE REVEAL */}
       {panel.ambientTheme === 'title-climax' && (
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center px-4 text-center">
           <div className="rounded-3xl border-[4px] border-slate-950 bg-slate-950/88 px-6 py-5 shadow-[8px_8px_0_#fbbf24] backdrop-blur-md sm:px-10 sm:py-7">
             <div className="mb-2 inline-block -rotate-1 border-2 border-slate-950 bg-amber-400 px-3 py-0.5 font-['Fredoka',sans-serif] text-xs font-black tracking-widest uppercase text-slate-950 shadow">
-              SIMULASI INTERAKTIF · 18 MAHASISWA MINIATUR · 11 RUANGAN LABORATORIUM
+              ACTION-DRIVEN ANIME MOTION COMIC · 18 MAHASISWA · 11 RUANGAN
             </div>
             <h1 className="font-['Fredoka',sans-serif] text-4xl font-black tracking-tight text-white drop-shadow-[0_4px_0_#020617] sm:text-6xl">
               RUANG DENGAR
@@ -392,143 +327,489 @@ export const ComicPanelRenderer: React.FC<ComicPanelRendererProps> = ({
 };
 
 /* ========================================================================== */
-/* LAYER 6: PERALATAN LABORATORIUM SPESIFIK 11 RUANGAN (A s.d. K)             */
+/* STAGE A: WIDE SHOT / FULL-BODY SHOT DI ATAS DUNIA LAB_MAP                  */
 /* ========================================================================== */
 
-function renderRoomSpecificEquipmentLayer(
+function renderLabMapWideStage(
   ctx: CanvasRenderingContext2D,
-  t: number,
+  panel: ComicPanelBlueprint,
+  logicW: number,
+  logicH: number,
+  pageElapsedMs: number,
+  panelElapsedMs: number,
+  pageDurationMs: number,
   tSec: number,
-  reducedMotion: boolean
+  reducedMotion: boolean,
+  speakingIds: Set<string>
 ): void {
-  ctx.save();
-  const pulse = reducedMotion ? 0.5 : 0.5 + 0.5 * Math.sin(tSec * 4.5);
+  const t = LAB_MAP.tileSizePx;
+  const worldW = LAB_MAP.width * t;
+  const worldH = LAB_MAP.height * t;
 
-  // A. BENGKEL LAS (K3) (x=1..9, y=1..7): Tabung gas argon, tirai pembatas las, rak perkakas & marka K3
-  ctx.fillStyle = '#0284c7';
-  ctx.strokeStyle = '#0f172a';
-  ctx.lineWidth = 1.2;
-  // Tabung gas bertekanan di samping mesin las
-  ctx.beginPath();
-  ctx.roundRect(8.2 * t, 2.1 * t, 0.55 * t, 1.4 * t, 4);
-  ctx.fill();
-  ctx.stroke();
-  // Tirai pelindung kuning-transparan pembatas area las
-  ctx.strokeStyle = 'rgba(245, 158, 11, 0.65)';
-  ctx.lineWidth = 2.0;
-  ctx.beginPath();
-  ctx.moveTo(5.3 * t, 1.5 * t);
-  ctx.lineTo(5.3 * t, 3.8 * t);
-  ctx.stroke();
-
-  // B. RUANG CETAK 3D (x=11..20, y=1..7): Rak gulungan filamen warna-warni & meja pasca-proses
-  const spoolColors = ['#38bdf8', '#f59e0b', '#10b981', '#ec4899'];
-  for (let i = 0; i < 4; i += 1) {
-    ctx.fillStyle = spoolColors[i];
-    ctx.beginPath();
-    ctx.arc((12.4 + i * 2.2) * t, 1.55 * t, 3.6, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // C. ELEKTRONIKA & IoT (x=22..30, y=1..7): Breadboard, PCB hijau, kabel jumper & sensor
-  ctx.fillStyle = '#065f46';
-  ctx.strokeStyle = '#34d399';
-  ctx.lineWidth = 1;
-  ctx.fillRect(23.5 * t, 2.35 * t, 0.9 * t, 0.45 * t);
-  ctx.strokeRect(23.5 * t, 2.35 * t, 0.9 * t, 0.45 * t);
-  // Gelombang osiloskop hidup di meja alat ukur
-  ctx.strokeStyle = '#4ade80';
-  ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  ctx.moveTo(27.3 * t, 2.1 * t);
-  ctx.lineTo(27.55 * t, (2.0 + pulse * 0.15) * t);
-  ctx.lineTo(27.8 * t, (2.2 - pulse * 0.15) * t);
-  ctx.stroke();
-
-  // D. PEMROGRAMAN & MCU (x=1..12, y=11..16): Papan dev board mikrokontroler & kabel USB di meja komputer
-  for (const dx of [3.2, 5.0, 8.2, 10.0]) {
-    ctx.fillStyle = '#1e3a8a';
-    ctx.fillRect(dx * t, 13.45 * t, 0.45 * t, 0.3 * t);
-    ctx.fillStyle = pulse > 0.45 ? '#22c55e' : '#ef4444';
-    ctx.beginPath();
-    ctx.arc((dx + 0.2) * t, 13.6 * t, 1.4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // E. GUDANG ALAT (x=32..38, y=1..7): Meja pemeriksaan alat ukur & label inventaris
-  ctx.fillStyle = '#cbd5e1';
-  ctx.strokeStyle = '#1e293b';
-  ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  ctx.roundRect(34.0 * t, 4.3 * t, 2.4 * t, 1.1 * t, 3);
-  ctx.fill();
-  ctx.stroke();
-  // Multimeter kuning di atas meja pemeriksaan Gudang Alat
-  ctx.fillStyle = '#fbbf24';
-  ctx.fillRect(34.8 * t, 4.55 * t, 0.55 * t, 0.6 * t);
-
-  // F. STUDIO DESAIN (x=40..50, y=1..7): Kursi kerja studio & stylus pen-display
-  for (const cx of [42.8, 47.6]) {
-    ctx.fillStyle = '#a855f7';
-    ctx.strokeStyle = '#1e1b4b';
-    ctx.lineWidth = 1.1;
-    ctx.beginPath();
-    ctx.arc(cx * t, 3.65 * t, 5.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-  }
-
-  // G. MEJA DISKUSI (x=15..26, y=11..18): Papan presentasi / whiteboard telemetri menyala
-  ctx.strokeStyle = '#38bdf8';
-  ctx.lineWidth = 1.3;
-  ctx.beginPath();
-  ctx.moveTo(24.7 * t, 12.1 * t);
-  ctx.lineTo(25.3 * t, (11.9 + pulse * 0.2) * t);
-  ctx.lineTo(25.9 * t, 12.15 * t);
-  ctx.stroke();
-
-  // H. RUANG KONSULTASI (x=31..38, y=12..14): Rak dokumen konseling & dekorasi hangat
-  ctx.fillStyle = '#b4834e';
-  ctx.strokeStyle = '#1e293b';
-  ctx.lineWidth = 1.1;
-  ctx.fillRect(31.3 * t, 11.4 * t, 1.8 * t, 0.55 * t);
-  ctx.strokeRect(31.3 * t, 11.4 * t, 1.8 * t, 0.55 * t);
-
-  // I. POJOK BACA (x=40..50, y=12..22): Pendaran lampu baca hangat di atas meja baca
-  const lampGlow = ctx.createRadialGradient(
-    45.2 * t,
-    15.8 * t,
-    2,
-    45.2 * t,
-    15.8 * t,
-    1.8 * t
+  const camera = computePanelWorldCamera(
+    panel.startViewport,
+    panel.endViewport,
+    panelElapsedMs,
+    pageDurationMs,
+    logicW,
+    logicH,
+    t,
+    reducedMotion
   );
-  lampGlow.addColorStop(0, 'rgba(254, 240, 138, 0.32)');
-  lampGlow.addColorStop(1, 'rgba(254, 240, 138, 0)');
-  ctx.fillStyle = lampGlow;
-  ctx.beginPath();
-  ctx.arc(45.2 * t, 15.8 * t, 1.8 * t, 0, Math.PI * 2);
-  ctx.fill();
 
-  // J. RUANG ISTIRAHAT (x=1..12, y=18..22): Lemari penyimpanan / mesin minuman & cangkir di meja kecil
-  ctx.fillStyle = '#38bdf8';
-  ctx.beginPath();
-  ctx.arc(8.5 * t, 21.4 * t, 3.2, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.save();
+  ctx.translate(camera.offsetX, camera.offsetY);
+  ctx.scale(camera.scale, camera.scale);
 
-  // K. RUANG DOSEN (x=31..38, y=19..22): Lemari dokumen administrasi & lampu meja kerja dosen
-  ctx.fillStyle = '#784c20';
-  ctx.strokeStyle = '#1e293b';
-  ctx.lineWidth = 1.1;
-  ctx.fillRect(37.6 * t, 19.3 * t, 1.1 * t, 1.4 * t);
-  ctx.strokeRect(37.6 * t, 19.3 * t, 1.1 * t, 1.4 * t);
+  const backdrop = getIllustratedLabBackdrop(LAB_MAP, 'lab');
+  if (backdrop) {
+    ctx.imageSmoothingEnabled = true;
+    if ('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(backdrop, 0, 0, worldW, worldH);
+  }
 
+  type DepthItem =
+    | { kind: 'furniture'; baseY: number; item: LabFurniture }
+    | { kind: 'actor'; baseY: number; actor: (typeof panel.actors)[number] };
+
+  const items: DepthItem[] = LAB_MAP.furniture.map((item) => ({
+    kind: 'furniture',
+    baseY: (item.rect.y + item.rect.h) * t,
+    item,
+  }));
+
+  for (const actor of panel.actors) {
+    const animState = computeMiniSpriteAnimationState(
+      actor,
+      pageElapsedMs,
+      pageDurationMs,
+      speakingIds.has(actor.characterId),
+      reducedMotion
+    );
+    const feet = spriteFeet({ x: animState.tileX, y: animState.tileY }, t);
+    items.push({ kind: 'actor', baseY: feet.y, actor });
+  }
+
+  items.sort((a, b) => a.baseY - b.baseY);
+
+  for (const d of items) {
+    if (d.kind === 'furniture') {
+      drawIllustratedFurniture(ctx, d.item, t, tSec, reducedMotion);
+    } else {
+      const animState = computeMiniSpriteAnimationState(
+        d.actor,
+        pageElapsedMs,
+        pageDurationMs,
+        speakingIds.has(d.actor.characterId),
+        reducedMotion
+      );
+      renderMiniComicCharacter(
+        ctx,
+        d.actor,
+        animState,
+        t,
+        camera,
+        logicW,
+        logicH,
+        pageElapsedMs,
+        reducedMotion
+      );
+    }
+  }
+
+  drawAnimatedLabHolograms(ctx, LAB_MAP, tSec, reducedMotion);
+  const focusSet = new Set(panel.focusZoneIds);
+  for (const zone of LAB_MAP.zones) {
+    drawIllustratedZoneLabel(ctx, zone, t, focusSet.has(zone.id) && focusSet.size <= 3);
+  }
   ctx.restore();
 }
 
 /* ========================================================================== */
-/* LAYER 10: PENCAHAYAAN SINEMATIK 2D & BINGKAI KOMIK                         */
+/* STAGE B: EXTREME CLOSE-UP, CLOSE-UP & MEDIUM SHOT ACTION STAGES            */
 /* ========================================================================== */
+
+function renderCinematicActionStage(
+  ctx: CanvasRenderingContext2D,
+  panel: ComicPanelBlueprint,
+  w: number,
+  h: number,
+  pageElapsedMs: number,
+  panelElapsedMs: number,
+  progress01: number,
+  tSec: number,
+  reducedMotion: boolean,
+  speakingIds: Set<string>,
+  onBgReady: () => void
+): void {
+  // Kamera sinematik terpisah untuk background vs foreground (parallax depth)
+  const bgZoom = reducedMotion
+    ? 1.02
+    : panel.cameraDirection === 'dolly-in'
+      ? 1.02 + progress01 * 0.08
+      : panel.cameraDirection === 'dolly-out'
+        ? 1.1 - progress01 * 0.07
+        : 1.04;
+  const bgPanX = reducedMotion
+    ? 0
+    : panel.cameraDirection === 'pan' || panel.cameraDirection === 'tracking'
+      ? (-0.03 + progress01 * 0.06) * w
+      : 0;
+
+  // 1. LAYER BACKGROUND
+  ctx.save();
+  ctx.translate(w * 0.5 + bgPanX, h * 0.5);
+  ctx.scale(bgZoom, bgZoom);
+  ctx.translate(-w * 0.5, -h * 0.5);
+
+  const bgImg = getStageBgImage(panel.actionStage, onBgReady);
+  if (bgImg) {
+    ctx.drawImage(bgImg, 0, 0, w, h);
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.22)';
+    ctx.fillRect(0, 0, w, h);
+  } else {
+    renderCustomActionBackground(ctx, panel.actionStage, w, h, tSec, panelElapsedMs, reducedMotion);
+  }
+  ctx.restore();
+
+  // 2. LAYER CHARACTERS (Medium Shot / Close-Up Anime Pose P01-P20)
+  for (const actor of panel.actors) {
+    renderMediumOrCloseupAnimeActor(
+      ctx,
+      actor,
+      panel.shotType,
+      w,
+      h,
+      speakingIds.has(actor.characterId),
+      pageElapsedMs,
+      reducedMotion
+    );
+  }
+
+  // 3. LAYER FOREGROUND PROPS & ENVIRONMENT INTERACTION
+  renderForegroundActionProps(ctx, panel.actionStage, w, h, tSec, panelElapsedMs, reducedMotion);
+}
+
+function renderCustomActionBackground(
+  ctx: CanvasRenderingContext2D,
+  stage: ActionStageKind,
+  w: number,
+  h: number,
+  tSec: number,
+  panelElapsedMs: number,
+  reducedMotion: boolean
+): void {
+  if (stage === 'building-sign-ecu') {
+    const grad = ctx.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, '#0284c7');
+    grad.addColorStop(0.6, '#38bdf8');
+    grad.addColorStop(1, '#fef08a');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Papan Nama Gedung Laboratorium Berdetail Tinggi
+    ctx.fillStyle = '#0f172a';
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.roundRect(w * 0.08, h * 0.30, w * 0.84, h * 0.44, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fef08a';
+    ctx.font = `900 ${Math.max(12, Math.round(w * 0.052))}px "Fredoka", sans-serif`;
+    ctx.fillText('LABORATORIUM', w * 0.14, h * 0.50);
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = `800 ${Math.max(10, Math.round(w * 0.042))}px "Plus Jakarta Sans", sans-serif`;
+    ctx.fillText('ELEKTRONIKA & IoT', w * 0.14, h * 0.65);
+
+    const sway = reducedMotion ? 0 : Math.sin(tSec * 2.6) * 8;
+    ctx.fillStyle = '#16a34a';
+    ctx.strokeStyle = '#052e16';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 4; i += 1) {
+      ctx.beginPath();
+      ctx.ellipse(w * 0.14 + i * 26 + sway, h * 0.15 + (i % 2) * 10, 22, 11, 0.3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+    return;
+  }
+
+  if (stage === 'stepping-feet-ecu') {
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(0, h * 0.45, w, h * 0.55);
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 2.5;
+    for (let i = 0; i < 6; i += 1) {
+      const gx = (w / 5) * i;
+      ctx.beginPath();
+      ctx.moveTo(gx, h * 0.45);
+      ctx.lineTo(gx - 38, h);
+      ctx.stroke();
+    }
+
+    const cycle = reducedMotion ? 0.6 : tSec * 5.6;
+    const s = Math.sin(cycle);
+    const c = Math.cos(cycle);
+    drawSteppingShoe(ctx, (0.34 + s * 0.1) * w, (0.76 - Math.max(0, c) * 0.12) * h, -c * 0.2, '#1e3a8a', '#7f1d1d');
+    drawSteppingShoe(ctx, (0.64 - s * 0.1) * w, (0.76 - Math.max(0, -c) * 0.12) * h, c * 0.2, '#1e293b', '#991b1b');
+    return;
+  }
+
+  if (stage === 'door-handle-ecu') {
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(w * 0.45, 0, w * 0.18, h);
+    ctx.fillStyle = '#0284c7';
+    ctx.fillRect(w * 0.63, 0, w * 0.37, h);
+
+    const p = reducedMotion ? 1 : Math.min(1, panelElapsedMs / 750);
+    const press = reducedMotion ? 0.36 : Math.max(0, Math.min(1, (panelElapsedMs - 650) / 500)) * 0.4;
+    const clicked = press > 0.2;
+
+    // Indikator RFID hijau saat pintu terbuka
+    ctx.fillStyle = clicked ? '#22c55e' : '#f59e0b';
+    ctx.beginPath();
+    ctx.arc(w * 0.54, h * 0.28, 7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Gagang Pintu Baja
+    const px = w * 0.54;
+    const py = h * 0.54;
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(press);
+    ctx.fillStyle = '#e2e8f0';
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(-6, -8, 62, 16, 7);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // Tangan meraih & menekan gagang
+    const hx = (0.2 + p * 0.34) * w;
+    const hy = (0.66 - p * 0.12 + press * 0.08) * h;
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 26;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.8);
+    ctx.lineTo(hx, hy);
+    ctx.stroke();
+    ctx.strokeStyle = '#1e3a5f';
+    ctx.lineWidth = 20;
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.8);
+    ctx.lineTo(hx - 12, hy + 5);
+    ctx.stroke();
+    ctx.fillStyle = '#eab98f';
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2.8;
+    ctx.beginPath();
+    ctx.arc(hx + 5, hy, 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+}
+
+function drawSteppingShoe(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  angle: number,
+  pantCol: string,
+  shoeCol: string
+): void {
+  ctx.save();
+  ctx.translate(x, y);
+  // Bayangan kontak lantai
+  ctx.fillStyle = 'rgba(2, 6, 23, 0.38)';
+  ctx.beginPath();
+  ctx.ellipse(8, 16, 36, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.rotate(angle);
+  ctx.fillStyle = pantCol;
+  ctx.strokeStyle = '#0f172a';
+  ctx.lineWidth = 2.8;
+  ctx.beginPath();
+  ctx.roundRect(-20, -88, 38, 78, 6);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = shoeCol;
+  ctx.beginPath();
+  ctx.roundRect(-22, -14, 66, 24, 9);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(-22, 4, 66, 5);
+  ctx.restore();
+}
+
+function renderForegroundActionProps(
+  ctx: CanvasRenderingContext2D,
+  stage: ActionStageKind,
+  w: number,
+  h: number,
+  tSec: number,
+  _panelElapsedMs: number,
+  reducedMotion: boolean
+): void {
+  ctx.save();
+
+  if (stage === 'oscilloscope-medium-bench') {
+    // Meja praktikum depan + Osiloskop gelombang sinus hidup + PCB hijau
+    ctx.fillStyle = '#cbd5e1';
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2.5;
+    ctx.fillRect(0, h * 0.80, w, h * 0.20);
+    ctx.strokeRect(0, h * 0.80, w, h * 0.20);
+
+    // Layar Osiloskop
+    const ox = w * 0.38;
+    const oy = h * 0.64;
+    const ow = w * 0.26;
+    const oh = h * 0.24;
+    ctx.fillStyle = '#0f172a';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.roundRect(ox, oy, ow, oh, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.strokeStyle = '#4ade80';
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    for (let x = 0; x <= ow - 14; x += 4) {
+      const sy = oy + oh * 0.5 + Math.sin(x * 0.16 + tSec * 7) * (oh * 0.26);
+      if (x === 0) ctx.moveTo(ox + 7 + x, sy);
+      else ctx.lineTo(ox + 7 + x, sy);
+    }
+    ctx.stroke();
+  } else if (stage === 'coding-medium-desk' || stage === 'studio-design-medium') {
+    // Meja komputer depan + Monitor dengan baris kode / UI
+    ctx.fillStyle = '#78350f';
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2.5;
+    ctx.fillRect(0, h * 0.82, w, h * 0.18);
+    ctx.strokeRect(0, h * 0.82, w, h * 0.18);
+
+    const mx = w * 0.36;
+    const my = h * 0.66;
+    const mw = w * 0.28;
+    const mh = h * 0.22;
+    ctx.fillStyle = '#090d16';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.roundRect(mx, my, mw, mh, 5);
+    ctx.fill();
+    ctx.stroke();
+
+    const cols = ['#38bdf8', '#4ade80', '#fbbf24', '#c084fc'];
+    for (let i = 0; i < 4; i += 1) {
+      ctx.fillStyle = cols[i];
+      const len = ((i * 21 + Math.floor(tSec * 5) * 6) % 55) + 30;
+      ctx.fillRect(mx + 8, my + 8 + i * 9, (mw - 18) * (len / 100), 3.5);
+    }
+  } else if (stage === 'printer-3d-ecu') {
+    // Frame Printer 3D di foreground kiri + Nozzle bergerak mencetak objek cyan
+    const px = w * 0.08;
+    const py = h * 0.26;
+    const pw = w * 0.52;
+    const ph = h * 0.62;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.82)';
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 3.2;
+    ctx.beginPath();
+    ctx.roundRect(px, py, pw, ph, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    const nx = px + pw * (0.5 + (reducedMotion ? 0 : Math.sin(tSec * 3.6) * 0.28));
+    const ny = py + ph * 0.54;
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(px + 8, ny - 10);
+    ctx.lineTo(px + pw - 8, ny - 10);
+    ctx.stroke();
+
+    ctx.fillStyle = '#f97316';
+    ctx.fillRect(nx - 12, ny - 16, 24, 16);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(px + pw * 0.30, ny, pw * 0.40, ph * 0.28);
+  } else if (stage === 'welding-k3-medium') {
+    // Meja kerja industrial K3 + Percikan api las
+    ctx.fillStyle = '#334155';
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2.6;
+    ctx.fillRect(0, h * 0.80, w, h * 0.20);
+    ctx.strokeRect(0, h * 0.80, w, h * 0.20);
+
+    // Kilatan & bunga api las
+    const fx = w * 0.48;
+    const fy = h * 0.78;
+    const g = ctx.createRadialGradient(fx, fy, 2, fx, fy, 36);
+    g.addColorStop(0, '#ffffff');
+    g.addColorStop(0.4, '#38bdf8');
+    g.addColorStop(1, 'rgba(251, 146, 60, 0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(fx, fy, 36, 0, Math.PI * 2);
+    ctx.fill();
+
+    for (let i = 0; i < 12; i += 1) {
+      const ph = (tSec * 2.4 + i * 0.19) % 1;
+      const ang = -Math.PI * 0.85 + (i % 6) * 0.28;
+      const dist = ph * 68;
+      ctx.fillStyle = i % 2 === 0 ? '#fef08a' : '#fb923c';
+      ctx.beginPath();
+      ctx.arc(fx + Math.cos(ang) * dist, fy + Math.sin(ang) * dist + ph * ph * 45, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (stage === 'discussion-medium-table' || stage === 'reading-corner-medium') {
+    // Meja diskusi kayu ek + Dokumen skema terbuka + Laptop
+    ctx.fillStyle = '#b47438';
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2.6;
+    ctx.fillRect(0, h * 0.80, w, h * 0.20);
+    ctx.strokeRect(0, h * 0.80, w, h * 0.20);
+
+    // Dokumen skema putih di tengah meja
+    ctx.fillStyle = '#fffbeb';
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1.6;
+    ctx.fillRect(w * 0.40, h * 0.83, w * 0.20, h * 0.12);
+    ctx.strokeRect(w * 0.40, h * 0.83, w * 0.20, h * 0.12);
+  } else if (stage === 'robotics-corridor-track') {
+    // Rover robotika bergerak melintasi lantai depan
+    const rx = w * (0.48 + (reducedMotion ? 0 : Math.sin(tSec * 2.2) * 0.08));
+    const ry = h * 0.88;
+    ctx.fillStyle = '#0284c7';
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.roundRect(rx - 30, ry - 18, 60, 18, 5);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.arc(rx + 8, ry - 22, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
 
 function renderPanelAmbientLighting(
   ctx: CanvasRenderingContext2D,
@@ -537,33 +818,23 @@ function renderPanelAmbientLighting(
   h: number
 ): void {
   ctx.save();
-
   if (theme === 'morning-exterior') {
-    // Berkas sinar matahari pagi keemasan dari sudut kiri-atas gedung
     const sunGrad = ctx.createLinearGradient(0, 0, w * 0.75, h * 0.65);
-    sunGrad.addColorStop(0, 'rgba(254, 240, 138, 0.24)');
-    sunGrad.addColorStop(0.45, 'rgba(251, 191, 36, 0.08)');
+    sunGrad.addColorStop(0, 'rgba(254, 240, 138, 0.22)');
+    sunGrad.addColorStop(0.45, 'rgba(251, 191, 36, 0.07)');
     sunGrad.addColorStop(1, 'rgba(15, 23, 42, 0)');
     ctx.fillStyle = sunGrad;
     ctx.fillRect(0, 0, w, h);
-  } else if (theme === 'corridor-entry') {
-    const corrGrad = ctx.createRadialGradient(w * 0.5, h * 0.5, w * 0.1, w * 0.5, h * 0.5, w * 0.7);
-    corrGrad.addColorStop(0, 'rgba(254, 243, 199, 0.08)');
-    corrGrad.addColorStop(1, 'rgba(2, 6, 23, 0.22)');
-    ctx.fillStyle = corrGrad;
-    ctx.fillRect(0, 0, w, h);
   } else if (theme === 'title-climax') {
     const titleGrad = ctx.createRadialGradient(w * 0.5, h * 0.5, w * 0.1, w * 0.5, h * 0.5, w * 0.72);
-    titleGrad.addColorStop(0, 'rgba(15, 23, 42, 0.15)');
+    titleGrad.addColorStop(0, 'rgba(15, 23, 42, 0.14)');
     titleGrad.addColorStop(1, 'rgba(2, 6, 23, 0.62)');
     ctx.fillStyle = titleGrad;
     ctx.fillRect(0, 0, w, h);
   }
 
-  // Garis bingkai tinta dalam komik
   ctx.strokeStyle = 'rgba(15, 23, 42, 0.88)';
   ctx.lineWidth = 3.5;
   ctx.strokeRect(1.5, 1.5, w - 3, h - 3);
-
   ctx.restore();
 }

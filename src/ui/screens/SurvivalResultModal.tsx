@@ -57,7 +57,7 @@ export const SurvivalResultModal: React.FC<SurvivalResultModalProps> = ({
       data-testid={isLose ? 'game-over-modal' : 'victory-modal'}
       className="fixed inset-0 z-[80] flex items-center justify-center bg-[#24130a]/75 p-4 backdrop-blur-xs"
     >
-      <div className="game-panel-cream fx-panel-in w-full max-w-xl overflow-hidden !rounded-[28px] border-[3.5px] border-[#3e2517] shadow-[0_10px_0_#3e2517,0_26px_60px_rgba(24,10,4,0.6)]">
+      <div className="game-panel-cream responsive-modal-panel responsive-modal-panel--90 fx-panel-in w-full max-w-xl overflow-y-auto !rounded-[28px] border-[3.5px] border-[#3e2517] shadow-[0_10px_0_#3e2517,0_26px_60px_rgba(24,10,4,0.6)]">
         <div
           className="border-b-[3px] border-[#3e2517] px-6 py-5 text-[#fffdf6]"
           style={{ background: copy.headerBg }}

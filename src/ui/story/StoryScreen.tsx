@@ -856,6 +856,8 @@ export function StoryScreen({
             facing="kiri"
             fluid
             reactionKind={reactionFx?.kind ?? null}
+            dialogueText={beat?.text}
+            isListening={!studentSpeaking}
             scale={4}
           />
           {/* Papan Nama Karakter Panggung Kanan (Mahasiswa) sesuai gambar referensi */}

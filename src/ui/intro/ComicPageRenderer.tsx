@@ -30,7 +30,7 @@ export const ComicPageRenderer: React.FC<ComicPageRendererProps> = ({
       data-page-id={activePage.id}
     >
       {/* Lembar Halaman Buku Komik (Mengisi ~90% Layar dengan Border & Gutter Komik Asli) */}
-      <div className="comic-page-sheet relative flex h-[90vh] w-[96vw] max-w-[1680px] flex-col rounded-xl border-[4px] border-slate-950 bg-[#f8f4e8] p-2 shadow-[0_18px_50px_rgba(0,0,0,0.85)] sm:p-3">
+      <div className="comic-page-sheet responsive-comic-sheet relative flex h-[90vh] w-[96vw] max-w-[1680px] flex-col rounded-xl border-[4px] border-slate-950 bg-[#f8f4e8] p-2 shadow-[0_18px_50px_rgba(0,0,0,0.85)] sm:p-3">
         {/* Label Kecil Nomor Halaman Buku Komik di Sudut Kiri Atas Lembar */}
         <div className="pointer-events-none absolute -top-3 left-4 z-30 flex items-center gap-2">
           <span className="border-2 border-slate-950 bg-amber-400 px-2.5 py-0.5 font-['Fredoka',sans-serif] text-[11px] font-black tracking-wider uppercase text-slate-950 shadow-[2px_2px_0_#020617]">

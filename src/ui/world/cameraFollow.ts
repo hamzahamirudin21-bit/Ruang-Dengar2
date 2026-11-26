@@ -37,7 +37,7 @@ export function wholeMapCamera(viewport: Viewport, map: LabMapData): CameraTrans
   const availW = Math.max(120, vp.width - WHOLE_MAP_INSET_X * 2);
   const availH = Math.max(100, vp.height - topInset - bottomInset);
   const fit = Math.min(availW / worldW, availH / worldH);
-  const scale = clampScale(fit);
+  const scale = Math.min(MAX_SCALE, fit);
   const renderedW = worldW * scale;
   const renderedH = worldH * scale;
   const offsetX = Math.max(0, (vp.width - renderedW) / 2);

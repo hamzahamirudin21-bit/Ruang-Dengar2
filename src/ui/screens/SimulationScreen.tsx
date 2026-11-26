@@ -630,8 +630,9 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
 
     const updateCanvasSize = () => {
       const rect = container.getBoundingClientRect();
-      const width = Math.max(300, Math.floor(rect.width));
-      const height = Math.max(260, Math.floor(rect.height));
+      const width = Math.floor(rect.width);
+      const height = Math.floor(rect.height);
+      if (width <= 0 || height <= 0) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
       canvas.width = Math.floor(width * dpr);
@@ -1534,7 +1535,7 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({
                 setActiveDrawer(null);
                 story.requestApproach(target.id);
               }}
-              className="sim-center-energy-pill max-w-full cursor-pointer text-left disabled:cursor-not-allowed disabled:opacity-75"
+              className="sim-center-energy-pill max-w-full min-w-0 cursor-pointer overflow-hidden text-left disabled:cursor-not-allowed disabled:opacity-75"
               data-status={campusMission.campusStatus}
               data-testid="isolation-radar-alert"
               title={signalForStudent(campusMission.topPriorityAgent.id).clue}

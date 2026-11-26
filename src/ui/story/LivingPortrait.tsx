@@ -22,6 +22,17 @@ import {
 import { PixelPortrait } from '../characters/PixelPortrait';
 import { FrameCache, frameKey } from '../characters/portraitFrameCache';
 import { PORTRAIT_H, PORTRAIT_W } from '../characters/portraitExpressions';
+import {
+  getPoseAssetPath,
+  resolveDialoguePose,
+  type PoseId,
+} from '../characters/poseCatalog';
+import {
+  isPoseImageCached,
+  loadPoseImage,
+  onPoseAssetLoaded,
+  preloadActiveCharacterPoses,
+} from '../characters/poseAssetLoader';
 import { useAnimationClock, useReducedMotion } from '../motion/useMotion';
 import { portraitPose, speakerBrightness, speakerScale } from './portraitAnimation';
 
@@ -43,6 +54,12 @@ export interface LivingPortraitProps {
   fluid?: boolean;
   /** Reaksi instan saat konselor memilih jawaban tepat (+12%) atau salah (-14%). */
   reactionKind?: 'tepat' | 'salah' | null;
+  /** Teks dialog aktif untuk resolusi pose P01-P20 berbasis konteks & kepribadian. */
+  dialogueText?: string;
+  /** True bila karakter sedang dalam posisi menyimak lawan bicara. */
+  isListening?: boolean;
+  /** Override pose tertentu bila dipanggil dari UI inspeksi/QC. */
+  poseIdOverride?: PoseId | null;
   className?: string;
 }
 
@@ -146,6 +163,9 @@ export function LivingPortrait({
   facing = 'depan',
   fluid = false,
   reactionKind = null,
+  dialogueText,
+  isListening = false,
+  poseIdOverride = null,
   className,
 }: LivingPortraitProps) {
   const hookReduced = useReducedMotion();
@@ -153,6 +173,42 @@ export function LivingPortrait({
   const { source: assetSource, ready: assetReady } = usePortraitAsset(studentId, expression);
   const timeMs = useAnimationClock(!reduced && assetSource.kind !== 'aset');
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const prevPoseRef = useRef<PoseId | null>(null);
+  const [, setPoseTick] = useState(0);
+
+  const poseResolution = useMemo(() => {
+    const resolved = resolveDialoguePose({
+      speakerId: studentId,
+      expression,
+      dialogueText,
+      isSpeaker,
+      isListening,
+      reactionKind,
+      previousPoseId: prevPoseRef.current,
+    });
+    if (poseIdOverride) {
+      return { ...resolved, poseId: poseIdOverride };
+    }
+    return resolved;
+  }, [dialogueText, expression, isListening, isSpeaker, poseIdOverride, reactionKind, studentId]);
+
+  useEffect(() => {
+    prevPoseRef.current = poseResolution.poseId;
+  }, [poseResolution.poseId]);
+
+  const poseAssetUrl = useMemo(
+    () => getPoseAssetPath(studentId, poseResolution.poseId),
+    [poseResolution.poseId, studentId],
+  );
+
+  // Lazy-load pose aktif & preload pose prioritas karakter yang sedang aktif saja
+  useEffect(() => {
+    if (!poseAssetUrl) return undefined;
+    const unsub = onPoseAssetLoaded(() => setPoseTick((n) => n + 1));
+    void loadPoseImage(poseAssetUrl);
+    void preloadActiveCharacterPoses(studentId);
+    return unsub;
+  }, [poseAssetUrl, studentId]);
 
   const s = Math.max(1, Math.floor(Number.isFinite(scale) ? scale : 1));
   const pose = portraitPose({
@@ -195,7 +251,9 @@ export function LivingPortrait({
   const bright = reduced ? speakerBrightness(isSpeaker) : pose.brightness;
 
   if (assetSource.kind === 'aset') {
-    const expr = assetSource.specificExpression ? null : transformForExpression(expression);
+    const resolvedPoseReady = isPoseImageCached(poseAssetUrl);
+    const activeImageSrc = resolvedPoseReady && poseAssetUrl ? poseAssetUrl : assetSource.url;
+    const expr = assetSource.specificExpression || resolvedPoseReady ? null : transformForExpression(expression);
     const isWarm =
       reactionKind === 'tepat' || expression === 'tersenyum' || expression === 'lega';
     const isDowncast =
@@ -218,7 +276,7 @@ export function LivingPortrait({
       transformOrigin: 'bottom center',
       transform: 'none',
       filter: `brightness(${totalBright}) saturate(${sat})`,
-      transition: reduced ? 'none' : 'filter 200ms ease',
+      transition: reduced ? 'none' : 'filter 200ms ease, opacity 220ms ease',
     };
 
     return (
@@ -227,14 +285,21 @@ export function LivingPortrait({
         style={spriteStyle}
         data-speaker={isSpeaker ? 'true' : undefined}
         data-expression={expression}
+        data-pose-id={poseResolution.poseId}
+        data-pose-emotion={poseResolution.emotion}
+        data-pose-animation={poseResolution.animationType}
         data-reaction={reactionKind ?? undefined}
       >
         <img
-          src={assetSource.url}
+          src={activeImageSrc}
           alt={label}
           role="img"
           aria-label={label}
           className="vn-sprite-img"
+          style={{
+            transformOrigin: 'bottom center',
+            transition: reduced ? 'none' : 'opacity 220ms ease, transform 240ms ease',
+          }}
           draggable={false}
         />
       </div>
